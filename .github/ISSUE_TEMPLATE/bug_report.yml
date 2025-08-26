@@ -1,0 +1,106 @@
+name: "🐞 Bug Report"
+description: Report a reproducible problem.
+title: "[Bug]: "
+labels:
+  - bug
+  - needs-triage
+assignees:
+  - JaclynCodes
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the sections below so we can help quickly.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-Flight Checklist
+      description: Please confirm.
+      options:
+        - label: I am using the latest version (or main branch).
+          required: true
+        - label: I searched existing issues; this is not a duplicate.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / Commit
+      description: Tag or commit SHA you are using.
+      placeholder: e.g. v3.4.2 or a1b2c3d
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS, runtime (Node/Python/etc), browser (if applicable).
+      placeholder: |
+        OS: macOS 14.5
+        Runtime: Node 20.11
+        DB: Postgres 15
+      render: text
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Clear, concise description of the bug.
+      placeholder: What happened vs what you expected.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Steps
+      description: Exact steps or minimal code snippet to reproduce.
+      placeholder: |
+        1. Run ...
+        2. Click ...
+        3. Observe error ...
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Stack Trace
+      description: Paste relevant logs (redact secrets).
+      render: text
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Screen Capture
+      description: Drag and drop images if helpful.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - crash / data loss
+        - broken feature
+        - degraded / workaround exists
+        - minor / cosmetic
+    validations:
+      required: true
+  - type: checkboxes
+    id: impacts
+    attributes:
+      label: Impact Areas
+      options:
+        - label: Security
+        - label: Performance
+        - label: User Experience
+        - label: Data Integrity
+        - label: Build / CI
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Related issues, hypotheses, links.
+      render: markdown

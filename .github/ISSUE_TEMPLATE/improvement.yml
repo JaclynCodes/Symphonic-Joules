@@ -1,0 +1,49 @@
+name: "🛠 Improvement / Refactor"
+description: Code quality, refactor, or internal improvement.
+title: "[Improve]: "
+labels:
+  - refactor
+  - tech-debt
+assignees:
+  - JaclynCodes
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Current State / Pain
+      description: What is suboptimal now?
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Improvement
+      description: Outline refactor steps or approach.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks / Considerations
+      description: Potential regressions, complexity, migrations.
+      render: markdown
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Definition of Done
+      description: Performance, maintainability, or metrics targets.
+      placeholder: |
+        - [ ] Cyclomatic complexity reduced by ...
+        - [ ] Build time decreases by ...
+      render: markdown
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 (urgent)
+        - P1 (high)
+        - P2 (normal)
+        - P3 (low)

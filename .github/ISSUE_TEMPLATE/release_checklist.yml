@@ -1,0 +1,54 @@
+name: "🚢 Release Checklist"
+description: Track tasks for a release.
+title: "Release: vX.Y.Z"
+labels:
+  - release
+assignees:
+  - JaclynCodes
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Target Version
+      placeholder: vX.Y.Z
+    validations:
+      required: true
+  - type: checkboxes
+    id: prefreeze
+    attributes:
+      label: Pre-Freeze
+      options:
+        - label: All critical bugs triaged
+        - label: Feature set finalized
+        - label: Dependencies audited
+  - type: checkboxes
+    id: stabilization
+    attributes:
+      label: Stabilization
+      options:
+        - label: Regression suite passed
+        - label: Performance benchmarks within threshold
+        - label: Security scan clean / acceptable
+        - label: Docs updated
+  - type: checkboxes
+    id: release
+    attributes:
+      label: Release Steps
+      options:
+        - label: Tag created and pushed
+        - label: Changelog updated
+        - label: Artifacts published
+        - label: Announcement drafted
+  - type: checkboxes
+    id: post
+    attributes:
+      label: Post-Release
+      options:
+        - label: Monitoring dashboards clean
+        - label: Error budget unaffected
+        - label: Rollback plan validated
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / Links
+      render: markdown

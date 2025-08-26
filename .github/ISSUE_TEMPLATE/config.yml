@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Policy
+    url: https://github.com/JaclynCodes/Symphonic-Joules/SECURITY.md
+    about: Report vulnerabilities via the instructions in SECURITY.md.
+  - name: Q&A / Discussions
+    url: https://github.com/JaclynCodes/Symphonic-Joules/discussions
+    about: Please use GitHub Discussions for general questions.

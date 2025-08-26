@@ -1,0 +1,72 @@
+name: "✨ Feature Request"
+description: Suggest a new feature or enhancement.
+title: "[Feature]: "
+labels:
+  - enhancement
+  - needs-triage
+assignees:
+  - JaclynCodes
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please explain the problem first, then the proposed solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Motivation
+      description: What user problem or need does this address?
+      placeholder: Users cannot...
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Outline your idea. Include API, UI, CLI examples.
+      placeholder: Describe how you'd like it to work.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other approaches or workarounds you evaluated.
+      render: markdown
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Estimated Scope
+      description: Rough size estimate.
+      options:
+        - XS (≤1 day)
+        - S (1–2 days)
+        - M (3–5 days)
+        - L (1–2 weeks)
+        - XL (>2 weeks / multi-epic)
+  - type: checkboxes
+    id: impacts
+    attributes:
+      label: Impact Areas
+      options:
+        - label: Security
+        - label: Performance
+        - label: Developer Experience
+        - label: User Experience
+        - label: Documentation
+  - type: textarea
+    id: success
+    attributes:
+      label: Success Criteria / Acceptance
+      description: Bullet list of acceptance tests or user outcomes.
+      placeholder: |
+        - [ ] Given X when Y then Z
+      render: markdown
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Links, sketches, references.
+      render: markdown
