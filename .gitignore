@@ -1,0 +1,119 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.metadata
+.classpath
+.settings/
+
+# Temporary Files
+*.tmp
+*.temp
+/tmp/
+.cache/
+
+# Log Files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency Directories
+node_modules/
+bower_components/
+vendor/
+
+# Build Outputs
+build/
+dist/
+out/
+target/
+bin/
+obj/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+
+# C/C++
+*.o
+*.a
+*.so
+*.exe
+*.dll
+
+# Audio Files (temporary/test files)
+*.wav.tmp
+*.mp3.tmp
+*.flac.tmp
+test_audio/
+temp_audio/
+
+# Data Files
+*.csv.bak
+*.json.bak
+data/cache/
+results/temp/
+
+# Documentation Build
+docs/_build/
+docs/site/
+.sphinx-build/
+
+# Package Files
+*.egg-info/
+*.whl
+*.tar.gz
+*.zip
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+
+# Backup Files
+*.bak
+*.backup
+*.orig
+
+# Lock Files (keep package-lock.json for reproducible builds)
+yarn.lock
+Pipfile.lock
