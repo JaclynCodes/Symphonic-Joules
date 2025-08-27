@@ -41,6 +41,15 @@ Thank you for your interest in contributing to Symphonic-Joules! This document p
    - Ensure all tests pass
    - Request review from maintainers
 
+### Submitting Code Archives
+
+For larger contributions or external code uploads:
+
+- Follow the [Archive Review Process](docs/archive-review-process.md)
+- Provide clear documentation of archive contents and purpose
+- Ensure all code meets security and quality standards
+- Include integration plan and compatibility assessment
+
 ## 📝 Development Guidelines
 
 ### Code Style
