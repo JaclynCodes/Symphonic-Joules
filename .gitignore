@@ -114,6 +114,8 @@ test-results/
 *.backup
 *.orig
 
-# Lock Files (keep package-lock.json for reproducible builds)
+# Lock Files (keep package-lock.json for reproducible builds when package.json exists)
 yarn.lock
 Pipfile.lock
+# Temporary lock file from failed npm commands (remove when package.json exists)
+package-lock.json
