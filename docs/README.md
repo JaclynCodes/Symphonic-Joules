@@ -8,6 +8,7 @@ Welcome to the Symphonic-Joules documentation! This directory contains comprehen
 - **[API Reference](api-reference.md)** - Detailed API documentation
 - **[Examples](examples/)** - Code examples and tutorials
 - **[Architecture](architecture.md)** - System design and architecture
+- **[Archive Review Process](archive-review-process.md)** - Guidelines for reviewing uploaded code and archives
 - **[FAQ](faq.md)** - Frequently asked questions
 
 ## 🎯 Quick Navigation
@@ -20,6 +21,7 @@ Welcome to the Symphonic-Joules documentation! This directory contains comprehen
 ### For Developers
 - [Contributing Guidelines](../CONTRIBUTING.md)
 - [Architecture Overview](architecture.md)
+- [Archive Review Process](archive-review-process.md)
 - [API Reference](api-reference.md)
 
 ### For Scientists
