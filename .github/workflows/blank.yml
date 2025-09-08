@@ -34,3 +34,4 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+  #[![CI](https://github.com/JaclynCodes/Symphonic-Joules/actions/workflows/blank.yml/badge.svg)](https://github.com/JaclynCodes/Symphonic-Joules/actions/workflows/blank.yml)
