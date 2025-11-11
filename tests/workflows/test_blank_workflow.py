@@ -16,26 +16,39 @@ import os
 from pathlib import Path
 
 
+# Module-level fixtures to cache expensive file I/O and parsing operations
+@pytest.fixture(scope='module')
+def workflow_path():
+    """
+    Module-scoped fixture for workflow file path.
+    Computed once and shared across all tests in this module.
+    """
+    repo_root = Path(__file__).parent.parent.parent
+    return repo_root / '.github' / 'workflows' / 'blank.yml'
+
+
+@pytest.fixture(scope='module')
+def workflow_raw(workflow_path):
+    """
+    Module-scoped fixture for raw workflow content.
+    File is read once and cached for all tests.
+    """
+    with open(workflow_path, 'r') as f:
+        return f.read()
+
+
+@pytest.fixture(scope='module')
+def workflow_content(workflow_path):
+    """
+    Module-scoped fixture for parsed workflow content.
+    YAML parsing is done once and cached for all tests.
+    """
+    with open(workflow_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
 class TestWorkflowStructure:
     """Test the basic structure and syntax of the workflow file"""
-    
-    @pytest.fixture
-    def workflow_path(self):
-        """Path to the workflow file"""
-        repo_root = Path(__file__).parent.parent.parent
-        return repo_root / '.github' / 'workflows' / 'blank.yml'
-    
-    @pytest.fixture
-    def workflow_content(self, workflow_path):
-        """Load and parse the workflow file"""
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
-    
-    @pytest.fixture
-    def workflow_raw(self, workflow_path):
-        """Load raw workflow content"""
-        with open(workflow_path, 'r') as f:
-            return f.read()
     
     def test_workflow_file_exists(self, workflow_path):
         """Test that the workflow file exists at the expected location"""
@@ -66,13 +79,6 @@ class TestWorkflowStructure:
 class TestWorkflowMetadata:
     """Test workflow metadata and configuration"""
     
-    @pytest.fixture
-    def workflow_content(self):
-        """Load workflow content"""
-        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
-    
     def test_workflow_name_is_defined(self, workflow_content):
         """Test that workflow has a name defined"""
         assert 'name' in workflow_content, "Workflow name not defined"
@@ -94,15 +100,8 @@ class TestBranchConfiguration:
     """Test branch configuration - critical for the main branch change"""
     
     @pytest.fixture
-    def workflow_content(self):
-        """Load workflow content"""
-        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
-    
-    @pytest.fixture
     def triggers(self, workflow_content):
-        """Get trigger configuration"""
+        """Get trigger configuration from cached workflow content"""
         return workflow_content.get(True) or workflow_content.get('on')
     
     def test_push_trigger_exists(self, triggers):
@@ -158,15 +157,8 @@ class TestJobsConfiguration:
     """Test jobs configuration"""
     
     @pytest.fixture
-    def workflow_content(self):
-        """Load workflow content"""
-        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
-    
-    @pytest.fixture
     def jobs(self, workflow_content):
-        """Get jobs configuration"""
+        """Get jobs configuration from cached workflow content"""
         return workflow_content.get('jobs', {})
     
     def test_jobs_section_exists(self, workflow_content):
@@ -203,12 +195,9 @@ class TestStepsConfiguration:
     """Test individual steps within the build job"""
     
     @pytest.fixture
-    def steps(self):
-        """Load workflow steps"""
-        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_path, 'r') as f:
-            content = yaml.safe_load(f)
-        return content['jobs']['build']['steps']
+    def steps(self, workflow_content):
+        """Get workflow steps from cached workflow content"""
+        return workflow_content['jobs']['build']['steps']
     
     def test_has_checkout_step(self, steps):
         """Test that workflow includes checkout action"""
@@ -259,13 +248,6 @@ class TestStepsConfiguration:
 class TestWorkflowComments:
     """Test comments and documentation in the workflow file"""
     
-    @pytest.fixture
-    def workflow_raw(self):
-        """Load raw workflow content"""
-        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_path, 'r') as f:
-            return f.read()
-    
     def test_has_comments(self, workflow_raw):
         """Test that workflow file contains comments"""
         comment_lines = [line for line in workflow_raw.split('\n') if line.strip().startswith('#')]
@@ -273,8 +255,11 @@ class TestWorkflowComments:
     
     def test_main_branch_comment_matches_config(self, workflow_raw):
         """Test that comments about main branch match the actual configuration"""
-        # Check that comments mention 'main' branch
-        assert 'main' in workflow_raw.lower(), "Workflow should mention 'main' branch"
+        # Check that comments mention 'main' branch - optimize by avoiding full lowercase conversion
+        # Only convert to lowercase for case-insensitive search
+        if 'main' not in workflow_raw and 'MAIN' not in workflow_raw and 'Main' not in workflow_raw:
+            pytest.fail("Workflow should mention 'main' branch")
+        
         # Ensure 'base' branch is not mentioned in active configuration
         lines = workflow_raw.split('\n')
         for line in lines:
@@ -294,18 +279,6 @@ class TestWorkflowComments:
 
 class TestEdgeCases:
     """Test edge cases and potential failure scenarios"""
-    
-    @pytest.fixture
-    def workflow_path(self):
-        """Path to the workflow file"""
-        repo_root = Path(__file__).parent.parent.parent
-        return repo_root / '.github' / 'workflows' / 'blank.yml'
-    
-    @pytest.fixture
-    def workflow_content(self, workflow_path):
-        """Load workflow content"""
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
     
     def test_no_syntax_errors_in_yaml(self, workflow_path):
         """Test that there are no YAML syntax errors"""
@@ -367,20 +340,6 @@ class TestEdgeCases:
 class TestWorkflowSecurity:
     """Test security aspects of the workflow"""
     
-    @pytest.fixture
-    def workflow_raw(self):
-        """Load raw workflow content"""
-        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_path, 'r') as f:
-            return f.read()
-    
-    @pytest.fixture
-    def workflow_content(self):
-        """Load parsed workflow content"""
-        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
-    
     def test_no_hardcoded_secrets(self, workflow_raw):
         """Test that workflow doesn't contain hardcoded secrets"""
         suspicious_patterns = ['password', 'token', 'api_key', 'secret']
@@ -410,12 +369,6 @@ class TestWorkflowSecurity:
 
 class TestWorkflowFilePermissions:
     """Test file permissions and location"""
-    
-    @pytest.fixture
-    def workflow_path(self):
-        """Path to the workflow file"""
-        repo_root = Path(__file__).parent.parent.parent
-        return repo_root / '.github' / 'workflows' / 'blank.yml'
     
     def test_workflow_in_correct_directory(self, workflow_path):
         """Test that workflow is in .github/workflows directory"""
