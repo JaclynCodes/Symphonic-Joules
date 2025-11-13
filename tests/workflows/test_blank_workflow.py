@@ -38,13 +38,13 @@ def workflow_raw(workflow_path):
 
 
 @pytest.fixture(scope='module')
-def workflow_content(workflow_path):
+def workflow_content(workflow_raw):
     """
     Module-scoped fixture for parsed workflow content.
     YAML parsing is done once and cached for all tests.
+    Reuses workflow_raw to avoid redundant file I/O.
     """
-    with open(workflow_path, 'r') as f:
-        return yaml.safe_load(f)
+    return yaml.safe_load(workflow_raw)
 
 
 class TestWorkflowStructure:
@@ -55,13 +55,6 @@ class TestWorkflowStructure:
         assert workflow_path.exists(), f"Workflow file not found at {workflow_path}"
         assert workflow_path.is_file(), f"Expected file but found directory at {workflow_path}"
     
-    def test_workflow_is_valid_yaml(self, workflow_path):
-        """Test that the workflow file contains valid YAML syntax"""
-        try:
-            with open(workflow_path, 'r') as f:
-                yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            pytest.fail(f"Invalid YAML syntax: {e}")
     
     def test_workflow_is_not_empty(self, workflow_content):
         """Test that the workflow file is not empty"""
@@ -104,6 +97,12 @@ class TestBranchConfiguration:
         """Get trigger configuration from cached workflow content"""
         return workflow_content.get(True) or workflow_content.get('on')
     
+    def _validate_branch_config(self, branches, trigger_name):
+        """Helper method to validate branch configuration"""
+        assert isinstance(branches, list), f"{trigger_name} branches must be a list"
+        assert 'main' in branches, f"{trigger_name} trigger must include 'main' branch"
+        assert 'base' not in branches, f"{trigger_name} trigger should not include 'base' branch (should be 'main')"
+    
     def test_push_trigger_exists(self, triggers):
         """Test that push trigger is configured"""
         assert 'push' in triggers, "Push trigger not configured"
@@ -131,16 +130,12 @@ class TestBranchConfiguration:
     def test_push_branches_is_main(self, triggers):
         """Test that push trigger is configured for 'main' branch (not 'base')"""
         push_branches = triggers['push']['branches']
-        assert isinstance(push_branches, list), "Push branches must be a list"
-        assert 'main' in push_branches, "Push trigger must include 'main' branch"
-        assert 'base' not in push_branches, "Push trigger should not include 'base' branch (should be 'main')"
+        self._validate_branch_config(push_branches, "Push")
     
     def test_pull_request_branches_is_main(self, triggers):
         """Test that pull_request trigger is configured for 'main' branch (not 'base')"""
         pr_branches = triggers['pull_request']['branches']
-        assert isinstance(pr_branches, list), "Pull request branches must be a list"
-        assert 'main' in pr_branches, "Pull request trigger must include 'main' branch"
-        assert 'base' not in pr_branches, "Pull request trigger should not include 'base' branch (should be 'main')"
+        self._validate_branch_config(pr_branches, "Pull request")
     
     def test_only_main_branch_configured(self, triggers):
         """Test that only 'main' branch is configured (no other branches)"""
@@ -280,26 +275,19 @@ class TestWorkflowComments:
 class TestEdgeCases:
     """Test edge cases and potential failure scenarios"""
     
-    def test_no_syntax_errors_in_yaml(self, workflow_path):
+    def test_no_syntax_errors_in_yaml(self, workflow_content):
         """Test that there are no YAML syntax errors"""
-        try:
-            with open(workflow_path, 'r') as f:
-                yaml.safe_load(f)
-        except yaml.scanner.ScannerError as e:
-            pytest.fail(f"YAML scanner error: {e}")
-        except yaml.parser.ParserError as e:
-            pytest.fail(f"YAML parser error: {e}")
+        # If workflow_content fixture loaded successfully, YAML is valid
+        # This test validates that the fixture itself works properly
+        assert workflow_content is not None, "YAML content should be loaded"
     
-    def test_no_tabs_in_yaml(self, workflow_path):
+    def test_no_tabs_in_yaml(self, workflow_raw):
         """Test that workflow file doesn't use tabs (YAML should use spaces)"""
-        with open(workflow_path, 'r') as f:
-            content = f.read()
-        assert '\t' not in content, "YAML file should use spaces, not tabs"
+        assert '\t' not in workflow_raw, "YAML file should use spaces, not tabs"
     
-    def test_consistent_indentation(self, workflow_path):
+    def test_consistent_indentation(self, workflow_raw):
         """Test that indentation is consistent throughout the file"""
-        with open(workflow_path, 'r') as f:
-            lines = f.readlines()
+        lines = workflow_raw.split('\n')
         
         # Check that indentation is consistent (multiples of 2)
         for i, line in enumerate(lines, 1):
