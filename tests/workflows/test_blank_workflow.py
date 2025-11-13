@@ -103,6 +103,12 @@ class TestBranchConfiguration:
         assert 'main' in branches, f"{trigger_name} trigger must include 'main' branch"
         assert 'base' not in branches, f"{trigger_name} trigger should not include 'base' branch (should be 'main')"
     
+    def _assert_trigger_has_branches(self, triggers, trigger_key, trigger_name):
+        """Helper method to assert that a trigger has branch configuration"""
+        trigger_config = triggers.get(trigger_key)
+        assert trigger_config is not None, f"{trigger_name} trigger configuration is None"
+        assert 'branches' in trigger_config, f"{trigger_name} trigger missing branches configuration"
+    
     def test_push_trigger_exists(self, triggers):
         """Test that push trigger is configured"""
         assert 'push' in triggers, "Push trigger not configured"
@@ -117,15 +123,11 @@ class TestBranchConfiguration:
     
     def test_push_trigger_has_branches(self, triggers):
         """Test that push trigger has branch configuration"""
-        push_config = triggers.get('push')
-        assert push_config is not None, "Push trigger configuration is None"
-        assert 'branches' in push_config, "Push trigger missing branches configuration"
+        self._assert_trigger_has_branches(triggers, 'push', "Push")
     
     def test_pull_request_trigger_has_branches(self, triggers):
         """Test that pull_request trigger has branch configuration"""
-        pr_config = triggers.get('pull_request')
-        assert pr_config is not None, "Pull request trigger configuration is None"
-        assert 'branches' in pr_config, "Pull request trigger missing branches configuration"
+        self._assert_trigger_has_branches(triggers, 'pull_request', "Pull request")
     
     def test_push_branches_is_main(self, triggers):
         """Test that push trigger is configured for 'main' branch (not 'base')"""
