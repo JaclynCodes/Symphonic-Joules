@@ -27,11 +27,6 @@ Welcome to the Symphonic-Joules documentation! This directory contains comprehen
 - [Test Performance Guide](test-performance-guide.md)
 - [API Reference](api-reference.md)
 
-### For Scientists
-- [Scientific Background](scientific-background.md)
-- [Mathematical Foundations](mathematical-foundations.md)
-- [Physical Principles](physical-principles.md)
-
 ## 🔄 Keeping Documentation Updated
 
 Documentation is a living part of the project. When contributing code:

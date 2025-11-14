@@ -1,14 +1,15 @@
 # This is a basic workflow to help you get started with Actions
+# Status: ![CI](https://github.com/JaclynCodes/Symphonic-Joules/workflows/CI/badge.svg)
 
 name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "base" branch
+  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "base" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "base" ]
+    branches: [ "main" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
