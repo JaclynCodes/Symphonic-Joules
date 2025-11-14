@@ -116,8 +116,6 @@ Feature requests can be submitted through GitHub Issues. Please include:
 
 ### Where can I learn more about the scientific background?
 
-- [Scientific Background](scientific-background.md) - Project-specific information
-- [Mathematical Foundations](mathematical-foundations.md) - Mathematical concepts
 - Academic literature on acoustics and energy physics
 - Signal processing textbooks and resources
 

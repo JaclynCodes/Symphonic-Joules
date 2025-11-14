@@ -72,7 +72,6 @@ Common issues and solutions will be documented here as the project develops and 
 
 ## 📚 Further Reading
 
-- [Scientific Background](scientific-background.md)
 - [Contributing Guidelines](../CONTRIBUTING.md)
 - [Project Roadmap](../README.md#roadmap)
 
