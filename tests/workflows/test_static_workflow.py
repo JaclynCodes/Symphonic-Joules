@@ -1,17 +1,15 @@
 """
 Comprehensive test suite for .github/workflows/static.yml
 
-This test suite validates the GitHub Actions workflow configuration for static content deployment including:
+This test suite validates the GitHub Actions workflow for static content deployment including:
 - YAML syntax and structure
-- Workflow metadata (name, triggers)
-- Branch configuration for main branch
-- Permissions configuration for GitHub Pages
-- Concurrency settings
-- Job definition for direct deployment
+- Workflow metadata and permissions
+- Trigger configuration (push to main, workflow_dispatch)
+- Single deploy job configuration
 - Step definitions and action versions
-- Upload configuration for static content
-- Security and best practices
-- Edge cases and failure scenarios
+- Concurrency settings
+- Environment configuration
+- Edge cases and security considerations
 """
 
 import pytest
@@ -20,34 +18,23 @@ import os
 from pathlib import Path
 
 
-# Module-level fixtures to cache expensive file I/O and parsing operations
 @pytest.fixture(scope='module')
 def workflow_path():
-    """
-    Module-scoped fixture for workflow file path.
-    Computed once and shared across all tests in this module.
-    """
+    """Module-scoped fixture for workflow file path."""
     repo_root = Path(__file__).parent.parent.parent
     return repo_root / '.github' / 'workflows' / 'static.yml'
 
 
 @pytest.fixture(scope='module')
 def workflow_raw(workflow_path):
-    """
-    Module-scoped fixture for raw workflow content.
-    File is read once and cached for all tests.
-    """
+    """Module-scoped fixture for raw workflow content."""
     with open(workflow_path, 'r') as f:
         return f.read()
 
 
 @pytest.fixture(scope='module')
 def workflow_content(workflow_raw):
-    """
-    Module-scoped fixture for parsed workflow content.
-    YAML parsing is done once and cached for all tests.
-    Reuses workflow_raw to avoid redundant file I/O.
-    """
+    """Module-scoped fixture for parsed workflow content."""
     return yaml.safe_load(workflow_raw)
 
 
@@ -59,167 +46,154 @@ class TestWorkflowStructure:
         assert workflow_path.exists(), f"Workflow file not found at {workflow_path}"
         assert workflow_path.is_file(), f"Expected file but found directory at {workflow_path}"
     
-    def test_workflow_is_not_empty(self, workflow_content):
-        """Test that the workflow file is not empty"""
+    def test_workflow_is_valid_yaml(self, workflow_content):
+        """Test that the workflow file is valid YAML"""
         assert workflow_content is not None, "Workflow content is None"
-        assert len(workflow_content) > 0, "Workflow content is empty"
+        assert isinstance(workflow_content, dict), "Workflow content must be a dictionary"
     
-    def test_workflow_has_required_top_level_keys(self, workflow_content):
+    def test_workflow_has_required_keys(self, workflow_content):
         """Test that workflow has all required top-level keys"""
         assert 'name' in workflow_content, "Workflow missing 'name' key"
         assert 'jobs' in workflow_content, "Workflow missing 'jobs' key"
-        # 'on' key is parsed as boolean True by PyYAML
+        # 'on' key is parsed as True by PyYAML
         assert True in workflow_content or 'on' in workflow_content, "Workflow missing trigger configuration"
-    
-    def test_workflow_has_permissions(self, workflow_content):
-        """Test that workflow has permissions configuration for GitHub Pages"""
-        assert 'permissions' in workflow_content, "Workflow missing 'permissions' key"
-    
-    def test_workflow_has_concurrency(self, workflow_content):
-        """Test that workflow has concurrency configuration"""
-        assert 'concurrency' in workflow_content, "Workflow missing 'concurrency' key"
 
 
 class TestWorkflowMetadata:
     """Test workflow metadata and configuration"""
     
     def test_workflow_name_is_defined(self, workflow_content):
-        """Test that workflow has a name defined"""
+        """Test that workflow has a descriptive name"""
         assert 'name' in workflow_content, "Workflow name not defined"
-        assert isinstance(workflow_content['name'], str), "Workflow name must be a string"
-        assert len(workflow_content['name']) > 0, "Workflow name cannot be empty"
+        name = workflow_content['name']
+        assert isinstance(name, str), "Workflow name must be a string"
+        assert len(name) > 0, "Workflow name cannot be empty"
     
-    def test_workflow_name_mentions_static(self, workflow_content):
-        """Test that the workflow name mentions static content"""
-        name = workflow_content['name'].lower()
-        assert 'static' in name, f"Expected workflow name to mention 'static', got '{workflow_content['name']}'"
+    def test_workflow_name_indicates_static_deployment(self, workflow_content):
+        """Test that workflow name indicates static content deployment"""
+        name = workflow_content['name']
+        assert 'static' in name.lower() or 'deploy' in name.lower(), \
+            f"Expected static/deploy in name, got '{name}'"
+        assert 'Pages' in name or 'pages' in name.lower(), "Name should mention Pages"
     
-    def test_workflow_name_mentions_pages(self, workflow_content):
-        """Test that the workflow name mentions Pages"""
-        name = workflow_content['name'].lower()
-        assert 'pages' in name, f"Expected workflow name to mention 'pages', got '{workflow_content['name']}'"
-    
-    def test_workflow_has_triggers(self, workflow_content):
-        """Test that workflow has trigger configuration"""
-        triggers = workflow_content.get(True) or workflow_content.get('on')
-        assert triggers is not None, "Workflow has no trigger configuration"
+    def test_workflow_name_format(self, workflow_content):
+        """Test that workflow name is properly capitalized"""
+        name = workflow_content['name']
+        # First word should be capitalized
+        words = name.split()
+        assert len(words) > 0, "Name should have at least one word"
+        assert words[0][0].isupper(), "First word should start with capital letter"
 
 
-class TestBranchConfiguration:
-    """Test branch configuration for main branch"""
+class TestTriggerConfiguration:
+    """Test trigger configuration for the workflow"""
     
     @pytest.fixture
     def triggers(self, workflow_content):
-        """Get trigger configuration from cached workflow content"""
+        """Get trigger configuration"""
         return workflow_content.get(True) or workflow_content.get('on')
     
-    def test_push_trigger_exists(self, triggers):
-        """Test that push trigger is configured"""
-        assert 'push' in triggers, "Push trigger not configured"
+    def test_has_push_trigger(self, triggers):
+        """Test that workflow has push trigger"""
+        assert 'push' in triggers, "Workflow should have push trigger"
     
-    def test_workflow_dispatch_trigger_exists(self, triggers):
-        """Test that workflow_dispatch trigger is configured"""
-        assert 'workflow_dispatch' in triggers, "Workflow dispatch trigger not configured"
+    def test_has_workflow_dispatch_trigger(self, triggers):
+        """Test that workflow has manual trigger"""
+        assert 'workflow_dispatch' in triggers, "Workflow should support manual triggering"
     
-    def test_push_trigger_has_branches(self, triggers):
-        """Test that push trigger has branch configuration"""
+    def test_push_trigger_targets_main_branch(self, triggers):
+        """Test that push trigger targets main branch"""
         push_config = triggers.get('push')
-        assert push_config is not None, "Push trigger configuration is None"
-        assert 'branches' in push_config, "Push trigger missing branches configuration"
+        assert push_config is not None, "Push configuration is missing"
+        assert 'branches' in push_config, "Push trigger missing branch configuration"
+        branches = push_config['branches']
+        assert isinstance(branches, list), "Branches must be a list"
+        assert 'main' in branches, "Push trigger should target 'main' branch"
     
-    def test_push_branches_is_main(self, triggers):
-        """Test that push trigger is configured for 'main' branch"""
-        push_branches = triggers['push']['branches']
-        assert isinstance(push_branches, list), "Push branches must be a list"
-        assert 'main' in push_branches, "Push trigger must include 'main' branch"
+    def test_only_main_branch_in_push_trigger(self, triggers):
+        """Test that push trigger only targets main branch"""
+        push_config = triggers.get('push')
+        branches = push_config['branches']
+        assert len(branches) == 1, f"Expected only 'main' branch, got {branches}"
+        assert branches[0] == 'main', f"Expected 'main', got '{branches[0]}'"
     
-    def test_only_main_branch_configured(self, triggers):
-        """Test that only 'main' branch is configured"""
-        push_branches = triggers['push']['branches']
-        assert len(push_branches) == 1, f"Expected exactly 1 push branch, got {len(push_branches)}"
-        assert push_branches[0] == 'main', f"Expected 'main' branch for push, got '{push_branches[0]}'"
+    def test_no_pull_request_trigger(self, triggers):
+        """Test that workflow doesn't trigger on pull requests (deployment workflow)"""
+        assert 'pull_request' not in triggers, "Deployment workflow should not trigger on PRs"
 
 
-class TestPermissionsConfiguration:
-    """Test permissions configuration for GitHub Pages deployment"""
+class TestPermissions:
+    """Test GitHub token permissions configuration"""
     
-    @pytest.fixture
-    def permissions(self, workflow_content):
-        """Get permissions configuration from cached workflow content"""
-        return workflow_content.get('permissions', {})
+    def test_has_permissions_section(self, workflow_content):
+        """Test that workflow defines permissions"""
+        assert 'permissions' in workflow_content, "Workflow should define permissions"
     
-    def test_permissions_section_exists(self, workflow_content):
-        """Test that permissions section exists"""
-        assert 'permissions' in workflow_content, "Workflow missing 'permissions' section"
+    def test_permissions_structure(self, workflow_content):
+        """Test that permissions are properly structured"""
+        permissions = workflow_content.get('permissions', {})
+        assert isinstance(permissions, dict), "Permissions must be a dictionary"
+        assert len(permissions) > 0, "Permissions should not be empty"
     
-    def test_permissions_not_empty(self, permissions):
-        """Test that permissions section is not empty"""
-        assert len(permissions) > 0, "Permissions section is empty"
+    def test_has_contents_read_permission(self, workflow_content):
+        """Test that workflow has contents read permission"""
+        permissions = workflow_content.get('permissions', {})
+        assert 'contents' in permissions, "Should have 'contents' permission"
+        assert permissions['contents'] == 'read', "Contents should be 'read'"
     
-    def test_has_contents_permission(self, permissions):
-        """Test that workflow has contents permission"""
-        assert 'contents' in permissions, "Missing 'contents' permission"
+    def test_has_pages_write_permission(self, workflow_content):
+        """Test that workflow has pages write permission"""
+        permissions = workflow_content.get('permissions', {})
+        assert 'pages' in permissions, "Should have 'pages' permission for deployment"
+        assert permissions['pages'] == 'write', "Pages should have 'write' permission"
     
-    def test_contents_permission_is_read(self, permissions):
-        """Test that contents permission is set to read"""
-        assert permissions['contents'] == 'read', \
-            f"Expected contents permission 'read', got '{permissions['contents']}'"
+    def test_has_id_token_write_permission(self, workflow_content):
+        """Test that workflow has id-token write permission"""
+        permissions = workflow_content.get('permissions', {})
+        assert 'id-token' in permissions, "Should have 'id-token' permission"
+        assert permissions['id-token'] == 'write', "ID token should have 'write' permission"
     
-    def test_has_pages_permission(self, permissions):
-        """Test that workflow has pages permission"""
-        assert 'pages' in permissions, "Missing 'pages' permission"
+    def test_only_necessary_permissions(self, workflow_content):
+        """Test that only necessary permissions are granted"""
+        permissions = workflow_content.get('permissions', {})
+        expected_permissions = {'contents', 'pages', 'id-token'}
+        actual_permissions = set(permissions.keys())
+        
+        excessive = actual_permissions - expected_permissions
+        assert len(excessive) == 0, f"Workflow has excessive permissions: {excessive}"
     
-    def test_pages_permission_is_write(self, permissions):
-        """Test that pages permission is set to write"""
-        assert permissions['pages'] == 'write', \
-            f"Expected pages permission 'write', got '{permissions['pages']}'"
-    
-    def test_has_id_token_permission(self, permissions):
-        """Test that workflow has id-token permission"""
-        assert 'id-token' in permissions, "Missing 'id-token' permission"
-    
-    def test_id_token_permission_is_write(self, permissions):
-        """Test that id-token permission is set to write"""
-        assert permissions['id-token'] == 'write', \
-            f"Expected id-token permission 'write', got '{permissions['id-token']}'"
-    
-    def test_permissions_follow_least_privilege(self, permissions):
-        """Test that permissions follow principle of least privilege"""
-        # Contents should be read-only, pages and id-token should be write
-        assert permissions.get('contents') == 'read', "Contents should be read-only"
-        assert permissions.get('pages') == 'write', "Pages needs write access"
-        assert permissions.get('id-token') == 'write', "ID token needs write access"
+    def test_contents_not_writable(self, workflow_content):
+        """Test that contents permission is read-only"""
+        permissions = workflow_content.get('permissions', {})
+        assert permissions.get('contents') != 'write', \
+            "Static deployment should not need write access to contents"
 
 
 class TestConcurrencyConfiguration:
-    """Test concurrency configuration"""
+    """Test concurrency settings for deployment workflows"""
     
-    @pytest.fixture
-    def concurrency(self, workflow_content):
-        """Get concurrency configuration from cached workflow content"""
-        return workflow_content.get('concurrency', {})
+    def test_has_concurrency_configuration(self, workflow_content):
+        """Test that workflow defines concurrency settings"""
+        assert 'concurrency' in workflow_content, "Deployment workflow should have concurrency settings"
     
-    def test_concurrency_section_exists(self, workflow_content):
-        """Test that concurrency section exists"""
-        assert 'concurrency' in workflow_content, "Workflow missing 'concurrency' section"
+    def test_concurrency_group_is_pages(self, workflow_content):
+        """Test that concurrency group is set to 'pages'"""
+        concurrency = workflow_content.get('concurrency', {})
+        assert 'group' in concurrency, "Concurrency must define a group"
+        assert concurrency['group'] == 'pages', "Concurrency group should be 'pages'"
     
-    def test_concurrency_has_group(self, concurrency):
-        """Test that concurrency has group defined"""
-        assert 'group' in concurrency, "Concurrency missing 'group' key"
-    
-    def test_concurrency_group_is_pages(self, concurrency):
-        """Test that concurrency group is 'pages'"""
-        assert concurrency['group'] == 'pages', \
-            f"Expected concurrency group 'pages', got '{concurrency['group']}'"
-    
-    def test_concurrency_has_cancel_in_progress(self, concurrency):
-        """Test that concurrency has cancel-in-progress setting"""
-        assert 'cancel-in-progress' in concurrency, "Concurrency missing 'cancel-in-progress' key"
-    
-    def test_cancel_in_progress_is_false(self, concurrency):
-        """Test that cancel-in-progress is set to false for production deployments"""
+    def test_cancel_in_progress_is_false(self, workflow_content):
+        """Test that cancel-in-progress is set to false"""
+        concurrency = workflow_content.get('concurrency', {})
+        assert 'cancel-in-progress' in concurrency, "Should specify cancel-in-progress behavior"
         assert concurrency['cancel-in-progress'] is False, \
-            "cancel-in-progress should be false for production deployments"
+            "Should not cancel in-progress deployments (production safety)"
+    
+    def test_concurrency_configuration_is_complete(self, workflow_content):
+        """Test that concurrency configuration has both required fields"""
+        concurrency = workflow_content.get('concurrency', {})
+        assert 'group' in concurrency and 'cancel-in-progress' in concurrency, \
+            "Concurrency should have both 'group' and 'cancel-in-progress'"
 
 
 class TestJobsConfiguration:
@@ -227,311 +201,282 @@ class TestJobsConfiguration:
     
     @pytest.fixture
     def jobs(self, workflow_content):
-        """Get jobs configuration from cached workflow content"""
+        """Get jobs configuration"""
         return workflow_content.get('jobs', {})
     
-    def test_jobs_section_exists(self, workflow_content):
-        """Test that jobs section exists"""
-        assert 'jobs' in workflow_content, "Workflow missing 'jobs' section"
+    def test_has_deploy_job(self, jobs):
+        """Test that workflow has a deploy job"""
+        assert 'deploy' in jobs, "Workflow should have 'deploy' job"
     
-    def test_jobs_section_not_empty(self, jobs):
-        """Test that jobs section is not empty"""
-        assert len(jobs) > 0, "Jobs section is empty"
+    def test_exactly_one_job(self, jobs):
+        """Test that workflow has exactly one job (static deployment pattern)"""
+        assert len(jobs) == 1, f"Expected 1 job for static deployment, found {len(jobs)}"
     
-    def test_deploy_job_exists(self, jobs):
-        """Test that 'deploy' job is defined"""
-        assert 'deploy' in jobs, "Deploy job not defined"
-    
-    def test_has_only_one_job(self, jobs):
-        """Test that workflow has only one job (deploy)"""
-        assert len(jobs) == 1, f"Expected exactly 1 job, got {len(jobs)}"
+    def test_no_build_job(self, jobs):
+        """Test that static workflow doesn't have separate build job"""
+        assert 'build' not in jobs, "Static workflow should not have separate build job"
 
 
-class TestDeployJobConfiguration:
-    """Test deploy job configuration"""
+class TestDeployJob:
+    """Test the deploy job configuration"""
     
     @pytest.fixture
     def deploy_job(self, workflow_content):
-        """Get deploy job configuration from cached workflow content"""
+        """Get deploy job configuration"""
         return workflow_content['jobs']['deploy']
     
-    def test_deploy_job_has_environment(self, deploy_job):
-        """Test that deploy job has environment configuration"""
-        assert 'environment' in deploy_job, "Deploy job missing 'environment' configuration"
-    
-    def test_deploy_environment_is_github_pages(self, deploy_job):
-        """Test that deploy environment is github-pages"""
-        env = deploy_job['environment']
-        assert 'name' in env, "Environment missing 'name'"
-        assert env['name'] == 'github-pages', \
-            f"Expected environment 'github-pages', got '{env['name']}'"
-    
-    def test_deploy_environment_has_url(self, deploy_job):
-        """Test that deploy environment has URL output"""
-        env = deploy_job['environment']
-        assert 'url' in env, "Environment missing 'url' configuration"
-        assert '${{ steps.deployment.outputs.page_url }}' in env['url'], \
-            "Environment URL should reference deployment output"
-    
     def test_deploy_job_has_runner(self, deploy_job):
-        """Test that deploy job has a runner defined"""
-        assert 'runs-on' in deploy_job, "Deploy job missing 'runs-on' configuration"
-    
-    def test_deploy_job_uses_ubuntu_latest(self, deploy_job):
-        """Test that deploy job uses ubuntu-latest runner"""
-        runner = deploy_job['runs-on']
-        assert runner == 'ubuntu-latest', f"Expected 'ubuntu-latest' runner, got '{runner}'"
+        """Test that deploy job defines a runner"""
+        assert 'runs-on' in deploy_job, "Deploy job must specify runner"
+        assert deploy_job['runs-on'] == 'ubuntu-latest', "Deploy job should use ubuntu-latest"
     
     def test_deploy_job_has_no_dependencies(self, deploy_job):
         """Test that deploy job has no dependencies (single job workflow)"""
-        assert 'needs' not in deploy_job, "Deploy job should not have dependencies in single-job workflow"
+        assert 'needs' not in deploy_job, "Single job workflow should not have dependencies"
+    
+    def test_deploy_job_has_environment(self, deploy_job):
+        """Test that deploy job specifies environment"""
+        assert 'environment' in deploy_job, "Deploy job should specify environment"
+    
+    def test_deploy_environment_is_github_pages(self, deploy_job):
+        """Test that deploy job uses github-pages environment"""
+        environment = deploy_job['environment']
+        if isinstance(environment, dict):
+            assert 'name' in environment, "Environment should have a name"
+            assert environment['name'] == 'github-pages', "Should deploy to 'github-pages' environment"
+        else:
+            assert environment == 'github-pages', "Should deploy to 'github-pages' environment"
+    
+    def test_deploy_environment_has_url(self, deploy_job):
+        """Test that deploy environment specifies URL"""
+        environment = deploy_job['environment']
+        if isinstance(environment, dict):
+            assert 'url' in environment, "Environment should specify URL"
+            url = environment['url']
+            assert '${{' in url and '}}' in url, "URL should use GitHub expressions"
+            assert 'deployment.outputs.page_url' in url, "URL should reference deployment output"
     
     def test_deploy_job_has_steps(self, deploy_job):
-        """Test that deploy job has steps defined"""
-        assert 'steps' in deploy_job, "Deploy job missing 'steps'"
-        assert isinstance(deploy_job['steps'], list), "Steps must be a list"
-        assert len(deploy_job['steps']) > 0, "Deploy job has no steps"
-    
-    def test_deploy_job_has_checkout_step(self, deploy_job):
-        """Test that deploy job includes checkout action"""
+        """Test that deploy job has steps"""
+        assert 'steps' in deploy_job, "Deploy job must have steps"
         steps = deploy_job['steps']
-        checkout_steps = [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
-        assert len(checkout_steps) > 0, "Deploy job missing checkout step"
+        assert isinstance(steps, list), "Steps must be a list"
+        assert len(steps) > 0, "Deploy job must have at least one step"
     
-    def test_deploy_job_has_setup_pages_step(self, deploy_job):
-        """Test that deploy job includes setup pages action"""
+    def test_has_all_required_steps(self, deploy_job):
+        """Test that deploy job has all required steps"""
         steps = deploy_job['steps']
-        setup_steps = [s for s in steps if 'uses' in s and 'configure-pages' in s['uses']]
-        assert len(setup_steps) > 0, "Deploy job missing setup pages step"
-    
-    def test_deploy_job_has_upload_artifact_step(self, deploy_job):
-        """Test that deploy job includes upload artifact action"""
-        steps = deploy_job['steps']
-        upload_steps = [s for s in steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
-        assert len(upload_steps) > 0, "Deploy job missing upload artifact step"
-    
-    def test_deploy_job_has_deploy_step(self, deploy_job):
-        """Test that deploy job includes deploy pages action"""
-        steps = deploy_job['steps']
-        deploy_steps = [s for s in steps if 'uses' in s and 'deploy-pages' in s['uses']]
-        assert len(deploy_steps) > 0, "Deploy job missing deploy pages step"
-    
-    def test_deploy_step_has_id(self, deploy_job):
-        """Test that deploy step has an id for output reference"""
-        steps = deploy_job['steps']
-        deploy_steps = [s for s in steps if 'uses' in s and 'deploy-pages' in s['uses']]
-        deploy_step = deploy_steps[0]
+        step_actions = [s.get('uses', '') for s in steps]
         
-        assert 'id' in deploy_step, "Deploy step missing 'id'"
-        assert deploy_step['id'] == 'deployment', \
-            f"Expected deploy step id 'deployment', got '{deploy_step['id']}'"
+        # Check for required actions
+        assert any('checkout' in action for action in step_actions), "Must have checkout step"
+        assert any('configure-pages' in action for action in step_actions), "Must configure pages"
+        assert any('upload-pages-artifact' in action for action in step_actions), "Must upload artifact"
+        assert any('deploy-pages' in action for action in step_actions), "Must deploy to pages"
     
-    def test_upload_artifact_has_path_config(self, deploy_job):
-        """Test that upload artifact step has path configuration"""
+    def test_steps_in_correct_order(self, deploy_job):
+        """Test that steps are in logical order"""
         steps = deploy_job['steps']
-        upload_steps = [s for s in steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
-        assert len(upload_steps) > 0, "Upload artifact step not found"
+        step_actions = [s.get('uses', '') for s in steps]
         
-        upload_step = upload_steps[0]
-        assert 'with' in upload_step, "Upload step missing 'with' configuration"
-        assert 'path' in upload_step['with'], "Upload step missing 'path' configuration"
-    
-    def test_upload_artifact_path_is_current_directory(self, deploy_job):
-        """Test that upload artifact path is set to upload entire repository"""
-        steps = deploy_job['steps']
-        upload_steps = [s for s in steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
-        upload_step = upload_steps[0]
+        checkout_idx = next(i for i, a in enumerate(step_actions) if 'checkout' in a)
+        configure_idx = next(i for i, a in enumerate(step_actions) if 'configure-pages' in a)
+        upload_idx = next(i for i, a in enumerate(step_actions) if 'upload-pages-artifact' in a)
+        deploy_idx = next(i for i, a in enumerate(step_actions) if 'deploy-pages' in a)
         
-        path = upload_step['with']['path']
-        assert path == '.', f"Expected upload path '.', got '{path}'"
+        assert checkout_idx < configure_idx, "Checkout must come before configure"
+        assert configure_idx < upload_idx, "Configure must come before upload"
+        assert upload_idx < deploy_idx, "Upload must come before deploy"
 
 
-class TestStepsOrder:
-    """Test that steps are in the correct order"""
+class TestDeploySteps:
+    """Test individual steps in the deploy job"""
     
     @pytest.fixture
     def steps(self, workflow_content):
-        """Get deploy job steps from cached workflow content"""
+        """Get deploy job steps"""
         return workflow_content['jobs']['deploy']['steps']
     
-    def test_checkout_is_first_step(self, steps):
-        """Test that checkout is the first step"""
-        first_step = steps[0]
-        assert 'uses' in first_step, "First step should use an action"
-        assert 'checkout' in first_step['uses'], "First step should be checkout action"
+    def test_checkout_step_configuration(self, steps):
+        """Test checkout step is properly configured"""
+        checkout_steps = [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
+        assert len(checkout_steps) == 1, "Should have exactly one checkout step"
+        
+        checkout = checkout_steps[0]
+        assert 'actions/checkout@v4' in checkout['uses'], "Should use checkout v4"
+        assert 'name' in checkout, "Checkout step should have a name"
     
-    def test_setup_pages_comes_after_checkout(self, steps):
-        """Test that setup pages comes after checkout"""
-        checkout_idx = None
-        setup_idx = None
+    def test_setup_pages_step_configuration(self, steps):
+        """Test setup pages step is properly configured"""
+        setup_steps = [s for s in steps if 'uses' in s and 'configure-pages' in s['uses']]
+        assert len(setup_steps) == 1, "Should have exactly one setup pages step"
         
-        for i, step in enumerate(steps):
-            if 'uses' in step:
-                if 'checkout' in step['uses']:
-                    checkout_idx = i
-                elif 'configure-pages' in step['uses']:
-                    setup_idx = i
-        
-        assert checkout_idx is not None, "Checkout step not found"
-        assert setup_idx is not None, "Setup pages step not found"
-        assert setup_idx > checkout_idx, "Setup pages should come after checkout"
+        setup = setup_steps[0]
+        assert 'actions/configure-pages@v5' in setup['uses'], "Should use configure-pages v5"
+        assert 'name' in setup, "Setup step should have a name"
     
-    def test_upload_comes_after_setup(self, steps):
-        """Test that upload artifact comes after setup pages"""
-        setup_idx = None
-        upload_idx = None
+    def test_upload_artifact_step_configuration(self, steps):
+        """Test upload artifact step is properly configured"""
+        upload_steps = [s for s in steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
+        assert len(upload_steps) == 1, "Should have exactly one upload step"
         
-        for i, step in enumerate(steps):
-            if 'uses' in step:
-                if 'configure-pages' in step['uses']:
-                    setup_idx = i
-                elif 'upload-pages-artifact' in step['uses']:
-                    upload_idx = i
-        
-        assert setup_idx is not None, "Setup pages step not found"
-        assert upload_idx is not None, "Upload artifact step not found"
-        assert upload_idx > setup_idx, "Upload should come after setup"
+        upload = upload_steps[0]
+        assert 'actions/upload-pages-artifact@v3' in upload['uses'], "Should use upload-pages-artifact v3"
+        assert 'name' in upload, "Upload step should have a name"
     
-    def test_deploy_is_last_step(self, steps):
-        """Test that deploy is the last step"""
-        last_step = steps[-1]
-        assert 'uses' in last_step, "Last step should use an action"
-        assert 'deploy-pages' in last_step['uses'], "Last step should be deploy pages action"
+    def test_upload_artifact_has_path_configuration(self, steps):
+        """Test that upload artifact specifies what to upload"""
+        upload_steps = [s for s in steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
+        assert len(upload_steps) > 0, "Upload step not found"
+        
+        upload = upload_steps[0]
+        assert 'with' in upload, "Upload step should have 'with' configuration"
+        assert 'path' in upload['with'], "Upload should specify path"
+        
+        # Path should upload entire repository for static content
+        path = upload['with']['path']
+        assert path == '.' or path == './', "Should upload entire repository"
+    
+    def test_deploy_pages_step_configuration(self, steps):
+        """Test deploy pages step is properly configured"""
+        deploy_steps = [s for s in steps if 'uses' in s and 'deploy-pages' in s['uses']]
+        assert len(deploy_steps) == 1, "Should have exactly one deploy step"
+        
+        deploy = deploy_steps[0]
+        assert 'actions/deploy-pages@v4' in deploy['uses'], "Should use deploy-pages v4"
+        assert 'name' in deploy, "Deploy step should have a name"
+        assert 'id' in deploy, "Deploy step should have an ID"
+        assert deploy['id'] == 'deployment', "Deploy step ID should be 'deployment'"
 
 
 class TestActionVersions:
-    """Test that actions use appropriate versions"""
+    """Test that all actions use proper versions"""
     
-    @pytest.fixture
-    def all_steps(self, workflow_content):
-        """Get all steps from deploy job"""
-        return workflow_content['jobs']['deploy']['steps']
+    def test_all_actions_are_versioned(self, workflow_content):
+        """Test that all actions specify versions"""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            for step in steps:
+                if 'uses' in step:
+                    action = step['uses']
+                    assert '@' in action, f"Action '{action}' should specify version"
     
-    def test_checkout_uses_v4(self, all_steps):
-        """Test that checkout action uses version 4"""
-        checkout_steps = [s for s in all_steps if 'uses' in s and 'checkout' in s['uses']]
-        assert len(checkout_steps) > 0, "No checkout step found"
-        
-        for step in checkout_steps:
-            checkout_action = step['uses']
-            assert 'actions/checkout@v4' in checkout_action, \
-                f"Expected checkout@v4, got {checkout_action}"
-    
-    def test_configure_pages_uses_v5(self, all_steps):
-        """Test that configure-pages action uses version 5"""
-        config_steps = [s for s in all_steps if 'uses' in s and 'configure-pages' in s['uses']]
-        assert len(config_steps) > 0, "No configure-pages step found"
-        
-        for step in config_steps:
-            action = step['uses']
-            assert 'actions/configure-pages@v5' in action, \
-                f"Expected configure-pages@v5, got {action}"
-    
-    def test_upload_artifact_uses_v3(self, all_steps):
-        """Test that upload-pages-artifact action uses version 3"""
-        upload_steps = [s for s in all_steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
-        assert len(upload_steps) > 0, "No upload-pages-artifact step found"
-        
-        for step in upload_steps:
-            action = step['uses']
-            assert 'actions/upload-pages-artifact@v3' in action, \
-                f"Expected upload-pages-artifact@v3, got {action}"
-    
-    def test_deploy_pages_uses_v4(self, all_steps):
-        """Test that deploy-pages action uses version 4"""
-        deploy_steps = [s for s in all_steps if 'uses' in s and 'deploy-pages' in s['uses']]
-        assert len(deploy_steps) > 0, "No deploy-pages step found"
-        
-        for step in deploy_steps:
-            action = step['uses']
-            assert 'actions/deploy-pages@v4' in action, \
-                f"Expected deploy-pages@v4, got {action}"
-    
-    def test_all_actions_are_versioned(self, all_steps):
-        """Test that all actions use version tags (security best practice)"""
-        for step in all_steps:
-            if 'uses' in step:
+    def test_actions_use_current_versions(self, workflow_content):
+        """Test that actions use recommended versions"""
+        jobs = workflow_content.get('jobs', {})
+        for job_config in jobs.values():
+            steps = job_config.get('steps', [])
+            for step in steps:
+                if 'uses' not in step:
+                    continue
+                    
                 action = step['uses']
-                assert '@' in action, f"Action '{action}' should specify a version"
+                if 'checkout' in action:
+                    assert '@v4' in action or '@v5' in action, "Checkout should use v4 or newer"
+                elif 'configure-pages' in action:
+                    assert '@v5' in action or '@v6' in action, "Configure-pages should use v5 or newer"
+                elif 'upload-pages-artifact' in action:
+                    assert '@v3' in action or '@v4' in action, "Upload-pages-artifact should use v3 or newer"
+                elif 'deploy-pages' in action:
+                    assert '@v4' in action or '@v5' in action, "Deploy-pages should use v4 or newer"
 
 
-class TestWorkflowComments:
-    """Test comments and documentation in the workflow file"""
+class TestStepNames:
+    """Test that steps have descriptive names"""
     
-    def test_has_comments(self, workflow_raw):
-        """Test that workflow file contains comments"""
-        comment_lines = [line for line in workflow_raw.split('\n') if line.strip().startswith('#')]
-        assert len(comment_lines) > 0, "Workflow should contain comments for documentation"
+    def test_all_steps_have_names(self, workflow_content):
+        """Test that all steps have descriptive names"""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            for i, step in enumerate(steps):
+                assert 'name' in step, f"Step {i} in job '{job_name}' should have a name"
+                assert len(step['name']) > 0, f"Step {i} name should not be empty"
     
-    def test_main_branch_comment_matches_config(self, workflow_raw):
-        """Test that comments about main branch match the actual configuration"""
-        assert 'main' in workflow_raw, "Workflow should mention 'main' branch"
-    
-    def test_mentions_static_content(self, workflow_raw):
-        """Test that workflow mentions static content in comments"""
-        lower_content = workflow_raw.lower()
-        assert 'static' in lower_content, "Workflow should mention 'static' content"
-    
-    def test_mentions_github_pages(self, workflow_raw):
-        """Test that workflow mentions GitHub Pages in comments"""
-        lower_content = workflow_raw.lower()
-        assert 'github pages' in lower_content or 'pages' in lower_content, \
-            "Workflow should mention GitHub Pages"
+    def test_step_names_are_descriptive(self, workflow_content):
+        """Test that step names are clear and descriptive"""
+        jobs = workflow_content.get('jobs', {})
+        for job_config in jobs.values():
+            steps = job_config.get('steps', [])
+            for step in steps:
+                name = step.get('name', '')
+                # Names should be more than just action names
+                assert len(name.split()) >= 2 or name in ['Checkout', 'Deploy'], \
+                    f"Step name '{name}' should be more descriptive"
 
 
-class TestEdgeCases:
-    """Test edge cases and potential failure scenarios"""
-    
-    def test_no_syntax_errors_in_yaml(self, workflow_content):
-        """Test that there are no YAML syntax errors"""
-        assert workflow_content is not None, "YAML content should be loaded"
+class TestYAMLQuality:
+    """Test YAML file quality and formatting"""
     
     def test_no_tabs_in_yaml(self, workflow_raw):
-        """Test that workflow file doesn't use tabs (YAML should use spaces)"""
-        assert '\t' not in workflow_raw, "YAML file should use spaces, not tabs"
+        """Test that workflow uses spaces, not tabs"""
+        assert '\t' not in workflow_raw, "YAML should use spaces, not tabs"
     
     def test_consistent_indentation(self, workflow_raw):
-        """Test that indentation is consistent throughout the file"""
+        """Test that indentation is consistent (multiples of 2)"""
         lines = workflow_raw.split('\n')
-        
         for i, line in enumerate(lines, 1):
             if line.strip() and not line.strip().startswith('#'):
                 leading_spaces = len(line) - len(line.lstrip(' '))
                 if leading_spaces > 0:
                     assert leading_spaces % 2 == 0, \
-                        f"Line {i} has inconsistent indentation (not a multiple of 2)"
+                        f"Line {i} has inconsistent indentation"
+    
+    def test_has_comments(self, workflow_raw):
+        """Test that workflow includes documentation comments"""
+        comment_lines = [line for line in workflow_raw.split('\n') 
+                        if line.strip().startswith('#')]
+        assert len(comment_lines) > 0, "Workflow should have documentation comments"
+    
+    def test_file_ends_with_newline(self, workflow_raw):
+        """Test that file ends with a newline"""
+        assert workflow_raw.endswith('\n'), "File should end with newline"
+
+
+class TestEdgeCases:
+    """Test edge cases and failure scenarios"""
     
     def test_no_duplicate_job_names(self, workflow_content):
-        """Test that there are no duplicate job names"""
+        """Test that job names are unique"""
         jobs = workflow_content.get('jobs', {})
         job_names = list(jobs.keys())
-        assert len(job_names) == len(set(job_names)), "Duplicate job names found"
+        assert len(job_names) == len(set(job_names)), "Job names must be unique"
     
-    def test_no_duplicate_step_names_in_job(self, workflow_content):
-        """Test that there are no duplicate step names within the job"""
-        deploy_job = workflow_content['jobs']['deploy']
-        steps = deploy_job.get('steps', [])
-        step_names = [s.get('name') for s in steps if 'name' in s]
-        assert len(step_names) == len(set(step_names)), "Duplicate step names in deploy job"
+    def test_no_duplicate_step_names(self, workflow_content):
+        """Test that step names are unique within each job"""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            step_names = [s.get('name') for s in steps if 'name' in s]
+            assert len(step_names) == len(set(step_names)), \
+                f"Duplicate step names in job '{job_name}'"
     
     def test_runner_is_valid(self, workflow_content):
-        """Test that runner configuration is valid"""
-        jobs = workflow_content.get('jobs', {})
+        """Test that runner specifications are valid"""
         valid_runners = [
             'ubuntu-latest', 'ubuntu-22.04', 'ubuntu-20.04',
             'windows-latest', 'windows-2022', 'windows-2019',
             'macos-latest', 'macos-13', 'macos-12', 'macos-11'
         ]
         
+        jobs = workflow_content.get('jobs', {})
         for job_name, job_config in jobs.items():
             runner = job_config.get('runs-on')
             if isinstance(runner, str):
                 assert runner in valid_runners, \
                     f"Invalid runner '{runner}' in job '{job_name}'"
+    
+    def test_no_matrix_strategy(self, workflow_content):
+        """Test that static deployment doesn't use matrix (unnecessary complexity)"""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            assert 'strategy' not in job_config, \
+                f"Static deployment job '{job_name}' should not use matrix strategy"
 
 
-class TestWorkflowSecurity:
-    """Test security aspects of the workflow"""
+class TestSecurityBestPractices:
+    """Test security-related configurations"""
     
     def test_no_hardcoded_secrets(self, workflow_raw):
         """Test that workflow doesn't contain hardcoded secrets"""
@@ -546,105 +491,65 @@ class TestWorkflowSecurity:
                         assert 'secrets.' in line or '${{' in line, \
                             f"Potential hardcoded secret pattern '{pattern}' found"
     
-    def test_permissions_are_restrictive(self, workflow_content):
+    def test_permissions_follow_least_privilege(self, workflow_content):
         """Test that permissions follow principle of least privilege"""
         permissions = workflow_content.get('permissions', {})
         
-        # Contents should not have write access
-        if 'contents' in permissions:
-            assert permissions['contents'] != 'write', \
-                "Contents permission should not be 'write' for deployment"
+        # Contents should be read-only
+        assert permissions.get('contents') == 'read', \
+            "Contents should be read-only for static deployment"
+        
+        # Should not have unnecessary permissions
+        dangerous_permissions = ['packages', 'actions', 'checks', 'deployments', 
+                                'discussions', 'issues', 'pull-requests', 'statuses']
+        for perm in dangerous_permissions:
+            assert perm not in permissions, \
+                f"Static deployment should not need '{perm}' permission"
+
+
+class TestCommentDocumentation:
+    """Test that workflow has appropriate documentation"""
     
-    def test_uses_github_token_implicitly(self, workflow_raw):
-        """Test that workflow uses GITHUB_TOKEN implicitly (no explicit token needed)"""
-        # GitHub Actions provides GITHUB_TOKEN automatically
-        # Explicit token usage might indicate security issues
-        assert 'GITHUB_TOKEN' not in workflow_raw or 'secrets.GITHUB_TOKEN' in workflow_raw, \
-            "Token usage should be through secrets context if explicitly referenced"
+    def test_has_descriptive_header_comment(self, workflow_raw):
+        """Test that workflow has a descriptive header comment"""
+        lines = workflow_raw.split('\n')
+        # First non-empty line should be a comment
+        first_line = next((line for line in lines if line.strip()), '')
+        assert first_line.strip().startswith('#'), "File should start with a comment"
+    
+    def test_comments_explain_purpose(self, workflow_raw):
+        """Test that comments explain the workflow's purpose"""
+        comment_text = ' '.join(line.strip('# ').lower() 
+                               for line in workflow_raw.split('\n') 
+                               if line.strip().startswith('#'))
+        
+        # Comments should mention deployment or pages
+        assert 'deploy' in comment_text or 'pages' in comment_text, \
+            "Comments should explain deployment purpose"
 
 
-class TestWorkflowFilePermissions:
-    """Test file permissions and location"""
+class TestWorkflowFileLocation:
+    """Test workflow file location and naming"""
     
     def test_workflow_in_correct_directory(self, workflow_path):
-        """Test that workflow is in .github/workflows directory"""
-        assert '.github' in workflow_path.parts, "Workflow must be in .github directory"
-        assert 'workflows' in workflow_path.parts, "Workflow must be in workflows subdirectory"
+        """Test that workflow is in .github/workflows"""
+        assert '.github' in workflow_path.parts, "Must be in .github directory"
+        assert 'workflows' in workflow_path.parts, "Must be in workflows subdirectory"
     
     def test_workflow_has_yml_extension(self, workflow_path):
-        """Test that workflow file has .yml extension"""
-        assert workflow_path.suffix == '.yml', "Workflow must have .yml extension"
+        """Test that workflow has .yml extension"""
+        assert workflow_path.suffix in ['.yml', '.yaml'], \
+            "Workflow must have .yml or .yaml extension"
     
     def test_workflow_file_is_readable(self, workflow_path):
         """Test that workflow file is readable"""
         assert os.access(workflow_path, os.R_OK), "Workflow file must be readable"
-
-
-class TestWorkflowBestPractices:
-    """Test adherence to GitHub Actions best practices"""
     
-    def test_concurrency_prevents_duplicate_deployments(self, workflow_content):
-        """Test that concurrency configuration prevents duplicate deployments"""
-        concurrency = workflow_content.get('concurrency', {})
-        assert concurrency.get('group') is not None, \
-            "Concurrency group should be defined to prevent duplicate runs"
-    
-    def test_deployment_uses_environment(self, workflow_content):
-        """Test that deployment job uses environment for deployment tracking"""
-        deploy_job = workflow_content['jobs'].get('deploy', {})
-        assert 'environment' in deploy_job, \
-            "Deploy job should use environment for tracking and protection"
-    
-    def test_single_job_workflow_efficiency(self, workflow_content):
-        """Test that workflow efficiently uses single job (no unnecessary separation)"""
-        jobs = workflow_content.get('jobs', {})
-        assert len(jobs) == 1, "Static content deployment should use single job for efficiency"
-    
-    def test_uploads_entire_repository(self, workflow_content):
-        """Test that workflow uploads entire repository as static content"""
-        deploy_job = workflow_content['jobs']['deploy']
-        steps = deploy_job['steps']
-        upload_steps = [s for s in steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
-        
-        assert len(upload_steps) > 0, "Upload step not found"
-        upload_step = upload_steps[0]
-        
-        # Check that path is configured to upload everything
-        assert 'with' in upload_step, "Upload step should have 'with' configuration"
-        assert 'path' in upload_step['with'], "Upload step should specify path"
-        
-        path = upload_step['with']['path']
-        assert path in ['.', './'], f"Expected path '.' for entire repo, got '{path}'"
-
-
-class TestWorkflowDifferencesFromJekyll:
-    """Test differences from Jekyll workflow (important for understanding workflow purpose)"""
-    
-    def test_no_build_job(self, workflow_content):
-        """Test that workflow has no separate build job (unlike Jekyll workflow)"""
-        jobs = workflow_content.get('jobs', {})
-        assert 'build' not in jobs, "Static workflow should not have separate build job"
-    
-    def test_no_jekyll_build_step(self, workflow_content):
-        """Test that workflow does not use Jekyll build action"""
-        deploy_job = workflow_content['jobs']['deploy']
-        steps = deploy_job['steps']
-        jekyll_steps = [s for s in steps if 'uses' in s and 'jekyll' in s['uses'].lower()]
-        assert len(jekyll_steps) == 0, "Static workflow should not use Jekyll build"
-    
-    def test_direct_upload_approach(self, workflow_content):
-        """Test that workflow uses direct upload approach (no build artifacts)"""
-        deploy_job = workflow_content['jobs']['deploy']
-        steps = deploy_job['steps']
-        
-        # Should have upload step that uploads directly
-        upload_steps = [s for s in steps if 'uses' in s and 'upload-pages-artifact' in s['uses']]
-        assert len(upload_steps) > 0, "Should have direct upload step"
-        
-        # Upload should be configured to upload source files
-        upload_step = upload_steps[0]
-        assert 'with' in upload_step, "Upload should have configuration"
-        assert upload_step['with']['path'] == '.', "Should upload current directory directly"
+    def test_workflow_filename_is_appropriate(self, workflow_path):
+        """Test that workflow filename reflects its purpose"""
+        filename = workflow_path.stem
+        assert 'static' in filename.lower() or 'pages' in filename.lower() or 'deploy' in filename.lower(), \
+            "Filename should reflect static deployment purpose"
 
 
 if __name__ == '__main__':
