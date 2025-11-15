@@ -30,6 +30,8 @@ cd Symphonic-Joules
 # Installation instructions will be added as development progresses
 ```
 
+For detailed installation instructions and future packaging plans, see [docs/installation-setup.md](docs/installation-setup.md).
+
 ### Usage
 
 Usage examples and documentation will be provided as features are implemented.
