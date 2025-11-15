@@ -5,6 +5,7 @@ Welcome to the Symphonic-Joules documentation! This directory contains comprehen
 ## 📚 Documentation Structure
 
 - **[Getting Started](getting-started.md)** - Installation and basic usage
+- **[Installation and Setup](installation-setup.md)** - Detailed installation instructions and packaging plans
 - **[API Reference](api-reference.md)** - Detailed API documentation
 - **[Examples](examples/)** - Code examples and tutorials
 - **[Architecture](architecture.md)** - System design and architecture
@@ -17,6 +18,7 @@ Welcome to the Symphonic-Joules documentation! This directory contains comprehen
 
 ### For Users
 - [Installation Guide](getting-started.md#installation)
+- [Installation and Setup Details](installation-setup.md)
 - [Basic Usage](getting-started.md#usage)
 - [Examples](examples/)
 
