@@ -47,6 +47,15 @@ def workflow_content(workflow_raw):
     return yaml.safe_load(workflow_raw)
 
 
+@pytest.fixture(scope='module')
+def jobs(workflow_content):
+    """
+    Module-scoped fixture for jobs configuration.
+    Extracted once and shared across all tests in this module.
+    """
+    return workflow_content.get('jobs', {})
+
+
 class TestWorkflowStructure:
     """Test the basic structure and syntax of the workflow file"""
     
@@ -109,35 +118,31 @@ class TestBranchConfiguration:
         assert trigger_config is not None, f"{trigger_name} trigger configuration is None"
         assert 'branches' in trigger_config, f"{trigger_name} trigger missing branches configuration"
     
-    def test_push_trigger_exists(self, triggers):
-        """Test that push trigger is configured"""
-        assert 'push' in triggers, "Push trigger not configured"
+    @pytest.mark.parametrize("trigger_key,trigger_name", [
+        ('push', 'Push'),
+        ('pull_request', 'Pull request'),
+        ('workflow_dispatch', 'Workflow dispatch'),
+    ])
+    def test_trigger_exists(self, triggers, trigger_key, trigger_name):
+        """Test that required triggers are configured"""
+        assert trigger_key in triggers, f"{trigger_name} trigger not configured"
     
-    def test_pull_request_trigger_exists(self, triggers):
-        """Test that pull_request trigger is configured"""
-        assert 'pull_request' in triggers, "Pull request trigger not configured"
+    @pytest.mark.parametrize("trigger_key,trigger_name", [
+        ('push', 'Push'),
+        ('pull_request', 'Pull request'),
+    ])
+    def test_trigger_has_branches(self, triggers, trigger_key, trigger_name):
+        """Test that triggers have branch configuration"""
+        self._assert_trigger_has_branches(triggers, trigger_key, trigger_name)
     
-    def test_workflow_dispatch_trigger_exists(self, triggers):
-        """Test that workflow_dispatch trigger is configured"""
-        assert 'workflow_dispatch' in triggers, "Workflow dispatch trigger not configured"
-    
-    def test_push_trigger_has_branches(self, triggers):
-        """Test that push trigger has branch configuration"""
-        self._assert_trigger_has_branches(triggers, 'push', "Push")
-    
-    def test_pull_request_trigger_has_branches(self, triggers):
-        """Test that pull_request trigger has branch configuration"""
-        self._assert_trigger_has_branches(triggers, 'pull_request', "Pull request")
-    
-    def test_push_branches_is_main(self, triggers):
-        """Test that push trigger is configured for 'main' branch (not 'base')"""
-        push_branches = triggers['push']['branches']
-        self._validate_branch_config(push_branches, "Push")
-    
-    def test_pull_request_branches_is_main(self, triggers):
-        """Test that pull_request trigger is configured for 'main' branch (not 'base')"""
-        pr_branches = triggers['pull_request']['branches']
-        self._validate_branch_config(pr_branches, "Pull request")
+    @pytest.mark.parametrize("trigger_key,trigger_name", [
+        ('push', 'Push'),
+        ('pull_request', 'Pull request'),
+    ])
+    def test_branches_is_main(self, triggers, trigger_key, trigger_name):
+        """Test that triggers are configured for 'main' branch (not 'base')"""
+        branches = triggers[trigger_key]['branches']
+        self._validate_branch_config(branches, trigger_name)
     
     def test_only_main_branch_configured(self, triggers):
         """Test that only 'main' branch is configured (no other branches)"""
@@ -152,11 +157,6 @@ class TestBranchConfiguration:
 
 class TestJobsConfiguration:
     """Test jobs configuration"""
-    
-    @pytest.fixture
-    def jobs(self, workflow_content):
-        """Get jobs configuration from cached workflow content"""
-        return workflow_content.get('jobs', {})
     
     def test_jobs_section_exists(self, workflow_content):
         """Test that jobs section exists"""
@@ -196,14 +196,17 @@ class TestStepsConfiguration:
         """Get workflow steps from cached workflow content"""
         return workflow_content['jobs']['build']['steps']
     
-    def test_has_checkout_step(self, steps):
+    @pytest.fixture
+    def checkout_steps(self, steps):
+        """Get checkout steps from the workflow"""
+        return [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
+    
+    def test_has_checkout_step(self, checkout_steps):
         """Test that workflow includes checkout action"""
-        checkout_steps = [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
         assert len(checkout_steps) > 0, "No checkout step found"
     
-    def test_checkout_uses_v4(self, steps):
+    def test_checkout_uses_v4(self, checkout_steps):
         """Test that checkout action uses version 4"""
-        checkout_steps = [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
         assert len(checkout_steps) > 0, "No checkout step found"
         checkout_action = checkout_steps[0]['uses']
         assert 'actions/checkout@v4' in checkout_action, f"Expected checkout@v4, got {checkout_action}"
@@ -223,15 +226,14 @@ class TestStepsConfiguration:
             if 'name' in step:
                 assert 'run' in step, f"Named step '{step['name']}' missing 'run' command"
     
-    def test_one_line_script_step_exists(self, steps):
-        """Test that 'Run a one-line script' step exists"""
-        one_line_steps = [s for s in steps if s.get('name') == 'Run a one-line script']
-        assert len(one_line_steps) > 0, "One-line script step not found"
-    
-    def test_multi_line_script_step_exists(self, steps):
-        """Test that 'Run a multi-line script' step exists"""
-        multi_line_steps = [s for s in steps if s.get('name') == 'Run a multi-line script']
-        assert len(multi_line_steps) > 0, "Multi-line script step not found"
+    @pytest.mark.parametrize("step_name,error_message", [
+        ('Run a one-line script', "One-line script step not found"),
+        ('Run a multi-line script', "Multi-line script step not found"),
+    ])
+    def test_script_step_exists(self, steps, step_name, error_message):
+        """Test that required script steps exist"""
+        matching_steps = [s for s in steps if s.get('name') == step_name]
+        assert len(matching_steps) > 0, error_message
     
     def test_script_steps_have_content(self, steps):
         """Test that script steps have actual commands"""
@@ -298,23 +300,20 @@ class TestEdgeCases:
                 if leading_spaces > 0:
                     assert leading_spaces % 2 == 0, f"Line {i} has inconsistent indentation (not a multiple of 2)"
     
-    def test_no_duplicate_job_names(self, workflow_content):
+    def test_no_duplicate_job_names(self, jobs):
         """Test that there are no duplicate job names"""
-        jobs = workflow_content.get('jobs', {})
         job_names = list(jobs.keys())
         assert len(job_names) == len(set(job_names)), "Duplicate job names found"
     
-    def test_no_duplicate_step_names_in_job(self, workflow_content):
+    def test_no_duplicate_step_names_in_job(self, jobs):
         """Test that there are no duplicate step names within a job"""
-        jobs = workflow_content.get('jobs', {})
         for job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
             step_names = [s.get('name') for s in steps if 'name' in s]
             assert len(step_names) == len(set(step_names)), f"Duplicate step names in job '{job_name}'"
     
-    def test_runner_is_valid(self, workflow_content):
+    def test_runner_is_valid(self, jobs):
         """Test that runner configuration is valid"""
-        jobs = workflow_content.get('jobs', {})
         valid_runners = [
             'ubuntu-latest', 'ubuntu-22.04', 'ubuntu-20.04',
             'windows-latest', 'windows-2022', 'windows-2019',
@@ -345,9 +344,8 @@ class TestWorkflowSecurity:
                         assert 'secrets.' in line or '${{' in line, \
                             f"Potential hardcoded secret pattern '{pattern}' found"
     
-    def test_checkout_action_is_pinned_or_versioned(self, workflow_content):
+    def test_checkout_action_is_pinned_or_versioned(self, jobs):
         """Test that actions use version tags (security best practice)"""
-        jobs = workflow_content.get('jobs', {})
         for _job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
             for step in steps:
