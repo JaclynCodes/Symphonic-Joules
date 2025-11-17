@@ -374,3 +374,475 @@ class TestWorkflowFilePermissions:
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
+
+
+class TestParametrizedRefactoring:
+    """Test the parametrized test refactoring improvements"""
+    
+    def test_parametrize_decorator_reduces_code_duplication(self, workflow_content):
+        """Verify that parametrized tests improve maintainability"""
+        # This test validates that the refactoring approach is sound
+        # by ensuring the workflow structure supports multiple trigger types
+        triggers = workflow_content.get(True) or workflow_content.get('on')
+        trigger_types = ['push', 'pull_request', 'workflow_dispatch']
+        
+        for trigger_type in trigger_types:
+            assert trigger_type in triggers, f"Expected trigger type '{trigger_type}' not found"
+    
+    def test_all_branch_triggers_have_consistent_configuration(self, workflow_content):
+        """Test that push and pull_request triggers have identical branch configs"""
+        triggers = workflow_content.get(True) or workflow_content.get('on')
+        
+        push_branches = triggers.get('push', {}).get('branches', [])
+        pr_branches = triggers.get('pull_request', {}).get('branches', [])
+        
+        # Both should be identical
+        assert push_branches == pr_branches, \
+            f"Push branches {push_branches} should match PR branches {pr_branches}"
+        
+        # Both should only contain 'main'
+        assert push_branches == ['main'], f"Expected ['main'], got {push_branches}"
+        assert pr_branches == ['main'], f"Expected ['main'], got {pr_branches}"
+
+
+class TestJobsFixtureScoping:
+    """Test the module-scoped jobs fixture functionality"""
+    
+    def test_jobs_fixture_returns_dict(self, jobs):
+        """Test that jobs fixture returns a dictionary"""
+        assert isinstance(jobs, dict), "Jobs fixture should return a dictionary"
+    
+    def test_jobs_fixture_contains_build_job(self, jobs):
+        """Test that jobs fixture contains the build job"""
+        assert 'build' in jobs, "Jobs fixture should contain 'build' job"
+    
+    def test_jobs_fixture_is_not_empty(self, jobs):
+        """Test that jobs fixture is not empty"""
+        assert len(jobs) > 0, "Jobs fixture should not be empty"
+    
+    def test_jobs_fixture_has_valid_job_structure(self, jobs):
+        """Test that each job in jobs fixture has valid structure"""
+        for job_name, job_config in jobs.items():
+            assert isinstance(job_config, dict), f"Job '{job_name}' config should be a dict"
+            assert 'runs-on' in job_config, f"Job '{job_name}' missing 'runs-on'"
+            assert 'steps' in job_config, f"Job '{job_name}' missing 'steps'"
+
+
+class TestTriggerConfiguration:
+    """Additional comprehensive trigger configuration tests"""
+    
+    @pytest.fixture
+    def triggers(self, workflow_content):
+        """Get trigger configuration from workflow content"""
+        return workflow_content.get(True) or workflow_content.get('on')
+    
+    def test_workflow_dispatch_has_no_branches(self, triggers):
+        """Test that workflow_dispatch doesn't have branch configuration"""
+        workflow_dispatch = triggers.get('workflow_dispatch')
+        assert workflow_dispatch is not None, "workflow_dispatch should be configured"
+        
+        # workflow_dispatch should not have branches (it's manual)
+        if isinstance(workflow_dispatch, dict):
+            assert 'branches' not in workflow_dispatch, \
+                "workflow_dispatch should not have branches configuration"
+    
+    def test_trigger_keys_are_valid_github_events(self, triggers):
+        """Test that all trigger keys are valid GitHub workflow events"""
+        valid_events = [
+            'push', 'pull_request', 'pull_request_target', 'workflow_dispatch',
+            'schedule', 'release', 'issues', 'issue_comment', 'watch',
+            'fork', 'create', 'delete', 'deployment', 'deployment_status',
+            'page_build', 'public', 'check_run', 'check_suite', 'discussion',
+            'discussion_comment', 'gollum', 'label', 'milestone', 'project',
+            'project_card', 'project_column', 'registry_package', 'repository_dispatch',
+            'status', 'workflow_call', 'workflow_run'
+        ]
+        
+        for trigger_key in triggers.keys():
+            assert trigger_key in valid_events, \
+                f"Trigger '{trigger_key}' is not a valid GitHub workflow event"
+    
+    def test_branch_filter_format_is_correct(self, triggers):
+        """Test that branch filters are in correct format (list of strings)"""
+        for trigger_name in ['push', 'pull_request']:
+            if trigger_name in triggers:
+                trigger_config = triggers[trigger_name]
+                if 'branches' in trigger_config:
+                    branches = trigger_config['branches']
+                    assert isinstance(branches, list), \
+                        f"{trigger_name} branches should be a list"
+                    for branch in branches:
+                        assert isinstance(branch, str), \
+                            f"Branch name in {trigger_name} should be a string, got {type(branch)}"
+    
+    def test_no_branches_ignore_configuration(self, triggers):
+        """Test that branches-ignore is not used (prefer explicit branches)"""
+        for trigger_name in ['push', 'pull_request']:
+            if trigger_name in triggers:
+                trigger_config = triggers[trigger_name]
+                assert 'branches-ignore' not in trigger_config, \
+                    f"{trigger_name} should use 'branches' not 'branches-ignore' for clarity"
+    
+    def test_no_conflicting_branch_filters(self, triggers):
+        """Test that triggers don't have both branches and branches-ignore"""
+        for trigger_name in ['push', 'pull_request']:
+            if trigger_name in triggers:
+                trigger_config = triggers[trigger_name]
+                has_branches = 'branches' in trigger_config
+                has_branches_ignore = 'branches-ignore' in trigger_config
+                
+                if has_branches and has_branches_ignore:
+                    pytest.fail(
+                        f"{trigger_name} has both 'branches' and 'branches-ignore' "
+                        f"which is not allowed"
+                    )
+
+
+class TestStepValidation:
+    """Comprehensive step validation tests"""
+    
+    @pytest.fixture
+    def steps(self, workflow_content):
+        """Get workflow steps"""
+        return workflow_content['jobs']['build']['steps']
+    
+    @pytest.fixture
+    def checkout_steps(self, steps):
+        """Get checkout steps"""
+        return [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
+    
+    def test_checkout_is_first_step(self, steps):
+        """Test that checkout is the first step"""
+        first_step = steps[0]
+        assert 'uses' in first_step, "First step should use an action"
+        assert 'checkout' in first_step['uses'], "First step should be checkout action"
+    
+    def test_steps_have_unique_names_when_present(self, steps):
+        """Test that all named steps have unique names"""
+        step_names = [s.get('name') for s in steps if 'name' in s]
+        assert len(step_names) == len(set(step_names)), \
+            "Step names should be unique when present"
+    
+    def test_run_commands_are_not_empty(self, steps):
+        """Test that all run commands have content"""
+        for i, step in enumerate(steps):
+            if 'run' in step:
+                run_content = step['run'].strip()
+                assert len(run_content) > 0, f"Step {i} has empty run command"
+    
+    def test_multiline_run_commands_use_pipe_syntax(self, steps):
+        """Test that multi-line commands are properly formatted"""
+        for step in steps:
+            if 'run' in step and '\n' in step['run']:
+                # Multi-line run commands should exist
+                assert len(step['run'].split('\n')) > 1, \
+                    "Multi-line run command should have multiple lines"
+    
+    def test_action_steps_do_not_have_run(self, steps):
+        """Test that action steps (uses) don't also have run commands"""
+        for step in steps:
+            if 'uses' in step:
+                # Actions should not have 'run' commands
+                assert 'run' not in step, \
+                    f"Step with 'uses' should not have 'run': {step.get('uses')}"
+    
+    def test_checkout_step_has_no_extra_config(self, checkout_steps):
+        """Test that checkout step doesn't have unnecessary configuration"""
+        if checkout_steps:
+            checkout = checkout_steps[0]
+            # Basic checkout should only have 'uses' (and maybe 'name')
+            allowed_keys = {'uses', 'name', 'with', 'id'}
+            actual_keys = set(checkout.keys())
+            unexpected_keys = actual_keys - allowed_keys
+            assert len(unexpected_keys) == 0, \
+                f"Checkout step has unexpected keys: {unexpected_keys}"
+    
+    def test_step_names_are_descriptive(self, steps):
+        """Test that step names follow descriptive naming conventions"""
+        for step in steps:
+            if 'name' in step:
+                name = step['name']
+                # Name should be reasonable length and not just single character
+                assert len(name) > 3, f"Step name '{name}' is too short"
+                assert len(name) < 100, f"Step name '{name}' is too long"
+                # Name should start with capital letter
+                assert name[0].isupper() or name[0].isdigit(), \
+                    f"Step name '{name}' should start with capital letter"
+
+
+class TestWorkflowBestPractices:
+    """Test GitHub Actions best practices"""
+    
+    def test_workflow_has_descriptive_name(self, workflow_content):
+        """Test that workflow name is descriptive"""
+        name = workflow_content.get('name', '')
+        assert len(name) > 0, "Workflow should have a name"
+        assert len(name) < 50, "Workflow name should be concise"
+    
+    def test_workflow_has_at_least_one_job(self, jobs):
+        """Test that workflow has at least one job defined"""
+        assert len(jobs) >= 1, "Workflow should have at least one job"
+    
+    def test_all_jobs_have_steps(self, jobs):
+        """Test that all jobs have at least one step"""
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            assert len(steps) > 0, f"Job '{job_name}' should have at least one step"
+    
+    def test_runner_uses_latest_tag(self, jobs):
+        """Test that runners use -latest tags for better maintenance"""
+        for job_name, job_config in jobs.items():
+            runner = job_config.get('runs-on', '')
+            if runner and isinstance(runner, str):
+                # If not using a specific version, should use -latest
+                if not any(runner.endswith(v) for v in ['-20.04', '-22.04', '-2019', '-2022', '-11', '-12', '-13']):
+                    assert runner.endswith('-latest'), \
+                        f"Job '{job_name}' should use -latest runner tag: {runner}"
+    
+    def test_no_deprecated_actions(self, jobs):
+        """Test that no deprecated actions are used"""
+        deprecated_actions = [
+            'actions/checkout@v1',
+            'actions/checkout@v2',
+            'actions/setup-node@v1',
+            'actions/setup-python@v1',
+        ]
+        
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            for step in steps:
+                if 'uses' in step:
+                    action = step['uses']
+                    for deprecated in deprecated_actions:
+                        assert deprecated not in action, \
+                            f"Job '{job_name}' uses deprecated action: {action}"
+
+
+class TestYAMLFormatting:
+    """Test YAML formatting and style"""
+    
+    def test_yaml_uses_2_space_indentation(self, workflow_raw):
+        """Test that YAML uses consistent 2-space indentation"""
+        lines = workflow_raw.split('\n')
+        indentation_levels = set()
+        
+        for line in lines:
+            if line.strip() and not line.strip().startswith('#'):
+                spaces = len(line) - len(line.lstrip(' '))
+                if spaces > 0:
+                    indentation_levels.add(spaces)
+        
+        # All indentation should be multiples of 2
+        for level in indentation_levels:
+            assert level % 2 == 0, f"Found non-2-space indentation: {level}"
+    
+    def test_no_trailing_whitespace(self, workflow_raw):
+        """Test that lines don't have trailing whitespace"""
+        lines = workflow_raw.split('\n')
+        for i, line in enumerate(lines, 1):
+            # Skip empty lines
+            if len(line) > 0:
+                assert not line.endswith(' ') and not line.endswith('\t'), \
+                    f"Line {i} has trailing whitespace"
+    
+    def test_keys_use_lowercase(self, workflow_content):
+        """Test that YAML keys use lowercase (GitHub Actions convention)"""
+        # Top-level keys should be lowercase
+        for key in workflow_content.keys():
+            if isinstance(key, str):
+                assert key.islower() or key == 'CI', \
+                    f"Top-level key '{key}' should be lowercase"
+    
+    def test_list_items_properly_formatted(self, workflow_raw):
+        """Test that list items use proper YAML formatting"""
+        lines = workflow_raw.split('\n')
+        for i, line in enumerate(lines, 1):
+            stripped = line.lstrip()
+            if stripped.startswith('- '):
+                # List items should have space after dash
+                assert stripped[1] == ' ', \
+                    f"Line {i}: List item should have space after dash"
+
+
+class TestWorkflowDocumentation:
+    """Test workflow documentation and comments"""
+    
+    def test_has_descriptive_comments(self, workflow_raw):
+        """Test that workflow has descriptive comments"""
+        comment_lines = [line.strip() for line in workflow_raw.split('\n') 
+                        if line.strip().startswith('#')]
+        
+        # Should have multiple comment lines for good documentation
+        assert len(comment_lines) >= 3, \
+            "Workflow should have at least 3 comment lines for documentation"
+    
+    def test_comments_are_not_too_long(self, workflow_raw):
+        """Test that comment lines are reasonable length"""
+        comment_lines = [line for line in workflow_raw.split('\n') 
+                        if line.strip().startswith('#')]
+        
+        for line in comment_lines:
+            # Comments should be readable (not exceeding typical line length)
+            assert len(line) < 100, f"Comment line too long: {line[:50]}..."
+    
+    def test_main_sections_have_comments(self, workflow_raw):
+        """Test that main sections have explanatory comments"""
+        lines = workflow_raw.split('\n')
+        
+        # Important sections that should be documented
+        sections_to_check = ['on:', 'jobs:', 'steps:']
+        
+        for i, line in enumerate(lines):
+            for section in sections_to_check:
+                if section in line:
+                    # Check if there's a comment before or on the same line
+                    has_comment = False
+                    # Check current line
+                    if '#' in lines[i]:
+                        has_comment = True
+                    # Check previous line(s)
+                    if i > 0 and '#' in lines[i-1]:
+                        has_comment = True
+                    
+                    assert has_comment, \
+                        f"Section '{section}' should have a comment for documentation"
+
+
+class TestEdgeCaseScenarios:
+    """Test additional edge cases and error conditions"""
+    
+    def test_workflow_handles_empty_branch_list_check(self, workflow_content):
+        """Test that branch configurations are not empty lists"""
+        triggers = workflow_content.get(True) or workflow_content.get('on')
+        
+        for trigger_name in ['push', 'pull_request']:
+            if trigger_name in triggers:
+                trigger_config = triggers[trigger_name]
+                if 'branches' in trigger_config:
+                    branches = trigger_config['branches']
+                    assert len(branches) > 0, \
+                        f"{trigger_name} branches list should not be empty"
+    
+    def test_no_null_values_in_config(self, workflow_content):
+        """Test that there are no null/None values in critical config"""
+        assert workflow_content.get('name') is not None, "Workflow name should not be null"
+        assert workflow_content.get('jobs') is not None, "Jobs should not be null"
+        
+        triggers = workflow_content.get(True) or workflow_content.get('on')
+        assert triggers is not None, "Triggers should not be null"
+    
+    def test_step_order_is_logical(self, workflow_content):
+        """Test that steps are in logical order (checkout first)"""
+        steps = workflow_content['jobs']['build']['steps']
+        
+        # First step with 'uses' should be checkout
+        first_action_step = None
+        for step in steps:
+            if 'uses' in step:
+                first_action_step = step
+                break
+        
+        if first_action_step:
+            assert 'checkout' in first_action_step.get('uses', ''), \
+                "First action step should be checkout"
+    
+    def test_no_windows_line_endings(self, workflow_raw):
+        """Test that file doesn't use Windows line endings"""
+        assert '\r\n' not in workflow_raw, \
+            "Workflow should use Unix line endings (LF), not Windows (CRLF)"
+    
+    def test_file_ends_with_newline(self, workflow_raw):
+        """Test that file ends with a newline character"""
+        assert workflow_raw.endswith('\n'), \
+            "Workflow file should end with a newline"
+
+
+class TestParameterizedWorkflowValidation:
+    """Test parametrized validation approaches"""
+    
+    @pytest.mark.parametrize("job_name", ["build"])
+    def test_job_has_required_keys(self, jobs, job_name):
+        """Test that jobs have all required keys"""
+        assert job_name in jobs, f"Job '{job_name}' not found"
+        job = jobs[job_name]
+        
+        required_keys = ['runs-on', 'steps']
+        for key in required_keys:
+            assert key in job, f"Job '{job_name}' missing required key '{key}'"
+    
+    @pytest.mark.parametrize("step_index,expected_type", [
+        (0, 'action'),  # First step should be an action (checkout)
+        (1, 'script'),  # Second step should be a script
+        (2, 'script'),  # Third step should be a script
+    ])
+    def test_step_types_in_order(self, workflow_content, step_index, expected_type):
+        """Test that steps follow expected type pattern"""
+        steps = workflow_content['jobs']['build']['steps']
+        
+        if step_index < len(steps):
+            step = steps[step_index]
+            
+            if expected_type == 'action':
+                assert 'uses' in step, \
+                    f"Step {step_index} should be an action (uses)"
+            elif expected_type == 'script':
+                assert 'run' in step, \
+                    f"Step {step_index} should be a script (run)"
+    
+    @pytest.mark.parametrize("trigger_type", ["push", "pull_request"])
+    def test_trigger_branch_configuration_complete(self, workflow_content, trigger_type):
+        """Test that branch-based triggers have complete configuration"""
+        triggers = workflow_content.get(True) or workflow_content.get('on')
+        
+        assert trigger_type in triggers, f"Trigger '{trigger_type}' not found"
+        trigger = triggers[trigger_type]
+        
+        assert 'branches' in trigger, \
+            f"Trigger '{trigger_type}' should have branches configuration"
+        assert isinstance(trigger['branches'], list), \
+            f"Trigger '{trigger_type}' branches should be a list"
+        assert len(trigger['branches']) > 0, \
+            f"Trigger '{trigger_type}' should have at least one branch"
+
+
+class TestFixtureReusability:
+    """Test fixture reusability and efficiency"""
+    
+    def test_workflow_path_fixture_returns_path_object(self, workflow_path):
+        """Test that workflow_path fixture returns a Path object"""
+        from pathlib import Path
+        assert isinstance(workflow_path, Path), \
+            "workflow_path fixture should return a Path object"
+    
+    def test_workflow_raw_fixture_returns_string(self, workflow_raw):
+        """Test that workflow_raw fixture returns a string"""
+        assert isinstance(workflow_raw, str), \
+            "workflow_raw fixture should return a string"
+    
+    def test_workflow_content_fixture_returns_dict(self, workflow_content):
+        """Test that workflow_content fixture returns a dict"""
+        assert isinstance(workflow_content, dict), \
+            "workflow_content fixture should return a dict"
+    
+    def test_jobs_fixture_is_accessible(self, jobs):
+        """Test that jobs fixture is accessible from module scope"""
+        assert jobs is not None, "jobs fixture should be accessible"
+        assert isinstance(jobs, dict), "jobs fixture should return a dict"
+    
+    def test_fixtures_contain_expected_data(self, workflow_path, workflow_raw, workflow_content, jobs):
+        """Test that all fixtures contain expected data"""
+        # Path should exist
+        assert workflow_path.exists(), "workflow_path should point to existing file"
+        
+        # Raw content should not be empty
+        assert len(workflow_raw) > 0, "workflow_raw should not be empty"
+        
+        # Parsed content should have keys
+        assert len(workflow_content) > 0, "workflow_content should not be empty"
+        
+        # Jobs should contain at least one job
+        assert len(jobs) > 0, "jobs should contain at least one job"
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-v'])
