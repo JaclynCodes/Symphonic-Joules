@@ -109,35 +109,31 @@ class TestBranchConfiguration:
         assert trigger_config is not None, f"{trigger_name} trigger configuration is None"
         assert 'branches' in trigger_config, f"{trigger_name} trigger missing branches configuration"
     
-    def test_push_trigger_exists(self, triggers):
-        """Test that push trigger is configured"""
-        assert 'push' in triggers, "Push trigger not configured"
+    @pytest.mark.parametrize("trigger_key,trigger_name", [
+        ('push', 'Push'),
+        ('pull_request', 'Pull request'),
+        ('workflow_dispatch', 'Workflow dispatch'),
+    ])
+    def test_trigger_exists(self, triggers, trigger_key, trigger_name):
+        """Test that required triggers are configured"""
+        assert trigger_key in triggers, f"{trigger_name} trigger not configured"
     
-    def test_pull_request_trigger_exists(self, triggers):
-        """Test that pull_request trigger is configured"""
-        assert 'pull_request' in triggers, "Pull request trigger not configured"
+    @pytest.mark.parametrize("trigger_key,trigger_name", [
+        ('push', 'Push'),
+        ('pull_request', 'Pull request'),
+    ])
+    def test_trigger_has_branches(self, triggers, trigger_key, trigger_name):
+        """Test that triggers have branch configuration"""
+        self._assert_trigger_has_branches(triggers, trigger_key, trigger_name)
     
-    def test_workflow_dispatch_trigger_exists(self, triggers):
-        """Test that workflow_dispatch trigger is configured"""
-        assert 'workflow_dispatch' in triggers, "Workflow dispatch trigger not configured"
-    
-    def test_push_trigger_has_branches(self, triggers):
-        """Test that push trigger has branch configuration"""
-        self._assert_trigger_has_branches(triggers, 'push', "Push")
-    
-    def test_pull_request_trigger_has_branches(self, triggers):
-        """Test that pull_request trigger has branch configuration"""
-        self._assert_trigger_has_branches(triggers, 'pull_request', "Pull request")
-    
-    def test_push_branches_is_main(self, triggers):
-        """Test that push trigger is configured for 'main' branch (not 'base')"""
-        push_branches = triggers['push']['branches']
-        self._validate_branch_config(push_branches, "Push")
-    
-    def test_pull_request_branches_is_main(self, triggers):
-        """Test that pull_request trigger is configured for 'main' branch (not 'base')"""
-        pr_branches = triggers['pull_request']['branches']
-        self._validate_branch_config(pr_branches, "Pull request")
+    @pytest.mark.parametrize("trigger_key,trigger_name", [
+        ('push', 'Push'),
+        ('pull_request', 'Pull request'),
+    ])
+    def test_branches_is_main(self, triggers, trigger_key, trigger_name):
+        """Test that triggers are configured for 'main' branch (not 'base')"""
+        branches = triggers[trigger_key]['branches']
+        self._validate_branch_config(branches, trigger_name)
     
     def test_only_main_branch_configured(self, triggers):
         """Test that only 'main' branch is configured (no other branches)"""
