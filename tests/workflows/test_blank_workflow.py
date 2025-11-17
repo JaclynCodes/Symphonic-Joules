@@ -192,14 +192,17 @@ class TestStepsConfiguration:
         """Get workflow steps from cached workflow content"""
         return workflow_content['jobs']['build']['steps']
     
-    def test_has_checkout_step(self, steps):
+    @pytest.fixture
+    def checkout_steps(self, steps):
+        """Get checkout steps from the workflow"""
+        return [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
+    
+    def test_has_checkout_step(self, checkout_steps):
         """Test that workflow includes checkout action"""
-        checkout_steps = [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
         assert len(checkout_steps) > 0, "No checkout step found"
     
-    def test_checkout_uses_v4(self, steps):
+    def test_checkout_uses_v4(self, checkout_steps):
         """Test that checkout action uses version 4"""
-        checkout_steps = [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
         assert len(checkout_steps) > 0, "No checkout step found"
         checkout_action = checkout_steps[0]['uses']
         assert 'actions/checkout@v4' in checkout_action, f"Expected checkout@v4, got {checkout_action}"
@@ -219,15 +222,14 @@ class TestStepsConfiguration:
             if 'name' in step:
                 assert 'run' in step, f"Named step '{step['name']}' missing 'run' command"
     
-    def test_one_line_script_step_exists(self, steps):
-        """Test that 'Run a one-line script' step exists"""
-        one_line_steps = [s for s in steps if s.get('name') == 'Run a one-line script']
-        assert len(one_line_steps) > 0, "One-line script step not found"
-    
-    def test_multi_line_script_step_exists(self, steps):
-        """Test that 'Run a multi-line script' step exists"""
-        multi_line_steps = [s for s in steps if s.get('name') == 'Run a multi-line script']
-        assert len(multi_line_steps) > 0, "Multi-line script step not found"
+    @pytest.mark.parametrize("step_name,error_message", [
+        ('Run a one-line script', "One-line script step not found"),
+        ('Run a multi-line script', "Multi-line script step not found"),
+    ])
+    def test_script_step_exists(self, steps, step_name, error_message):
+        """Test that required script steps exist"""
+        matching_steps = [s for s in steps if s.get('name') == step_name]
+        assert len(matching_steps) > 0, error_message
     
     def test_script_steps_have_content(self, steps):
         """Test that script steps have actual commands"""
