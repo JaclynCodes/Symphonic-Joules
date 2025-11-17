@@ -47,6 +47,15 @@ def workflow_content(workflow_raw):
     return yaml.safe_load(workflow_raw)
 
 
+@pytest.fixture(scope='module')
+def jobs(workflow_content):
+    """
+    Module-scoped fixture for jobs configuration.
+    Extracted once and shared across all tests in this module.
+    """
+    return workflow_content.get('jobs', {})
+
+
 class TestWorkflowStructure:
     """Test the basic structure and syntax of the workflow file"""
     
@@ -148,11 +157,6 @@ class TestBranchConfiguration:
 
 class TestJobsConfiguration:
     """Test jobs configuration"""
-    
-    @pytest.fixture
-    def jobs(self, workflow_content):
-        """Get jobs configuration from cached workflow content"""
-        return workflow_content.get('jobs', {})
     
     def test_jobs_section_exists(self, workflow_content):
         """Test that jobs section exists"""
@@ -296,23 +300,20 @@ class TestEdgeCases:
                 if leading_spaces > 0:
                     assert leading_spaces % 2 == 0, f"Line {i} has inconsistent indentation (not a multiple of 2)"
     
-    def test_no_duplicate_job_names(self, workflow_content):
+    def test_no_duplicate_job_names(self, jobs):
         """Test that there are no duplicate job names"""
-        jobs = workflow_content.get('jobs', {})
         job_names = list(jobs.keys())
         assert len(job_names) == len(set(job_names)), "Duplicate job names found"
     
-    def test_no_duplicate_step_names_in_job(self, workflow_content):
+    def test_no_duplicate_step_names_in_job(self, jobs):
         """Test that there are no duplicate step names within a job"""
-        jobs = workflow_content.get('jobs', {})
         for job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
             step_names = [s.get('name') for s in steps if 'name' in s]
             assert len(step_names) == len(set(step_names)), f"Duplicate step names in job '{job_name}'"
     
-    def test_runner_is_valid(self, workflow_content):
+    def test_runner_is_valid(self, jobs):
         """Test that runner configuration is valid"""
-        jobs = workflow_content.get('jobs', {})
         valid_runners = [
             'ubuntu-latest', 'ubuntu-22.04', 'ubuntu-20.04',
             'windows-latest', 'windows-2022', 'windows-2019',
@@ -343,9 +344,8 @@ class TestWorkflowSecurity:
                         assert 'secrets.' in line or '${{' in line, \
                             f"Potential hardcoded secret pattern '{pattern}' found"
     
-    def test_checkout_action_is_pinned_or_versioned(self, workflow_content):
+    def test_checkout_action_is_pinned_or_versioned(self, jobs):
         """Test that actions use version tags (security best practice)"""
-        jobs = workflow_content.get('jobs', {})
         for _job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
             for step in steps:
