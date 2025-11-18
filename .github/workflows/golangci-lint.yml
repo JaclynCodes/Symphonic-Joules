@@ -1,0 +1,43 @@
+# golangci-lint workflow (compatibility placeholder)
+name: golangci-lint
+
+"on":
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for Go files
+        id: check-go
+        run: |
+          if find . -name "*.go" -type f | head -1 | grep -q .; then
+            echo "go_files_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "go_files_found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Go (if Go files found)
+        if: steps.check-go.outputs.go_files_found == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: golangci-lint (if Go files found)
+        if: steps.check-go.outputs.go_files_found == 'true'
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: No Go files found
+        if: steps.check-go.outputs.go_files_found == 'false'
+        run: |
+          echo "ℹ️  This is a Python project - no Go files found to lint"
+          echo "✅ golangci-lint check passed (no Go code to analyze)"

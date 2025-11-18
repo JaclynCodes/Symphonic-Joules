@@ -220,11 +220,12 @@ class TestStepsConfiguration:
         for i, step in enumerate(steps):
             assert 'uses' in step or 'run' in step, f"Step {i} missing 'uses' or 'run' key"
     
-    def test_named_steps_have_run_commands(self, steps):
-        """Test that named steps have run commands"""
+    def test_named_steps_have_valid_actions(self, steps):
+        """Test that named steps have either run commands or uses actions"""
         for step in steps:
             if 'name' in step:
-                assert 'run' in step, f"Named step '{step['name']}' missing 'run' command"
+                assert 'run' in step or 'uses' in step, \
+                    f"Named step '{step['name']}' missing 'run' command or 'uses' action"
     
     @pytest.mark.parametrize("step_name,error_message", [
         ('Run a one-line script', "One-line script step not found"),

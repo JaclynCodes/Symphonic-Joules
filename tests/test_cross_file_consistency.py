@@ -184,8 +184,17 @@ class TestConsistentTestNaming:
                         for item in node.body:
                             if isinstance(item, ast.FunctionDef) and \
                                not item.name.startswith('_'):
-                                assert item.name.startswith('test_'), \
-                                    f"{test_file.name}: {item.name} should start with 'test_'"
+                                # Check if it's a fixture by looking for @pytest.fixture decorator
+                                is_fixture = any(
+                                    isinstance(decorator, ast.Name) and decorator.id == 'fixture' or
+                                    isinstance(decorator, ast.Attribute) and 
+                                    isinstance(decorator.value, ast.Name) and 
+                                    decorator.value.id == 'pytest' and decorator.attr == 'fixture'
+                                    for decorator in item.decorator_list
+                                )
+                                if not is_fixture:
+                                    assert item.name.startswith('test_'), \
+                                        f"{test_file.name}: {item.name} should start with 'test_'"
     
     def test_test_classes_start_with_test(self, all_workflow_test_files):
         """Test that all test classes follow Test* naming"""

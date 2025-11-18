@@ -10,9 +10,13 @@ The test suite validates GitHub Actions workflows and project configuration file
 
 ### Workflow Tests
 
-- `tests/workflows/test_blank_workflow.py` - CI workflow validation (43 tests, 9 test classes)
-- `tests/workflows/test_jekyll_workflow.py` - Jekyll/GitHub Pages deployment validation (72 tests, 15 test classes)
-- `tests/workflows/test_static_workflow.py` - Static content deployment validation (75 tests, 16 test classes)
+- `tests/workflows/test_blank_workflow.py` - CI workflow validation (37 tests, 9 test classes)
+- `tests/workflows/test_jekyll_workflow.py` - Jekyll/GitHub Pages deployment validation (71 tests, 15 test classes)
+- `tests/workflows/test_static_workflow.py` - Static content deployment validation (79 tests, 16 test classes)
+- `tests/workflows/test_codeql_workflow.py` - CodeQL security analysis validation (30 tests, 8 test classes)
+- `tests/workflows/test_golangci_lint_workflow.py` - Go linting workflow validation (29 tests, 10 test classes)
+- `tests/workflows/test_license_check_workflow.py` - License checking workflow validation (31 tests, 8 test classes)
+- `tests/workflows/test_new_workflow_tests.py` - Validation tests for newly added workflow test files
 
 ### Configuration Files
 
@@ -23,7 +27,9 @@ The test suite validates GitHub Actions workflows and project configuration file
 
 ## Test Coverage Summary
 
-**Total Tests: 190 across 40 test classes**
+**Total Workflow Tests: 277 tests across 66 test classes**
+
+**Total Test Suite: 435 tests** (including validation and meta-tests)
 
 ### Blank Workflow Tests (43 tests)
 
@@ -226,7 +232,7 @@ The following pytest markers are available:
 Install test dependencies with:
 
 ```bash
-pip install -r tests/requirements.txt
+python -m pip install -r tests/requirements.txt
 ```
 
 Required packages:
@@ -272,8 +278,8 @@ These tests are designed to run in CI/CD pipelines:
 # Example GitHub Actions workflow step
 - name: Run Tests
   run: |
-    pip install -r tests/requirements.txt
-    pytest tests/ -v --tb=short
+    python -m pip install -r tests/requirements.txt
+    python -m pytest tests/ -v --tb=short
 ```
 
 ## Test Results Summary
