@@ -16,7 +16,6 @@ import ast
 import yaml
 import os
 from pathlib import Path
-from typing import List, Set, Dict
 
 
 @pytest.fixture(scope='module')
