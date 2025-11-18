@@ -228,7 +228,7 @@ class TestStepsConfiguration:
         for step in steps:
             if 'name' in step:
                 assert 'run' in step or 'uses' in step, \
-                    f"Named step '{step['name']}' missing 'run' command or 'uses' action"
+                    f"Named step '{step['name']}' must have either 'run' or 'uses'"
     
     @pytest.mark.parametrize("step_name,error_message", [
         ('Run a one-line script', "One-line script step not found"),
