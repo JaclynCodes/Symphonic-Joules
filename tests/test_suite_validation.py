@@ -14,7 +14,6 @@ This test suite validates the test suite itself, ensuring:
 import pytest
 import ast
 import yaml
-import os
 from pathlib import Path
 
 
