@@ -16,19 +16,40 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def repo_root():
-    """Get the repository root directory."""
+    """
+    Return the repository root directory.
+    
+    Returns:
+        Path: Path to the repository root (the parent of this file's directory).
+    """
     return Path(__file__).parent.parent
 
 
 @pytest.fixture(scope='module')
 def readme_path(repo_root):
-    """Get the README.md path in tests directory."""
+    """
+    Return the path to tests/README.md within the repository.
+    
+    Parameters:
+        repo_root (Path): Repository root directory.
+    
+    Returns:
+        Path: Path to the tests/README.md file.
+    """
     return repo_root / 'tests' / 'README.md'
 
 
 @pytest.fixture(scope='module')
 def readme_content(readme_path):
-    """Load README content."""
+    """
+    Read and return the contents of the README file at the given path.
+    
+    Parameters:
+        readme_path (Path | str): Path to the README file.
+    
+    Returns:
+        content (str): The README file contents as a string.
+    """
     with open(readme_path, 'r') as f:
         return f.read()
 
@@ -41,7 +62,11 @@ class TestREADMEStructure:
         assert readme_path.exists(), "tests/README.md must exist"
     
     def test_readme_not_empty(self, readme_content):
-        """Test that README has substantial content"""
+        """
+        Validate that tests/README.md contains substantial content.
+        
+        Asserts the README length is greater than 1000 characters.
+        """
         assert len(readme_content) > 1000, \
             "README should be comprehensive (> 1000 characters)"
     
@@ -51,13 +76,21 @@ class TestREADMEStructure:
             "README should have an overview section"
     
     def test_readme_has_structure_section(self, readme_content):
-        """Test that README documents test structure"""
+        """
+        Verify the README documents the repository's test structure.
+        
+        Asserts that the README contains a "## Test Structure" or "## Structure" section header.
+        """
         assert '## Test Structure' in readme_content or \
                '## Structure' in readme_content, \
             "README should document test structure"
     
     def test_readme_has_running_instructions(self, readme_content):
-        """Test that README includes instructions for running tests"""
+        """
+        Verify the README documents how to run the test suite.
+        
+        Asserts that the README contains a "## Running Tests" or "## Running" section header.
+        """
         assert '## Running Tests' in readme_content or \
                '## Running' in readme_content, \
             "README should have running tests section"
@@ -67,7 +100,13 @@ class TestREADMETestCounts:
     """Test that README accurately reflects test counts"""
     
     def test_readme_documents_total_test_count(self, readme_content, repo_root):
-        """Test that README documents total test count accurately"""
+        """
+        Verify that the repository README documents the total number of workflow tests or a close approximation (within 5).
+        
+        Parameters:
+            readme_content (str): Contents of tests/README.md.
+            repo_root (pathlib.Path): Path to the repository root used to locate tests/workflows.
+        """
         # Extract documented test count
         import ast
         
@@ -100,7 +139,11 @@ class TestREADMETestCounts:
                 f"README should document total test count (actual: {total_tests})"
     
     def test_readme_documents_blank_workflow_tests(self, readme_content):
-        """Test that README documents blank workflow test count"""
+        """
+        Assert the README mentions the blank workflow tests.
+        
+        Checks that the README contains 'test_blank_workflow' or the phrase 'blank workflow' (case-insensitive) and fails if neither is present.
+        """
         # Should mention test_blank_workflow.py
         assert 'test_blank_workflow' in readme_content or \
                'blank workflow' in readme_content.lower(), \
@@ -114,7 +157,9 @@ class TestREADMETestCounts:
             "README should document Jekyll workflow tests"
     
     def test_readme_documents_static_workflow_tests(self, readme_content):
-        """Test that README documents static workflow test count"""
+        """
+        Check that the README mentions the static workflow tests either by the test name 'test_static_workflow' or by the phrase 'static workflow'.
+        """
         assert 'test_static_workflow' in readme_content or \
                'static workflow' in readme_content.lower() or \
                'Static workflow' in readme_content, \
@@ -130,24 +175,37 @@ class TestREADMERunInstructions:
             "README should include pytest command"
     
     def test_readme_shows_python_module_syntax(self, readme_content):
-        """Test that README uses python -m pytest syntax"""
+        """
+        Check that the README demonstrates running pytest using the "python -m pytest" module syntax.
+        
+        Asserts the README contains 'python' (case-insensitive) and the literal '-m pytest'.
+        """
         assert 'python' in readme_content.lower() and '-m pytest' in readme_content, \
             "README should show 'python -m pytest' syntax"
     
     def test_readme_shows_verbose_flag(self, readme_content):
-        """Test that README demonstrates verbose output flag"""
+        """Check that the README demonstrates use of pytest's verbose flag (-v or --verbose)."""
         assert '-v' in readme_content or '--verbose' in readme_content, \
             "README should demonstrate verbose output"
     
     def test_readme_shows_specific_file_execution(self, readme_content):
-        """Test that README shows how to run specific test files"""
+        """
+        Check README demonstrates how to run specific test files, e.g. a path pattern under tests/workflows or an explicit test filename.
+        """
         # Should show pattern like: pytest tests/workflows/test_*.py
         assert 'tests/workflows/test_' in readme_content or \
                'test_blank_workflow.py' in readme_content, \
             "README should show how to run specific test files"
     
     def test_readme_shows_specific_class_execution(self, readme_content):
-        """Test that README shows how to run specific test classes"""
+        """
+        Check that README demonstrates how to run an individual test class.
+        
+        Passes if the README contains the pytest class selection syntax (`::`) or a phrase mentioning a test class.
+        
+        Parameters:
+            readme_content (str): The full contents of tests/README.md to inspect.
+        """
         # Should show pattern like: pytest file.py::TestClass
         assert '::' in readme_content or 'test class' in readme_content.lower(), \
             "README should show how to run specific test classes"
@@ -157,7 +215,9 @@ class TestREADMEDependencies:
     """Test that README accurately documents dependencies"""
     
     def test_readme_mentions_pytest(self, readme_content):
-        """Test that README mentions pytest dependency"""
+        """
+        Check that the repository README mentions pytest.
+        """
         assert 'pytest' in readme_content.lower(), \
             "README should mention pytest dependency"
     
@@ -167,7 +227,9 @@ class TestREADMEDependencies:
             "README should mention PyYAML dependency"
     
     def test_readme_mentions_requirements_file(self, readme_content):
-        """Test that README points to requirements.txt"""
+        """
+        Check that the repository README mentions requirements.txt.
+        """
         assert 'requirements.txt' in readme_content, \
             "README should mention requirements.txt"
     
@@ -223,7 +285,9 @@ class TestREADMETestCategories:
             "README should document metadata tests"
     
     def test_readme_documents_edge_case_tests(self, readme_content):
-        """Test that README mentions edge case tests"""
+        """
+        Check that the repository README mentions edge case tests.
+        """
         assert 'edge' in readme_content.lower(), \
             "README should document edge case tests"
 
@@ -232,7 +296,14 @@ class TestREADMECodeExamples:
     """Test that README code examples are valid"""
     
     def test_readme_bash_blocks_are_valid(self, readme_content):
-        """Test that bash code blocks in README use valid syntax"""
+        """
+        Verify that bash/shell code blocks in the README contain non-empty examples and demonstrate pytest or python usage.
+        
+        Scans the provided README content for fenced code blocks labelled ```bash or ```shell and asserts each block is not empty and includes either "pytest" or "python".
+        
+        Parameters:
+            readme_content (str): The full text of the README to inspect.
+        """
         # Extract bash code blocks
         bash_blocks = re.findall(r'```(?:bash|shell)\n(.*?)\n```', 
                                  readme_content, re.DOTALL)
@@ -257,7 +328,11 @@ class TestREADMEConsistency:
     """Test internal consistency of README"""
     
     def test_readme_test_counts_are_consistent(self, readme_content):
-        """Test that test counts mentioned throughout README are consistent"""
+        """
+        Verify that numeric "N tests" mentions in the README are internally consistent.
+        
+        If the README contains more than one "N tests" mention, assert that at least two distinct numeric counts appear. This catches cases where multiple contexts are documented but the same (likely incorrect) count is repeated.
+        """
         # Find all mentions of test counts
         test_count_pattern = r'(\d+)\s+tests?'
         matches = re.findall(test_count_pattern, readme_content, re.IGNORECASE)
@@ -270,7 +345,11 @@ class TestREADMEConsistency:
                 "README should mention different test counts for different files"
     
     def test_readme_class_counts_match_implementation(self, readme_content, repo_root):
-        """Test that class counts in README match actual implementation"""
+        """
+        Check that any 'N classes' counts mentioned in the README are consistent with the actual test classes in the implementation.
+        
+        If the README contains one or more patterns like "<n> classes", this test parses tests/workflows/test_blank_workflow.py, counts classes whose names start with "Test", and asserts that at least one documented count is within 2 of the actual class count.
+        """
         import ast
         
         # Pattern like "43 tests across 9 test classes"

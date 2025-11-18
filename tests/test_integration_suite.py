@@ -18,13 +18,26 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def repo_root():
-    """Get the repository root directory."""
+    """
+    Return the repository root directory as a Path.
+    
+    Returns:
+        Path: Path to the repository root (two levels up from this file).
+    """
     return Path(__file__).parent.parent
 
 
 @pytest.fixture(scope='module')
 def tests_dir(repo_root):
-    """Get the tests directory."""
+    """
+    Return the repository's tests directory path.
+    
+    Parameters:
+        repo_root (Path): Repository root directory.
+    
+    Returns:
+        Path: Path to the 'tests' directory inside the repository.
+    """
     return repo_root / 'tests'
 
 
@@ -62,7 +75,11 @@ class TestTestExecution:
             f"No tests discovered:\n{result.stdout}"
     
     def test_blank_workflow_tests_execute(self, repo_root):
-        """Test that blank workflow tests can execute"""
+        """
+        Verify the blank workflow test file runs without import-time errors.
+        
+        Runs pytest on tests/workflows/test_blank_workflow.py and asserts that execution does not produce import errors (i.e., no 'ERRORS' in stdout with return code 2), failing the test if import-time errors are detected.
+        """
         test_file = repo_root / 'tests' / 'workflows' / 'test_blank_workflow.py'
         result = subprocess.run(
             [sys.executable, '-m', 'pytest', str(test_file), '-v', '--tb=short'],
@@ -97,7 +114,14 @@ class TestFixtureInitialization:
             sys.path.pop(0)
     
     def test_yaml_parsing_works(self, repo_root):
-        """Test that YAML parsing in fixtures works correctly"""
+        """
+        Verify that a workflow YAML file can be parsed and contains expected keys.
+        
+        Checks that .github/workflows/blank.yml parses to a dictionary and includes a 'name' field.
+        
+        Parameters:
+            repo_root (pathlib.Path): Repository root path used to locate the workflow file.
+        """
         import yaml
         
         workflow_file = repo_root / '.github' / 'workflows' / 'blank.yml'
@@ -124,7 +148,11 @@ class TestTestIsolation:
                 "Test file should use module-scoped fixtures for performance"
     
     def test_tests_dont_modify_workflow_files(self, repo_root):
-        """Test that tests are read-only and don't modify workflow files"""
+        """
+        Ensure executing the test suite does not modify workflow YAML files in .github/workflows.
+        
+        Records the modification time for each `.yml` file in `.github/workflows`, runs pytest in collect-only mode on the workflows tests, and asserts each file's modification time is unchanged after collection.
+        """
         workflows_dir = repo_root / '.github' / 'workflows'
         
         # Get initial state
@@ -150,7 +178,14 @@ class TestErrorReporting:
     """Test that test failures provide clear error messages"""
     
     def test_assertion_messages_are_descriptive(self, tests_dir):
-        """Test that assertions include descriptive error messages"""
+        """
+        Ensure workflow test files include descriptive assertion messages.
+        
+        Scans all test_*.py files under the workflows subdirectory of `tests_dir`, counts assert statements and those that include a trailing message, and requires at least 80% of assertions in each file to include an error message. Fails with an AssertionError naming the file and the observed percentage when a file does not meet the threshold.
+        
+        Parameters:
+            tests_dir (Path): Path to the repository's tests directory.
+        """
         test_files = list((tests_dir / 'workflows').glob('test_*.py'))
         
         for test_file in test_files:
@@ -179,7 +214,15 @@ class TestTestCoverage:
     """Test that test coverage is comprehensive"""
     
     def test_all_workflow_aspects_tested(self, repo_root):
-        """Test that tests cover all critical workflow aspects"""
+        """
+        Ensure each workflow test file covers a broad set of critical workflow aspects.
+        
+        For every `test_*.py` under `tests/workflows`, this test checks the file content (case-insensitive)
+        for seven predefined aspects and asserts that each file mentions at least five of them.
+        
+        Parameters:
+            repo_root (pathlib.Path): Path to the repository root.
+        """
         test_files = list((repo_root / 'tests' / 'workflows').glob('test_*.py'))
         
         critical_aspects = [
@@ -208,7 +251,11 @@ class TestDocumentation:
     """Test that tests are well-documented"""
     
     def test_all_test_classes_documented(self, tests_dir):
-        """Test that all test classes have docstrings"""
+        """
+        Check that every test class in tests/workflows has a class docstring.
+        
+        Parses each test_*.py file under the workflows subdirectory of the provided tests_dir and asserts that every class whose name starts with "Test" has a non-empty docstring; fails with a file- and class-specific message when a docstring is missing.
+        """
         import ast
         
         test_files = list((tests_dir / 'workflows').glob('test_*.py'))

@@ -24,8 +24,12 @@ from pathlib import Path
 @pytest.fixture(scope='module')
 def workflow_path():
     """
-    Module-scoped fixture for workflow file path.
-    Computed once and shared across all tests in this module.
+    Provide the path to the Jekyll GitHub Actions workflow file.
+    
+    Computed from the repository root relative to this test file.
+    
+    Returns:
+        Path: Path to .github/workflows/jekyll-gh-pages.yml
     """
     repo_root = Path(__file__).parent.parent.parent
     return repo_root / '.github' / 'workflows' / 'jekyll-gh-pages.yml'
@@ -34,8 +38,13 @@ def workflow_path():
 @pytest.fixture(scope='module')
 def workflow_raw(workflow_path):
     """
-    Module-scoped fixture for raw workflow content.
-    File is read once and cached for all tests.
+    Read and return the raw contents of the workflow file.
+    
+    Parameters:
+        workflow_path (str | Path): Path to the workflow YAML file.
+    
+    Returns:
+        raw_content (str): The workflow file contents as a string.
     """
     with open(workflow_path, 'r') as f:
         return f.read()
@@ -44,8 +53,13 @@ def workflow_raw(workflow_path):
 @pytest.fixture(scope='module')
 def workflow_content(workflow_raw):
     """
-    Module-scoped fixture for parsed workflow content.
-    YAML parsing is done once and cached for all tests.
+    Parse the raw workflow YAML and return the parsed structure.
+    
+    Parameters:
+        workflow_raw (str): Raw YAML content of the workflow file.
+    
+    Returns:
+        Parsed YAML structure (typically a dict) representing the workflow content.
     """
     return yaml.safe_load(workflow_raw)
 
@@ -53,8 +67,10 @@ def workflow_content(workflow_raw):
 @pytest.fixture(scope='module')
 def jobs(workflow_content):
     """
-    Module-scoped fixture for jobs configuration.
-    Extracted once and shared across all tests.
+    Provide the 'jobs' mapping from the parsed workflow content for tests.
+    
+    Returns:
+        dict: The workflow's 'jobs' mapping, or an empty dict if the key is missing.
     """
     return workflow_content.get('jobs', {})
 
@@ -62,7 +78,13 @@ def jobs(workflow_content):
 @pytest.fixture(scope='module')
 def permissions(workflow_content):
     """
-    Module-scoped fixture for permissions configuration.
+    Retrieve the permissions mapping from the parsed workflow content.
+    
+    Parameters:
+        workflow_content (dict): Parsed YAML content of the workflow file.
+    
+    Returns:
+        dict: The `permissions` mapping from the workflow; an empty dict if none is defined.
     """
     return workflow_content.get('permissions', {})
 
@@ -70,7 +92,13 @@ def permissions(workflow_content):
 @pytest.fixture(scope='module')
 def concurrency(workflow_content):
     """
-    Module-scoped fixture for concurrency configuration.
+    Return the `concurrency` mapping from parsed workflow content.
+    
+    Parameters:
+        workflow_content (dict): Parsed YAML workflow content as a dictionary.
+    
+    Returns:
+        dict: The `concurrency` configuration mapping if present, otherwise an empty dictionary.
     """
     return workflow_content.get('concurrency', {})
 
@@ -90,7 +118,12 @@ class TestWorkflowStructure:
         assert len(workflow_content) > 0, "Workflow content is empty"
     
     def test_workflow_has_required_top_level_keys(self, workflow_content):
-        """Test that workflow has all required top-level keys"""
+        """
+        Assert the workflow YAML includes required top-level keys and a trigger configuration.
+        
+        Parameters:
+            workflow_content (dict): Parsed workflow YAML content.
+        """
         required_keys = ['name', 'jobs']
         for key in required_keys:
             assert key in workflow_content, f"Workflow missing required key '{key}'"
@@ -105,7 +138,11 @@ class TestWorkflowStructure:
             "Workflow missing 'permissions' section required for Pages deployment"
     
     def test_workflow_has_concurrency_control(self, workflow_content):
-        """Test that workflow has concurrency configuration"""
+        """
+        Verify the workflow defines a top-level `concurrency` section.
+        
+        Asserts that the workflow configuration includes the `concurrency` key to enable deployment concurrency control.
+        """
         assert 'concurrency' in workflow_content, \
             "Workflow missing 'concurrency' section for deployment control"
 
@@ -114,7 +151,11 @@ class TestWorkflowMetadata:
     """Test workflow metadata and naming"""
     
     def test_workflow_name_is_defined(self, workflow_content):
-        """Test that workflow has a descriptive name"""
+        """
+        Verify the workflow defines a non-empty name.
+        
+        Asserts that the top-level 'name' key is present and its value is a non-empty string.
+        """
         assert 'name' in workflow_content, "Workflow name not defined"
         name = workflow_content['name']
         assert isinstance(name, str), "Workflow name must be a string"
@@ -137,7 +178,15 @@ class TestTriggerConfiguration:
     
     @pytest.fixture
     def triggers(self, workflow_content):
-        """Get trigger configuration from workflow content"""
+        """
+        Retrieve the workflow's trigger configuration.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow file.
+        
+        Returns:
+            dict or None: The triggers configuration mapping if present (found under the True key or 'on'), `None` if no trigger configuration exists.
+        """
         return workflow_content.get(True) or workflow_content.get('on')
     
     def test_has_trigger_configuration(self, triggers):
@@ -165,7 +214,9 @@ class TestTriggerConfiguration:
             "Workflow should support manual triggering via workflow_dispatch"
     
     def test_no_pull_request_trigger(self, triggers):
-        """Test that workflow does not trigger on pull requests (deploy only)"""
+        """
+        Ensure the workflow is not configured to run on pull request events.
+        """
         assert 'pull_request' not in triggers, \
             "Deploy workflow should not trigger on pull requests"
 
@@ -174,13 +225,23 @@ class TestPermissionsConfiguration:
     """Test permissions configuration for GitHub Pages deployment"""
     
     def test_permissions_section_exists(self, permissions):
-        """Test that permissions section is properly configured"""
+        """
+        Assert the workflow defines a non-empty permissions mapping.
+        
+        Parameters:
+            permissions (dict | None): The parsed 'permissions' section from the workflow YAML; expected to be a non-empty mapping of permission names to access levels.
+        """
         assert permissions is not None, "Permissions configuration is missing"
         assert isinstance(permissions, dict), "Permissions must be a dictionary"
         assert len(permissions) > 0, "Permissions section is empty"
     
     def test_has_contents_read_permission(self, permissions):
-        """Test that workflow has contents read permission"""
+        """
+        Assert the workflow grants the repository `contents` permission set to 'read'.
+        
+        Parameters:
+            permissions (dict): Mapping of workflow permissions; expected to include the 'contents' key with value `'read'`.
+        """
         assert 'contents' in permissions, "Missing 'contents' permission"
         assert permissions['contents'] == 'read', \
             "Contents permission should be 'read'"
@@ -216,7 +277,11 @@ class TestConcurrencyConfiguration:
         assert isinstance(concurrency, dict), "Concurrency must be a dictionary"
     
     def test_has_concurrency_group(self, concurrency):
-        """Test that concurrency group is defined"""
+        """
+        Ensure the workflow's concurrency section defines a non-empty string 'group'.
+        
+        Asserts that the 'group' key exists in the concurrency mapping and that its value is a non-empty string.
+        """
         assert 'group' in concurrency, "Concurrency group not defined"
         group = concurrency['group']
         assert isinstance(group, str), "Concurrency group must be a string"
@@ -248,7 +313,9 @@ class TestJobsConfiguration:
         assert 'build' in jobs, "Workflow missing 'build' job"
     
     def test_has_deploy_job(self, jobs):
-        """Test that workflow has a deploy job"""
+        """
+        Asserts the workflow defines a 'deploy' job.
+        """
         assert 'deploy' in jobs, "Workflow missing 'deploy' job"
     
     def test_exactly_two_jobs(self, jobs):
@@ -257,13 +324,25 @@ class TestJobsConfiguration:
             f"Expected exactly 2 jobs (build and deploy), got {len(jobs)}"
     
     def test_all_jobs_have_runner(self, jobs):
-        """Test that all jobs have runner configuration"""
+        """
+        Assert every job in the workflow specifies a runner.
+        
+        Raises an assertion if any job configuration is missing the `runs-on` key.
+        
+        Parameters:
+            jobs (dict): Mapping of job names to their configuration dictionaries.
+        """
         for job_name, job_config in jobs.items():
             assert 'runs-on' in job_config, \
                 f"Job '{job_name}' missing 'runs-on' configuration"
     
     def test_all_jobs_use_ubuntu_latest(self, jobs):
-        """Test that all jobs use ubuntu-latest runner"""
+        """
+        Assert every job specifies the 'ubuntu-latest' runner.
+        
+        Parameters:
+            jobs (dict): Mapping of job names to their configuration dictionaries; each job's `runs-on` value must equal `'ubuntu-latest'`.
+        """
         for job_name, job_config in jobs.items():
             runner = job_config.get('runs-on')
             assert runner == 'ubuntu-latest', \
@@ -275,7 +354,15 @@ class TestBuildJob:
     
     @pytest.fixture
     def build_job(self, jobs):
-        """Get build job configuration"""
+        """
+        Retrieve the 'build' job configuration from the jobs mapping.
+        
+        Parameters:
+            jobs (dict): Mapping of job names to job configuration dictionaries.
+        
+        Returns:
+            dict: The configuration for the 'build' job, or an empty dict if the job is not present.
+        """
         return jobs.get('build', {})
     
     def test_build_job_has_steps(self, build_job):
@@ -293,11 +380,24 @@ class TestBuildJob:
     
     @pytest.fixture
     def build_steps(self, build_job):
-        """Get build job steps"""
+        """
+        Return the steps list for the given build job.
+        
+        Parameters:
+            build_job (dict): Mapping representing the build job configuration.
+        
+        Returns:
+            list: The 'steps' list from `build_job`, or an empty list if absent.
+        """
         return build_job.get('steps', [])
     
     def test_first_step_is_checkout(self, build_steps):
-        """Test that first step checks out the repository"""
+        """
+        Assert that the build job's first step is a checkout action.
+        
+        Parameters:
+            build_steps (list[dict]): The sequence of step dictionaries for the build job; the test inspects the first element and verifies it declares a `uses` action containing "checkout".
+        """
         first_step = build_steps[0]
         assert 'uses' in first_step, "First step should use an action"
         assert 'checkout' in first_step['uses'].lower(), \
@@ -338,7 +438,12 @@ class TestBuildJob:
             "Jekyll build should use version 1"
     
     def test_jekyll_build_has_with_parameters(self, build_steps):
-        """Test that Jekyll build step has source and destination parameters"""
+        """
+        Assert the Jekyll build step includes a `with` block containing `source` and `destination` parameters.
+        
+        Parameters:
+            build_steps (list): Sequence of step dictionaries from the build job.
+        """
         jekyll_steps = [s for s in build_steps 
                        if 'uses' in s and 'jekyll-build-pages' in s['uses']]
         assert len(jekyll_steps) > 0, "Jekyll build step not found"
@@ -351,7 +456,11 @@ class TestBuildJob:
         assert 'destination' in with_params, "Jekyll build missing 'destination' parameter"
     
     def test_jekyll_source_is_root(self, build_steps):
-        """Test that Jekyll source is set to repository root"""
+        """
+        Assert the Jekyll build step sets the `source` input to the repository root.
+        
+        Finds the step using the `jekyll-build-pages` action and verifies its `with.source` is './'.
+        """
         jekyll_steps = [s for s in build_steps 
                        if 'uses' in s and 'jekyll-build-pages' in s['uses']]
         source = jekyll_steps[0]['with']['source']
@@ -379,7 +488,9 @@ class TestBuildJob:
             "Upload artifact should use version 3"
     
     def test_all_steps_have_names(self, build_steps):
-        """Test that all build steps have descriptive names"""
+        """
+        Ensure every build step has a non-empty string 'name' field.
+        """
         for i, step in enumerate(build_steps):
             assert 'name' in step, f"Build step {i} missing 'name' field"
             name = step['name']
@@ -392,11 +503,24 @@ class TestDeployJob:
     
     @pytest.fixture
     def deploy_job(self, jobs):
-        """Get deploy job configuration"""
+        """
+        Get the 'deploy' job configuration from the jobs mapping.
+        
+        Parameters:
+            jobs (dict): Mapping of job names to job configurations.
+        
+        Returns:
+            dict: The deploy job configuration, or an empty dict if not present.
+        """
         return jobs.get('deploy', {})
     
     def test_deploy_job_has_environment(self, deploy_job):
-        """Test that deploy job has environment configuration"""
+        """
+        Assert that the deploy job defines an 'environment' configuration.
+        
+        Parameters:
+        	deploy_job (dict): The deploy job configuration parsed from the workflow YAML.
+        """
         assert 'environment' in deploy_job, "Deploy job missing 'environment' configuration"
     
     def test_environment_name_is_github_pages(self, deploy_job):
@@ -429,7 +553,11 @@ class TestDeployJob:
             pytest.fail("Deploy job 'needs' must be string or list")
     
     def test_deploy_job_has_steps(self, deploy_job):
-        """Test that deploy job has steps defined"""
+        """
+        Assert the deploy job includes a non-empty 'steps' list.
+        
+        Checks that the deploy job contains a 'steps' key whose value is a list and that the list contains at least one step.
+        """
         assert 'steps' in deploy_job, "Deploy job missing 'steps'"
         steps = deploy_job['steps']
         assert isinstance(steps, list), "Deploy job steps must be a list"
@@ -437,7 +565,12 @@ class TestDeployJob:
     
     @pytest.fixture
     def deploy_steps(self, deploy_job):
-        """Get deploy job steps"""
+        """
+        Retrieve the list of steps for the deploy job.
+        
+        Returns:
+            list: List of step mappings for the deploy job; empty list if no steps are defined.
+        """
         return deploy_job.get('steps', [])
     
     def test_deploy_has_one_step(self, deploy_steps):
@@ -446,7 +579,12 @@ class TestDeployJob:
             f"Deploy job should have 1 step, got {len(deploy_steps)}"
     
     def test_deploy_step_is_deploy_pages(self, deploy_steps):
-        """Test that deploy step uses deploy-pages action"""
+        """
+        Check that the first step of the deploy job invokes the `deploy-pages` action.
+        
+        Parameters:
+            deploy_steps (list[dict]): The list of steps defined for the deploy job; each step is a mapping representing the step's keys (for example `uses`, `run`, `name`).
+        """
         deploy_step = deploy_steps[0]
         assert 'uses' in deploy_step, "Deploy step should use an action"
         assert 'deploy-pages' in deploy_step['uses'], \
@@ -496,7 +634,11 @@ class TestEdgeCases:
     """Test edge cases and potential failure scenarios"""
     
     def test_no_yaml_syntax_errors(self, workflow_content):
-        """Test that YAML is syntactically valid"""
+        """
+        Assert that the workflow file contains syntactically valid YAML.
+        
+        Raises an assertion error if the parsed YAML content is None, indicating a syntax or parsing failure.
+        """
         assert workflow_content is not None, "YAML content should be loaded"
     
     def test_no_tabs_in_yaml(self, workflow_raw):
@@ -504,7 +646,12 @@ class TestEdgeCases:
         assert '\t' not in workflow_raw, "YAML file should use spaces, not tabs"
     
     def test_consistent_indentation(self, workflow_raw):
-        """Test that indentation is consistent (multiples of 2)"""
+        """
+        Assert that non-empty, non-comment lines in the workflow YAML use indentation in multiples of two spaces.
+        
+        Parameters:
+            workflow_raw (str): Raw contents of the workflow file.
+        """
         lines = workflow_raw.split('\n')
         for i, line in enumerate(lines, 1):
             if line.strip() and not line.strip().startswith('#'):
@@ -527,7 +674,12 @@ class TestEdgeCases:
                 f"Duplicate step names in job '{job_name}'"
     
     def test_all_actions_are_versioned(self, jobs):
-        """Test that all actions use version tags (security best practice)"""
+        """
+        Assert every workflow step that references an action includes a version tag.
+        
+        Raises:
+            AssertionError: if any action reference lacks a version tag (no '@' in the `uses` value).
+        """
         for job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
             for step in steps:
@@ -541,7 +693,11 @@ class TestWorkflowSecurity:
     """Test security aspects of the workflow"""
     
     def test_no_hardcoded_secrets(self, workflow_raw):
-        """Test that workflow doesn't contain hardcoded secrets"""
+        """
+        Assert that the workflow file does not contain hardcoded secret-like tokens.
+        
+        Searches the workflow content (case-insensitive) for common secret-related patterns (`password`, `api_key`, `secret`) in non-comment lines and fails if any occurrence is not using the GitHub secrets context (`secrets.`) or interpolation (`${{ ... }}`), reporting the offending pattern.
+        """
         suspicious_patterns = ['password', 'api_key', 'secret']
         lower_content = workflow_raw.lower()
         
@@ -555,7 +711,12 @@ class TestWorkflowSecurity:
                             f"Potential hardcoded secret pattern '{pattern}' found"
     
     def test_uses_oidc_authentication(self, permissions):
-        """Test that workflow uses OIDC for authentication"""
+        """
+        Assert the workflow grants the OIDC `id-token` permission with write access.
+        
+        Parameters:
+            permissions (dict): Mapping of workflow permissions; expected to contain an `'id-token'` key set to `'write'`.
+        """
         assert 'id-token' in permissions, \
             "Workflow should use OIDC (id-token permission) for secure authentication"
         assert permissions['id-token'] == 'write', \
@@ -584,7 +745,12 @@ class TestWorkflowFilePermissions:
             "Workflow file should have .yml extension"
     
     def test_workflow_file_is_readable(self, workflow_path):
-        """Test that workflow file is readable"""
+        """
+        Assert the workflow file is readable by the test process.
+        
+        Parameters:
+            workflow_path (Path | str): Path to the workflow file under .github/workflows.
+        """
         assert os.access(workflow_path, os.R_OK), \
             "Workflow file must be readable"
 
@@ -593,7 +759,12 @@ class TestJobDependencies:
     """Test job dependency chain"""
     
     def test_deploy_depends_only_on_build(self, jobs):
-        """Test that deploy job depends only on build job"""
+        """
+        Assert that the `deploy` job's `needs` references only the `build` job.
+        
+        This test accepts `needs` as either a single string or a list. It fails if
+        `needs` references more than one job or references any job other than `build`.
+        """
         deploy_job = jobs.get('deploy', {})
         needs = deploy_job.get('needs')
         
@@ -632,7 +803,11 @@ class TestStepNaming:
             "Should have upload/artifact step"
     
     def test_deploy_step_has_descriptive_name(self, jobs):
-        """Test that deploy step has descriptive name"""
+        """
+        Check that the deploy job's step name includes the word "deploy".
+        
+        Asserts the first step of the 'deploy' job has a non-empty name that contains "deploy" (case-insensitive).
+        """
         deploy_steps = jobs['deploy']['steps']
         deploy_step = deploy_steps[0]
         

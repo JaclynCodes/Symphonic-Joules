@@ -16,19 +16,40 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def repo_root():
-    """Get the repository root directory."""
+    """
+    Return the repository root directory for the project.
+    
+    Returns:
+        pathlib.Path: Path to the repository root directory.
+    """
     return Path(__file__).parent.parent
 
 
 @pytest.fixture(scope='module')
 def pytest_ini_path(repo_root):
-    """Get pytest.ini file path."""
+    """
+    Build the path to the repository's pytest.ini file.
+    
+    Parameters:
+    	repo_root (pathlib.Path): Repository root directory.
+    
+    Returns:
+    	pytest_ini_path (pathlib.Path): Path to `pytest.ini` located at the repository root.
+    """
     return repo_root / 'pytest.ini'
 
 
 @pytest.fixture(scope='module')
 def pytest_config(pytest_ini_path):
-    """Load pytest.ini configuration."""
+    """
+    Return a ConfigParser populated from the pytest.ini at the given path.
+    
+    Parameters:
+        pytest_ini_path (str | os.PathLike): Path to the pytest.ini file.
+    
+    Returns:
+        config (configparser.ConfigParser): Parser containing the parsed configuration.
+    """
     config = configparser.ConfigParser()
     config.read(pytest_ini_path)
     return config
@@ -43,7 +64,12 @@ class TestPytestIniExists:
             "pytest.ini must exist at repository root"
     
     def test_pytest_ini_is_readable(self, pytest_ini_path):
-        """Test that pytest.ini is readable"""
+        """
+        Assert that the repository's pytest.ini can be opened and contains at least one character.
+        
+        Parameters:
+            pytest_ini_path (pathlike): Path to the pytest.ini file provided by the fixture.
+        """
         with open(pytest_ini_path, 'r') as f:
             content = f.read()
             assert len(content) > 0, "pytest.ini should not be empty"
@@ -53,7 +79,12 @@ class TestPytestConfiguration:
     """Test pytest configuration settings"""
     
     def test_pytest_section_exists(self, pytest_config):
-        """Test that [pytest] section exists in pytest.ini"""
+        """
+        Assert that the repository's pytest.ini contains a [pytest] section.
+        
+        Parameters:
+            pytest_config (configparser.ConfigParser): Parsed contents of pytest.ini used to inspect configured sections.
+        """
         assert 'pytest' in pytest_config.sections(), \
             "pytest.ini should have [pytest] section"
     
@@ -86,7 +117,12 @@ class TestPytestConfiguration:
                 "python_files should match test_*.py pattern"
     
     def test_python_classes_configured(self, pytest_config):
-        """Test that python_classes pattern is configured"""
+        """
+        Assert that the repository's pytest.ini contains a `python_classes` pattern in the `[pytest]` section.
+        
+        Parameters:
+            pytest_config (configparser.ConfigParser): Parsed contents of pytest.ini provided by the pytest_config fixture.
+        """
         if 'pytest' in pytest_config.sections():
             assert 'python_classes' in pytest_config['pytest'], \
                 "pytest.ini should configure python_classes pattern"
@@ -118,7 +154,11 @@ class TestPytestAddopts:
     """Test pytest addopts (additional options)"""
     
     def test_addopts_configured(self, pytest_config):
-        """Test that addopts is configured for better output"""
+        """
+        Ensure the pytest.ini addopts option is present or skip this check.
+        
+        If a [pytest] section exists in pytest.ini, this will skip the test when the addopts option is not configured; if the [pytest] section is absent, the function does nothing.
+        """
         if 'pytest' in pytest_config.sections():
             # addopts is recommended but optional
             has_addopts = 'addopts' in pytest_config['pytest']
@@ -126,7 +166,11 @@ class TestPytestAddopts:
                 pytest.skip("addopts is optional")
     
     def test_verbose_output_enabled(self, pytest_config):
-        """Test that verbose output is enabled in addopts"""
+        """
+        Ensure pytest `addopts` enables verbose output when configured.
+        
+        If a `[pytest]` section and `addopts` key exist in the provided configuration, assert that `addopts` contains `-v` or `--verbose`.
+        """
         if 'pytest' in pytest_config.sections() and \
            'addopts' in pytest_config['pytest']:
             addopts = pytest_config['pytest']['addopts']
@@ -134,7 +178,15 @@ class TestPytestAddopts:
                 "addopts should enable verbose output (-v)"
     
     def test_traceback_configured(self, pytest_config):
-        """Test that traceback format is configured"""
+        """
+        Ensure pytest's addopts (if present) configures a readable traceback format.
+        
+        If a [pytest] section with an `addopts` key exists in pytest.ini, assert that `addopts`
+        includes a `--tb` option set to `short`, `line`, or `native`.
+        
+        Parameters:
+            pytest_config (configparser.ConfigParser): Parsed pytest.ini configuration.
+        """
         if 'pytest' in pytest_config.sections() and \
            'addopts' in pytest_config['pytest']:
             addopts = pytest_config['pytest']['addopts']
@@ -150,7 +202,11 @@ class TestTestDiscovery:
     """Test that test discovery works correctly"""
     
     def test_test_files_are_discoverable(self, repo_root):
-        """Test that test files follow discoverable naming pattern"""
+        """
+        Verifies at least one test file named with the test_ prefix exists under the repository's tests/ directory.
+        
+        Asserts that at least one file matching tests/**/test_*.py is discoverable.
+        """
         test_dir = repo_root / 'tests'
         test_files = list(test_dir.rglob('test_*.py'))
         
@@ -158,7 +214,12 @@ class TestTestDiscovery:
             "Should discover test files with test_* pattern"
     
     def test_no_test_files_outside_tests_dir(self, repo_root):
-        """Test that test files are only in tests directory"""
+        """
+        Assert there are no top-level files named using the test_*.py pattern, ensuring test files reside only under the tests/ directory.
+        
+        Parameters:
+        	repo_root (pathlib.Path): Repository root directory to search for top-level test files.
+        """
         # Search for test files in root and other directories
         test_files_in_root = list(repo_root.glob('test_*.py'))
         
@@ -166,7 +227,12 @@ class TestTestDiscovery:
             "Test files should only be in tests/ directory"
     
     def test_init_files_present_for_discovery(self, repo_root):
-        """Test that __init__.py files are present for package structure"""
+        """
+        Ensure package marker files exist so pytest can discover tests.
+        
+        Parameters:
+        	repo_root (pathlib.Path): Path to the repository root used to locate the `tests/` directory.
+        """
         tests_dir = repo_root / 'tests'
         workflows_dir = tests_dir / 'workflows'
         
@@ -186,7 +252,16 @@ class TestRequirementsTxt:
             "tests/requirements.txt should exist"
     
     def test_requirements_includes_pytest(self, repo_root):
-        """Test that requirements.txt includes pytest with version"""
+        """
+        Verify that tests/requirements.txt lists pytest and specifies a version.
+        
+        Checks:
+        - that the file contains "pytest" (case-insensitive), and
+        - that a version specifier using ">=" or "==" is present.
+        
+        Parameters:
+            repo_root (pathlib.Path): Path to the repository root used to locate tests/requirements.txt.
+        """
         requirements = repo_root / 'tests' / 'requirements.txt'
         with open(requirements, 'r') as f:
             content = f.read()
@@ -197,7 +272,14 @@ class TestRequirementsTxt:
                 "requirements.txt should specify pytest version"
     
     def test_requirements_includes_pyyaml(self, repo_root):
-        """Test that requirements.txt includes PyYAML"""
+        """
+        Verify tests/requirements.txt declares PyYAML as a dependency.
+        
+        Searches the tests/requirements.txt file for the substring "yaml" in a case-insensitive manner.
+        
+        Parameters:
+            repo_root (pathlib.Path): Path to the repository root.
+        """
         requirements = repo_root / 'tests' / 'requirements.txt'
         with open(requirements, 'r') as f:
             content = f.read()
@@ -222,7 +304,9 @@ class TestProjectStructure:
     """Test overall project test structure"""
     
     def test_tests_directory_exists(self, repo_root):
-        """Test that tests/ directory exists"""
+        """
+        Assert that the repository contains a top-level `tests/` directory.
+        """
         tests_dir = repo_root / 'tests'
         assert tests_dir.exists(), "tests/ directory should exist"
         assert tests_dir.is_dir(), "tests/ should be a directory"
