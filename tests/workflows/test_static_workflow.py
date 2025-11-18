@@ -132,6 +132,8 @@ class TestWorkflowStructure:
             assert key in workflow_content, f"Workflow missing required key '{key}'"
         
         # Check for trigger configuration
+        # PyYAML quirk: a top-level 'on:' key in YAML may be parsed as the boolean True instead of the string 'on'.
+        # This assertion checks for both cases to ensure the workflow has a trigger configuration.
         assert True in workflow_content or 'on' in workflow_content, \
             "Workflow missing trigger configuration"
     
