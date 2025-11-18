@@ -221,7 +221,10 @@ class TestStepsConfiguration:
             assert 'uses' in step or 'run' in step, f"Step {i} missing 'uses' or 'run' key"
     
     def test_named_steps_have_valid_actions(self, steps):
-        """Test that named steps have either run commands or uses actions"""
+        """
+        Test that every named step in the workflow has either a 'run' command or a 'uses' action.
+        This ensures that all steps with a 'name' key are valid GitHub Actions steps.
+        """
         for step in steps:
             if 'name' in step:
                 assert 'run' in step or 'uses' in step, \
