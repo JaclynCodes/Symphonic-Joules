@@ -13,7 +13,6 @@ This test suite validates the test suite itself, ensuring:
 
 import pytest
 import ast
-import os
 from pathlib import Path
 from typing import List, Set, Dict
 
