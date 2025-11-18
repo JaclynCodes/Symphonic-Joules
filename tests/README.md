@@ -112,7 +112,7 @@ Validates job dependency chain
 #### TestStepNaming (2 tests)
 Tests naming conventions for clarity
 
-### Static Workflow Tests (75 tests)
+### Static Workflow Tests (79 tests)
 
 Tests for `.github/workflows/static.yml` - Static content deployment
 
