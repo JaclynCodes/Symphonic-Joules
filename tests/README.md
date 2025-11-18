@@ -64,7 +64,7 @@ Validates security best practices
 #### TestWorkflowFilePermissions (3 tests)
 Tests file location and permissions
 
-### Jekyll Workflow Tests (72 tests)
+### Jekyll Workflow Tests (71 tests)
 
 Tests for `.github/workflows/jekyll-gh-pages.yml` - Jekyll site deployment
 
