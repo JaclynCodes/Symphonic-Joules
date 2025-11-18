@@ -19,10 +19,10 @@ from pathlib import Path
 @pytest.fixture(scope='module')
 def repo_root():
     """
-    Return the repository root directory as a Path.
+    Resolve the repository root directory for the test suite.
     
     Returns:
-        Path: Path to the repository root (two levels up from this file).
+        Path: Path to the repository root directory located two levels above this file.
     """
     return Path(__file__).parent.parent
 
@@ -30,7 +30,7 @@ def repo_root():
 @pytest.fixture(scope='module')
 def tests_dir(repo_root):
     """
-    Return the repository's tests directory path.
+    Get the repository's tests directory path.
     
     Parameters:
         repo_root (Path): Repository root directory.
@@ -45,7 +45,14 @@ class TestTestExecution:
     """Test that the test suite can execute successfully"""
     
     def test_pytest_collection_works(self, tests_dir):
-        """Test that pytest can collect all tests without errors"""
+        """
+        Verify pytest can collect tests in the workflows directory.
+        
+        Runs pytest in collection-only mode against tests/workflows and asserts that pytest exits with code 0 or 5; raises an AssertionError including pytest stderr if collection fails.
+        
+        Parameters:
+        	tests_dir (Path): Path to the repository's tests directory.
+        """
         result = subprocess.run(
             [sys.executable, '-m', 'pytest', str(tests_dir / 'workflows'), 
              '--collect-only', '-q'],
@@ -59,7 +66,15 @@ class TestTestExecution:
             f"Test collection failed:\n{result.stderr}"
     
     def test_workflow_tests_are_discoverable(self, tests_dir):
-        """Test that workflow tests are discoverable by pytest"""
+        """
+        Verify pytest can discover test files under the workflows subdirectory of the provided tests directory.
+        
+        Parameters:
+            tests_dir (Path): Path to the repository's tests directory.
+        
+        Raises:
+            AssertionError: If pytest does not report any discovered tests; the assertion message contains pytest's stdout.
+        """
         result = subprocess.run(
             [sys.executable, '-m', 'pytest', str(tests_dir / 'workflows'),
              '--collect-only', '-q'],
@@ -76,9 +91,9 @@ class TestTestExecution:
     
     def test_blank_workflow_tests_execute(self, repo_root):
         """
-        Verify the blank workflow test file runs without import-time errors.
+        Check that the blank workflow test file executes without import-time errors.
         
-        Runs pytest on tests/workflows/test_blank_workflow.py and asserts that execution does not produce import errors (i.e., no 'ERRORS' in stdout with return code 2), failing the test if import-time errors are detected.
+        Runs pytest on tests/workflows/test_blank_workflow.py and fails if pytest reports import-time errors (indicated by 'ERRORS' in stdout with exit code 2).
         """
         test_file = repo_root / 'tests' / 'workflows' / 'test_blank_workflow.py'
         result = subprocess.run(
@@ -97,7 +112,12 @@ class TestFixtureInitialization:
     """Test that fixtures initialize correctly"""
     
     def test_workflow_path_fixture_resolves(self, repo_root):
-        """Test that workflow_path fixture can resolve workflow files"""
+        """
+        Verify the workflow_path fixture resolves to the repository workflow file.
+        
+        Asserts that the fixture implementation in tests/workflows/test_blank_workflow yields the path
+        repo_root/.github/workflows/blank.yml and that this file exists.
+        """
         # Import the test module to verify fixtures work
         import sys
         sys.path.insert(0, str(repo_root / 'tests' / 'workflows'))
@@ -115,12 +135,10 @@ class TestFixtureInitialization:
     
     def test_yaml_parsing_works(self, repo_root):
         """
-        Verify that a workflow YAML file can be parsed and contains expected keys.
-        
-        Checks that .github/workflows/blank.yml parses to a dictionary and includes a 'name' field.
+        Check that the workflow YAML at .github/workflows/blank.yml parses to a dictionary and contains a 'name' key.
         
         Parameters:
-            repo_root (pathlib.Path): Repository root path used to locate the workflow file.
+            repo_root (pathlib.Path): Repository root used to locate the workflow file.
         """
         import yaml
         
@@ -137,7 +155,9 @@ class TestTestIsolation:
     """Test that tests are properly isolated"""
     
     def test_module_fixtures_are_cached(self, tests_dir):
-        """Test that module-scoped fixtures are used for performance"""
+        """
+        Assert that workflow test modules declare module-scoped fixtures to enable fixture reuse and improve performance.
+        """
         test_file = tests_dir / 'workflows' / 'test_blank_workflow.py'
         
         with open(test_file, 'r') as f:
@@ -149,9 +169,9 @@ class TestTestIsolation:
     
     def test_tests_dont_modify_workflow_files(self, repo_root):
         """
-        Ensure executing the test suite does not modify workflow YAML files in .github/workflows.
+        Assert that collecting the workflow tests does not alter any YAML files in .github/workflows.
         
-        Records the modification time for each `.yml` file in `.github/workflows`, runs pytest in collect-only mode on the workflows tests, and asserts each file's modification time is unchanged after collection.
+        Records the modification time of each `.yml` file in the workflows directory, runs pytest in collection-only mode on the workflows tests, and fails if any file's modification time changes.
         """
         workflows_dir = repo_root / '.github' / 'workflows'
         
@@ -252,9 +272,12 @@ class TestDocumentation:
     
     def test_all_test_classes_documented(self, tests_dir):
         """
-        Check that every test class in tests/workflows has a class docstring.
+        Ensure every test class in tests/workflows has a non-empty class docstring.
         
-        Parses each test_*.py file under the workflows subdirectory of the provided tests_dir and asserts that every class whose name starts with "Test" has a non-empty docstring; fails with a file- and class-specific message when a docstring is missing.
+        Parses each file matching test_*.py under the workflows subdirectory of the given tests_dir and asserts that every class whose name starts with "Test" has a non-empty docstring. Assertion failures include the test file name and class name.
+         
+        Parameters:
+            tests_dir (Path): Path to the repository's tests directory used to locate the workflows folder.
         """
         import ast
         
@@ -275,7 +298,11 @@ class TestDocumentation:
                         f"Class {cls.name} in {test_file.name} should have docstring"
     
     def test_all_test_methods_documented(self, tests_dir):
-        """Test that all test methods have docstrings"""
+        """
+        Ensure every test method in classes named with the "Test" prefix has a non-empty docstring.
+        
+        Scans all files matching `tests/workflows/test_*.py`, parses each file's AST, and verifies that every method whose name starts with `test_` inside a class whose name starts with `Test` has a docstring. Raises an AssertionError identifying the class, method and file when a test method lacks a docstring.
+        """
         import ast
         
         test_files = list((tests_dir / 'workflows').glob('test_*.py'))
