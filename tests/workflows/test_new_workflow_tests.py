@@ -90,7 +90,7 @@ class TestNewFilesFollowPattern:
         """Test that new files import same core modules as blank test"""
         # Get imports from blank test file (reference)
         with open(blank_test_file, 'r') as f:
-            blank_content = f.read()
+            pass
         
         required_imports = ['pytest', 'yaml', 'os', 'Path']
         
