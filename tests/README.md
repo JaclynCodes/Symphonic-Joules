@@ -31,7 +31,7 @@ The test suite validates GitHub Actions workflows and project configuration file
 
 **Total Test Suite: 435 tests** (including validation and meta-tests)
 
-### Blank Workflow Tests (43 tests)
+### Blank Workflow Tests (37 tests)
 
 Tests for `.github/workflows/blank.yml` - CI workflow
 
