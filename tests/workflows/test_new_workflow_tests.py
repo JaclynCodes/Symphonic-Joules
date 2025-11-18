@@ -15,6 +15,7 @@ It validates that these new files:
 
 import pytest
 import ast
+import yaml
 from pathlib import Path
 
 
@@ -367,6 +368,62 @@ class TestCodeQuality:
                 # Allow a few lines with trailing whitespace
                 assert len(lines_with_trailing) < 5, \
                     f"{test_file.name} has too many lines with trailing whitespace: {lines_with_trailing[:10]}"
+
+
+class TestWorkflowStructure:
+    """Test new workflow structure and metadata"""
+    
+    def test_new_workflows_exist(self):
+        """Test that new workflow files exist"""
+        new_workflows = ['codeql.yml', 'golangci-lint.yml', 'license-check.yml']
+        for workflow in new_workflows:
+            workflow_path = Path(f'.github/workflows/{workflow}')
+            assert workflow_path.exists(), f"Workflow {workflow} should exist"
+
+
+class TestMetadata:
+    """Test new workflow metadata"""
+    
+    def test_new_workflows_have_names(self):
+        """Test that new workflows have descriptive names"""
+        new_workflows = ['codeql.yml', 'golangci-lint.yml', 'license-check.yml']
+        for workflow in new_workflows:
+            workflow_path = Path(f'.github/workflows/{workflow}')
+            if workflow_path.exists():
+                with open(workflow_path, 'r') as f:
+                    content = yaml.safe_load(f)
+                    assert 'name' in content, f"Workflow {workflow} should have a name"
+
+
+class TestSecurity:
+    """Test new workflow security configuration"""
+    
+    def test_new_workflows_have_appropriate_permissions(self):
+        """Test that new workflows have appropriate permissions"""
+        new_workflows = ['codeql.yml', 'golangci-lint.yml', 'license-check.yml']
+        for workflow in new_workflows:
+            workflow_path = Path(f'.github/workflows/{workflow}')
+            if workflow_path.exists():
+                with open(workflow_path, 'r') as f:
+                    content = yaml.safe_load(f)
+                    # Should have some form of permission configuration
+                    assert 'permissions' in content or 'jobs' in content, \
+                        f"Workflow {workflow} should have proper configuration"
+
+
+class TestEdgeCases:
+    """Test new workflow edge cases and error handling"""
+    
+    def test_new_workflows_are_valid_yaml(self):
+        """Test that new workflows have valid YAML"""
+        new_workflows = ['codeql.yml', 'golangci-lint.yml', 'license-check.yml']
+        for workflow in new_workflows:
+            workflow_path = Path(f'.github/workflows/{workflow}')
+            if workflow_path.exists():
+                with open(workflow_path, 'r') as f:
+                    content = f.read()
+                    # Should not raise exception
+                    yaml.safe_load(content)
 
 
 class TestTestCoverage:

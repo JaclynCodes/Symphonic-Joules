@@ -59,10 +59,22 @@ class TestTestFileStructure:
         test_workflow_names = set()
         
         for test_file in test_files:
+            # Skip meta-test files that don't correspond to workflows
+            if test_file.stem in ['test_new_workflow_tests']:
+                continue
+                
             # Extract workflow name from test file name
             # e.g., test_blank_workflow.py -> blank
             name = test_file.stem.replace('test_', '').replace('_workflow', '')
             test_workflow_names.add(name)
+            
+            # Add special mappings for workflows with different naming
+            if name == 'jekyll':
+                test_workflow_names.add('jekyll-gh-pages')
+            elif name == 'golangci_lint':
+                test_workflow_names.add('golangci-lint')
+            elif name == 'license_check':
+                test_workflow_names.add('license-check')
         
         missing_tests = workflow_names - test_workflow_names
         assert len(missing_tests) == 0, \
@@ -73,10 +85,22 @@ class TestTestFileStructure:
         workflow_names = {f.stem for f in workflow_files}
         
         for test_file in test_files:
+            # Skip meta-test files that don't correspond to workflows
+            if test_file.stem in ['test_new_workflow_tests']:
+                continue
+                
             # Extract workflow name from test file name
             name = test_file.stem.replace('test_', '').replace('_workflow', '')
             # Handle both 'name.yml' and 'name-with-dashes.yml' patterns
             possible_names = [name, name.replace('_', '-')]
+            
+            # Special cases for specific workflow mappings
+            if name == 'jekyll':
+                possible_names.extend(['jekyll-gh-pages'])
+            elif name == 'golangci_lint':
+                possible_names.extend(['golangci-lint'])
+            elif name == 'license_check':
+                possible_names.extend(['license-check'])
             
             has_corresponding_workflow = any(wf in workflow_names for wf in possible_names)
             assert has_corresponding_workflow, \
@@ -222,8 +246,16 @@ class TestTestMethodNaming:
                         for item in node.body:
                             if isinstance(item, ast.FunctionDef) and \
                                not item.name.startswith('_'):
-                                assert item.name.startswith('test_'), \
-                                    f"Method {item.name} in {node.name} should start with 'test_'"
+                                # Check if it's a pytest fixture
+                                is_fixture = any(
+                                    (hasattr(d, 'id') and d.id == 'pytest' and 
+                                     hasattr(d, 'attr') and d.attr == 'fixture') or
+                                    (hasattr(d, 'attr') and d.attr == 'fixture')
+                                    for d in item.decorator_list
+                                )
+                                if not is_fixture:
+                                    assert item.name.startswith('test_'), \
+                                        f"Method {item.name} in {node.name} should start with 'test_'"
     
     def test_test_methods_have_docstrings(self, test_files):
         """Test that all test methods have descriptive docstrings"""
