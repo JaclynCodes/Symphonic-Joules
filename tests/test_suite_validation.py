@@ -22,7 +22,7 @@ from typing import List, Set, Dict
 @pytest.fixture(scope='module')
 def repo_root():
     """
-    Return the repository root directory.
+    Get the repository root directory.
     
     Returns:
         Path: Path to the repository root directory.
@@ -33,13 +33,13 @@ def repo_root():
 @pytest.fixture(scope='module')
 def tests_root(repo_root):
     """
-    Return the repository's tests directory path.
+    Get the repository's tests directory path.
     
     Parameters:
         repo_root (Path): Root path of the repository.
     
     Returns:
-        Path: Path to the `tests` directory under the repository root.
+        Path: Path to the tests directory under the repository root.
     """
     return repo_root / 'tests'
 
@@ -47,10 +47,10 @@ def tests_root(repo_root):
 @pytest.fixture(scope='module')
 def workflows_test_dir(tests_root):
     """
-    Return the path to the workflows tests subdirectory.
+    Get the path to the workflows subdirectory under the repository's tests directory.
     
     Parameters:
-        tests_root (Path | str): Path to the repository's `tests` directory.
+        tests_root (Path | str): Path to the repository's tests directory.
     
     Returns:
         Path: Path to the `tests/workflows` directory.
@@ -61,7 +61,7 @@ def workflows_test_dir(tests_root):
 @pytest.fixture(scope='module')
 def workflow_files(repo_root):
     """
-    Return the workflow YAML files located in the repository's .github/workflows directory.
+    Locate workflow YAML files in the repository's .github/workflows directory.
     
     Parameters:
         repo_root (Path): Path to the repository root.
@@ -91,7 +91,13 @@ class TestTestFileStructure:
     """Validate test file structure and organization"""
     
     def test_all_workflow_files_have_tests(self, workflow_files, test_files):
-        """Test that every workflow file has a corresponding test file"""
+        """
+        Ensure every workflow file has a corresponding test file.
+        
+        Compares the stems of discovered workflow files to names derived from test file stems
+        (by removing a leading `test_` and a `_workflow` suffix) and fails the test if any
+        workflow is missing a matching test. The assertion message lists missing workflow names.
+        """
         workflow_names = {f.stem for f in workflow_files}
         test_workflow_names = set()
         
@@ -141,7 +147,14 @@ class TestTestFileContent:
     """Validate content and structure within test files"""
     
     def test_all_test_files_have_docstrings(self, test_files):
-        """Test that all test files have module-level docstrings"""
+        """
+        Require each test file to define a module-level docstring of more than 50 characters.
+        
+        Checks the AST of each file in `test_files` for a module docstring and asserts it exists and has length greater than 50 characters.
+        
+        Parameters:
+            test_files (Iterable[Path]): Paths to discovered test_*.py files to validate.
+        """
         for test_file in test_files:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -155,9 +168,7 @@ class TestTestFileContent:
     
     def test_all_test_files_import_pytest(self, test_files):
         """
-        Ensure every test file contains an `import pytest` statement.
-        
-        Fails the test if any file in `test_files` does not include the literal `import pytest`.
+        Verify each test file contains the literal 'import pytest'.
         
         Parameters:
             test_files (Iterable[Path]): Paths of the test files to validate.
@@ -184,7 +195,15 @@ class TestTestFileContent:
                     f"Test file {test_file.name} should import yaml"
     
     def test_all_test_files_have_test_classes(self, test_files):
-        """Test that all test files contain test classes"""
+        """
+        Verify each supplied test file defines at least one top-level class whose name starts with 'Test'.
+        
+        Parameters:
+            test_files (Iterable[pathlib.Path] or list): Paths to test files to inspect.
+        
+        Raises:
+            AssertionError: If any file contains no classes named with the 'Test' prefix.
+        """
         for test_file in test_files:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -198,7 +217,12 @@ class TestTestFileContent:
                     f"Test file {test_file.name} has no test classes"
     
     def test_test_classes_have_docstrings(self, test_files):
-        """Test that all test classes have docstrings"""
+        """
+        Ensure every class whose name starts with "Test" in each provided test file has a class docstring.
+        
+        Raises:
+            AssertionError: if a Test* class in a file lacks a docstring; message identifies the class and file.
+        """
         for test_file in test_files:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -219,13 +243,10 @@ class TestFixtureUsage:
     
     def test_workflow_path_fixture_exists(self, test_files):
         """
-        Verify each test file defines a `workflow_path` fixture.
+        Ensure each test file defines a top-level function named `workflow_path`.
         
         Parameters:
-            test_files (Iterable[Path]): Paths of test files to check.
-        
-        Notes:
-            Asserts that each file contains a top-level `def workflow_path()` definition.
+            test_files (Iterable[Path]): Iterable of test file paths to inspect.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -235,7 +256,9 @@ class TestFixtureUsage:
     
     def test_workflow_content_fixture_exists(self, test_files):
         """
-        Require each test file to define a `workflow_content` fixture.
+        Verify each test file defines a top-level `workflow_content` fixture.
+        
+        This test fails if a test file does not contain a top-level function definition starting with `def workflow_content(`.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -245,19 +268,9 @@ class TestFixtureUsage:
     
     def test_fixtures_use_module_scope(self, test_files):
         """
-        Verify that expensive fixtures use module scope.
+        Ensure fixtures named workflow_path, workflow_raw, workflow_content and jobs are declared with scope='module'.
         
-        Checks test files to ensure fixtures named `workflow_path`, `workflow_raw`,
-        `workflow_content`, and `jobs` are declared with `scope='module'`. Raises an
-        AssertionError when one of these fixtures is present but does not specify
-        module scope.
-        
-        Parameters:
-            test_files (Iterable[Path]): Paths to test files to inspect.
-        
-        Raises:
-            AssertionError: If a required fixture exists in a test file but is not
-                declared with `scope='module'`.
+        Checks each provided test file and fails if any of those fixture definitions do not specify module scope.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -292,12 +305,10 @@ class TestTestMethodNaming:
     
     def test_all_test_methods_start_with_test(self, test_files):
         """
-        Enforces that every public test method in classes prefixed with `Test` is named with the `test_` prefix.
-        
-        Parses each file in `test_files` and asserts that for every class whose name starts with `Test`, every method that does not start with an underscore begins with `test_`.
+        Require every public method in classes named with the "Test" prefix to start with "test_".
         
         Parameters:
-            test_files (Iterable[pathlib.Path | str]): Iterable of file paths to test modules to validate.
+            test_files (Iterable[pathlib.Path | str]): Iterable of file paths for test modules to validate.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -314,13 +325,13 @@ class TestTestMethodNaming:
     
     def test_test_methods_have_docstrings(self, test_files):
         """
-        Verify every test method defined in classes whose names start with `Test` has a docstring.
+        Ensure every test method in classes whose names start with `Test` has a docstring.
         
         Parameters:
-            test_files (Iterable[Path]): Paths to test files to inspect.
+            test_files (Iterable[Path]): Iterable of Path objects pointing to test files to inspect.
         
         Raises:
-            AssertionError: If any `test_` method in a `Test*` class is missing a docstring.
+            AssertionError: If any method whose name starts with `test_` inside a `Test*` class is missing a docstring.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -337,7 +348,14 @@ class TestTestMethodNaming:
                                     f"Test method {item.name} in {node.name} ({test_file.name}) missing docstring"
     
     def test_test_names_are_descriptive(self, test_files):
-        """Test that test method names are sufficiently descriptive"""
+        """
+        Enforce that test method names are descriptive by requiring at least three underscore-separated parts.
+        
+        For each Test* class in the provided test files, assert that every method whose name starts with `test_` contains at least three parts when split by underscores (for example: `test_verb_noun_context`).
+        
+        Parameters:
+            test_files (Iterable[Path]): Paths to test files to inspect.
+        """
         for test_file in test_files:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -378,10 +396,12 @@ class TestTestOrganization:
     
     def test_common_test_classes_exist(self, test_files):
         """
-        Verify each test file defines at least two of the common test class names: TestWorkflowStructure, TestWorkflowMetadata, TestWorkflowSecurity, TestEdgeCases.
+        Require each test file to define at least two of the common test classes used across workflow tests.
+        
+        Checks for the presence of any two or more of: TestWorkflowStructure, TestWorkflowMetadata, TestWorkflowSecurity, TestEdgeCases.
         
         Parameters:
-            test_files (Iterable[Path]): Paths to test files to inspect.
+            test_files (Iterable[Path]): Iterable of file paths to test modules to inspect.
         """
         common_classes = [
             'TestWorkflowStructure',
@@ -409,9 +429,12 @@ class TestTestCoverage:
     
     def test_tests_validate_yaml_structure(self, test_files):
         """
-        Require each test file to reference YAML parsing or validation.
+        Require each test file to reference YAML.
         
-        Checks that every file in `test_files` contains the token "yaml" in any casing; fails if a test file lacks a YAML-related reference.
+        Asserts every file in `test_files` contains the token "yaml" in any casing; the test fails for any file that does not include a YAML-related reference.
+        
+        Parameters:
+            test_files (Iterable[pathlib.Path]): Paths to the test files to inspect.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -434,10 +457,12 @@ class TestTestCoverage:
     
     def test_tests_validate_security(self, test_files):
         """
-        Verify each file in `test_files` contains at least one security-related keyword.
+        Ensure each test file includes at least one security-related keyword.
+        
+        Checks each path in `test_files` for occurrences of common security terms: "security", "permission", "token", or "secret".
         
         Parameters:
-            test_files (Iterable[Path]): An iterable of file paths for test files to scan for security-related keywords such as "security", "permission", "token" or "secret".
+            test_files (Iterable[Path]): Iterable of file paths to scan for security-related keywords.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -450,13 +475,9 @@ class TestTestCoverage:
     
     def test_tests_validate_edge_cases(self, test_files):
         """
-        Ensure each test file references edge cases.
+        Verify each test file references edge-case testing.
         
-        Parameters:
-            test_files (Iterable[Path]): Iterable of test file paths to check for edge-case coverage.
-        
-        Raises:
-            AssertionError: If a test file does not contain the substring "edge" (case-insensitive).
+        Checks each file for the substring "edge" case-insensitively and fails the test with an assertion if none is found.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -469,12 +490,18 @@ class TestREADMEAccuracy:
     """Validate that README accurately documents the test suite"""
     
     def test_readme_exists(self, tests_root):
-        """Test that tests/README.md exists"""
+        """
+        Verify that the repository's tests/README.md file exists.
+        """
         readme = tests_root / 'README.md'
         assert readme.exists(), "tests/README.md should exist"
     
     def test_readme_documents_all_test_files(self, tests_root, test_files):
-        """Test that README mentions all test files"""
+        """
+        Ensure the tests/README.md mentions every test file by filename.
+        
+        The test fails if any filename from the provided test_files list is not present in the README.
+        """
         readme = tests_root / 'README.md'
         with open(readme, 'r') as f:
             content = f.read()
@@ -499,7 +526,14 @@ class TestREADMEAccuracy:
                 "README should include Python run instructions"
     
     def test_readme_documents_dependencies(self, tests_root):
-        """Test that README documents test dependencies"""
+        """
+        Verify that tests/README.md mentions test dependencies.
+        
+        Checks the README.md file under `tests_root` for the presence of the words "dependencies" or "requirements" (case-insensitive).
+        
+        Parameters:
+            tests_root (Path): Path to the repository's tests directory.
+        """
         readme = tests_root / 'README.md'
         with open(readme, 'r') as f:
             content = f.read()
@@ -512,20 +546,28 @@ class TestTestInfrastructure:
     """Validate test infrastructure files"""
     
     def test_pytest_ini_exists(self, repo_root):
-        """Test that pytest.ini exists for test configuration"""
+        """
+        Verify the repository root contains a pytest.ini file.
+        
+        Asserts that a file named 'pytest.ini' exists at the path given by the repo_root fixture.
+        """
         pytest_ini = repo_root / 'pytest.ini'
         assert pytest_ini.exists(), "pytest.ini should exist"
     
     def test_requirements_txt_exists(self, tests_root):
-        """Test that tests/requirements.txt exists"""
+        """
+        Verify that a requirements.txt file exists in the tests directory.
+        
+        Checks that the path `tests/requirements.txt` (relative to the provided tests root) is present.
+        """
         requirements = tests_root / 'requirements.txt'
         assert requirements.exists(), "tests/requirements.txt should exist"
     
     def test_requirements_includes_pytest(self, tests_root):
         """
-        Verify tests/requirements.txt lists pytest as a dependency.
+        Ensure tests/requirements.txt declares pytest as a dependency.
         
-        Checks the file case-insensitively and fails the test if 'pytest' is not present.
+        Fails the test if the file does not contain the literal "pytest" (case-insensitive).
         """
         requirements = tests_root / 'requirements.txt'
         with open(requirements, 'r') as f:
@@ -556,9 +598,9 @@ class TestCodeQuality:
     
     def test_no_syntax_errors(self, test_files):
         """
-        Verify each collected test file parses as valid Python source.
+        Assert that every collected test file is valid Python by parsing each file's content with the AST parser.
         
-        Fails the test if any file raises a SyntaxError when parsed with the AST parser.
+        Fails the test when any file raises a SyntaxError during parsing, reporting the file name and the parser error.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -572,7 +614,8 @@ class TestCodeQuality:
         """
         Ensure test files do not import `Path` from `pathlib` without using it.
         
-        Scans each test file for the literal import `from pathlib import Path` and asserts that `Path(` or `Path.` appears in the file; raises an assertion error identifying the file when the import is present but not used.
+        Raises:
+            AssertionError: if a test file contains the literal `from pathlib import Path` but neither `Path(` nor `Path.`; the failing assertion message includes the file name.
         """
         # This is a simplified check - full unused import detection requires more complex analysis
         for test_file in test_files:
@@ -587,12 +630,12 @@ class TestCodeQuality:
     
     def test_consistent_indentation(self, test_files):
         """
-        Fail the test if any non-empty, non-comment line in the given test files uses indentation that is not a multiple of four spaces.
+        Ensure every non-empty, non-comment line in the provided test files uses indentation in multiples of four spaces.
         
-        Checks each file line-by-line, ignores blank lines and lines that start with `#`, and asserts that any leading space count is either zero or divisible by four. The assertion message includes the file name and line number on failure.
+        Ignores blank lines and lines starting with `#`. On failure raises an assertion that includes the file name and line number.
         
         Parameters:
-            test_files (List[pathlib.Path]): Iterable of file paths for test files to validate indentation for.
+            test_files (List[pathlib.Path]): Iterable of file paths to validate.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -611,12 +654,10 @@ class TestTestCompleteness:
     
     def test_sufficient_test_count(self, test_files):
         """
-        Ensure each test file defines at least 20 test methods.
-        
-        Counts functions whose names start with `test_` inside classes whose names start with `Test` and fails the test if a file has fewer than 20 such methods.
+        Require each test file to define at least 20 test methods within classes named with the `Test` prefix.
         
         Parameters:
-            test_files (Iterable[Path]): Iterable of test file paths to validate.
+            test_files (Iterable[Path]): Iterable of test file paths to validate; each file is inspected for functions whose names start with `test_` inside classes whose names start with `Test`. If any file contains fewer than 20 such test methods the check fails.
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:
@@ -637,13 +678,13 @@ class TestTestCompleteness:
     
     def test_minimum_test_classes(self, test_files):
         """
-        Require each test file to define at least five `Test*` classes to ensure tests are organised.
+        Ensure each test file defines at least five classes whose names start with "Test".
         
         Parameters:
-            test_files (Iterable[Path]): Iterable of paths to test files to validate.
+            test_files (Iterable[Path]): Paths to the test files to validate.
         
         Raises:
-            AssertionError: If any test file contains fewer than five classes whose names start with `Test`.
+            AssertionError: If any test file contains fewer than five classes with names starting with "Test".
         """
         for test_file in test_files:
             with open(test_file, 'r') as f:

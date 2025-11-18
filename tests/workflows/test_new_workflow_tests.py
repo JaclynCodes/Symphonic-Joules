@@ -24,7 +24,7 @@ def repo_root():
     Return the repository root path.
     
     Returns:
-        Path: Path to the repository root directory.
+        Path: The repository root directory (three levels above this file).
     """
     return Path(__file__).parent.parent.parent
 
@@ -32,7 +32,7 @@ def repo_root():
 @pytest.fixture(scope='module')
 def workflows_test_dir(repo_root):
     """
-    Locate the tests/workflows directory under the repository root.
+    Resolve the path to the repository's tests/workflows directory.
     
     Parameters:
     	repo_root (Path): Path to the repository root.
@@ -46,13 +46,13 @@ def workflows_test_dir(repo_root):
 @pytest.fixture(scope='module')
 def jekyll_test_file(workflows_test_dir):
     """
-    Locate the Jekyll workflow test file within the workflows test directory.
+    Return the path to the Jekyll workflow test file within a workflows test directory.
     
     Parameters:
-        workflows_test_dir (Path): Path to the directory containing workflow test files.
+        workflows_test_dir (Path): Directory containing workflow test files.
     
     Returns:
-        Path: Path to 'test_jekyll_workflow.py' inside the provided directory.
+        Path: Path to 'test_jekyll_workflow.py' inside the given directory.
     """
     return workflows_test_dir / 'test_jekyll_workflow.py'
 
@@ -60,10 +60,10 @@ def jekyll_test_file(workflows_test_dir):
 @pytest.fixture(scope='module')
 def static_test_file(workflows_test_dir):
     """
-    Resolve the path to the static workflow test file within the workflows test directory.
+    Get the path to the static workflow test file within the workflows test directory.
     
     Returns:
-    	Path to tests/workflows/test_static_workflow.py
+        Path: Path to tests/workflows/test_static_workflow.py
     """
     return workflows_test_dir / 'test_static_workflow.py'
 
@@ -71,7 +71,7 @@ def static_test_file(workflows_test_dir):
 @pytest.fixture(scope='module')
 def blank_test_file(workflows_test_dir):
     """
-    Locate the reference blank workflow test file within the workflows tests directory.
+    Return the path to the reference blank workflow test file in the workflows tests directory.
     
     Parameters:
         workflows_test_dir (Path): Path to the tests/workflows directory.
@@ -86,7 +86,9 @@ class TestNewFilesExist:
     """Test that new test files exist"""
     
     def test_jekyll_test_file_exists(self, jekyll_test_file):
-        """Test that test_jekyll_workflow.py exists"""
+        """
+        Assert that the Jekyll workflow test file test_jekyll_workflow.py exists in the workflows tests directory.
+        """
         assert jekyll_test_file.exists(), \
             "test_jekyll_workflow.py should exist"
     
@@ -107,7 +109,11 @@ class TestNewFilesFollowPattern:
     """Test that new files follow established patterns"""
     
     def test_new_files_have_module_docstrings(self, jekyll_test_file, static_test_file):
-        """Test that new files have comprehensive module docstrings"""
+        """
+        Verify that the Jekyll and Static workflow test files include module-level docstrings longer than 100 characters.
+        
+        Asserts that each provided file has a module docstring and that its length is greater than 100 characters.
+        """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -140,7 +146,9 @@ class TestNewFilesFollowPattern:
                         f"{test_file.name} should import {imp}"
     
     def test_new_files_use_module_scoped_fixtures(self, jekyll_test_file, static_test_file):
-        """Test that new files use module-scoped fixtures like blank test"""
+        """
+        Verify both workflow test files declare fixtures with scope='module'.
+        """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -150,10 +158,10 @@ class TestNewFilesFollowPattern:
     
     def test_new_files_have_workflow_path_fixture(self, jekyll_test_file, static_test_file):
         """
-        Verify each new workflow test file defines a top-level `workflow_path` fixture.
+        Ensure each new workflow test file defines a top-level `workflow_path` fixture.
         
         Raises:
-        	AssertionError: If any of the provided test files does not contain a `def workflow_path()` declaration.
+            AssertionError: If a provided test file does not contain a top-level `def workflow_path()` declaration.
         """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
@@ -164,9 +172,9 @@ class TestNewFilesFollowPattern:
     
     def test_new_files_have_workflow_content_fixture(self, jekyll_test_file, static_test_file):
         """
-        Verify that both new workflow test files define a `workflow_content` fixture.
+        Verify each new workflow test file defines a top-level fixture named `workflow_content`.
         
-        Asserts each file's source contains a function definition for `workflow_content`.
+        Checks that each provided test file contains a `def workflow_content(` function definition and fails the test with a message identifying the file if the fixture is missing.
         """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
@@ -181,9 +189,10 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_has_sufficient_test_classes(self, jekyll_test_file):
         """
-        Assert the Jekyll workflow test file defines at least 10 top-level test classes.
+        Check that the Jekyll workflow test file defines at least 10 top-level test classes.
         
-        Each counted class is a class definition whose name starts with "Test"; the test fails if fewer than 10 such classes are present.
+        Parameters:
+            jekyll_test_file (Path | str): Path to the Jekyll workflow test file to inspect. The test fails if fewer than 10 top-level classes whose names start with "Test" are found.
         """
         with open(jekyll_test_file, 'r') as f:
             content = f.read()
@@ -198,13 +207,13 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_has_sufficient_tests(self, jekyll_test_file):
         """
-        Verify the Jekyll test file defines at least 50 test methods across classes named with the "Test" prefix.
+        Check the Jekyll test file contains at least 50 test methods within classes whose names start with "Test".
         
         Parameters:
             jekyll_test_file (Path | str): Path to the test_jekyll_workflow.py file to inspect.
         
         Raises:
-            AssertionError: If fewer than 50 methods whose names start with "test_" are found in classes whose names start with "Test".
+            AssertionError: If fewer than 50 methods whose names start with `test_` are found in classes whose names start with `Test`.
         """
         with open(jekyll_test_file, 'r') as f:
             content = f.read()
@@ -223,9 +232,9 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_tests_build_and_deploy_jobs(self, jekyll_test_file):
         """
-        Verify the Jekyll test file defines test classes for both the build and deploy jobs.
+        Ensure the Jekyll test file defines test classes for both the build and deploy jobs.
         
-        Asserts that the file content contains the identifiers `TestBuildJob` and `TestDeployJob`.
+        Asserts the file content contains the identifiers `TestBuildJob` and `TestDeployJob`.
         """
         with open(jekyll_test_file, 'r') as f:
             content = f.read()
@@ -236,7 +245,11 @@ class TestJekyllTestFileStructure:
                 "Jekyll test should have TestDeployJob class"
     
     def test_jekyll_tests_permissions(self, jekyll_test_file):
-        """Test that Jekyll test file validates permissions"""
+        """
+        Assert the Jekyll workflow test file includes permission-related tests.
+        
+        Checks that the file defines a TestPermissionsConfiguration and references 'id-token' to validate OIDC permissions.
+        """
         with open(jekyll_test_file, 'r') as f:
             content = f.read()
             
@@ -247,9 +260,11 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_tests_concurrency(self, jekyll_test_file):
         """
-        Verify the Jekyll workflow test file includes concurrency-related tests.
+        Verify the Jekyll workflow test file validates concurrency settings.
         
-        Asserts that the file contains a TestConcurrencyConfiguration class and that it checks the `cancel-in-progress` concurrency setting.
+        Parameters:
+            jekyll_test_file (str | pathlib.Path): Path to the Jekyll workflow test file to inspect.
+        
         """
         with open(jekyll_test_file, 'r') as f:
             content = f.read()
@@ -265,9 +280,15 @@ class TestStaticTestFileStructure:
     
     def test_static_has_sufficient_test_classes(self, static_test_file):
         """
-        Verify the static workflow test file defines at least 10 test classes whose names start with "Test".
+        Ensure the static workflow test file defines at least 10 top-level test classes named with the "Test" prefix.
         
-        Asserts that the AST of the provided file contains 10 or more class definitions with names beginning with "Test"; fails with a descriptive message if the requirement is not met.
+        Parses the file's AST and counts class definitions whose names start with "Test"; fails if fewer than 10 are found.
+        
+        Parameters:
+            static_test_file (Path | str): Path to the static workflow test file to inspect.
+        
+        Raises:
+            AssertionError: If fewer than 10 test classes with names starting with "Test" are present.
         """
         with open(static_test_file, 'r') as f:
             content = f.read()
@@ -282,9 +303,10 @@ class TestStaticTestFileStructure:
     
     def test_static_has_sufficient_tests(self, static_test_file):
         """
-        Verify the static workflow test file defines at least 50 test methods across classes whose names start with "Test".
+        Ensure the static workflow test file defines at least 50 test methods across top-level classes named with the `Test` prefix.
         
-        Counts functions with names beginning with "test_" inside top-level classes prefixed with "Test" and fails the test if the total is less than 50.
+        Parameters:
+            static_test_file (str | Path): Path to the static workflow test file to inspect.
         """
         with open(static_test_file, 'r') as f:
             content = f.read()
@@ -322,9 +344,9 @@ class TestStaticTestFileStructure:
     
     def test_static_compares_with_jekyll(self, static_test_file):
         """
-        Verify the static workflow test file contains a comparison to the Jekyll workflow.
+        Verify that the static workflow test file references or compares against the Jekyll workflow.
         
-        Asserts that the file content includes one of the comparison indicators: the substring "Jekyll", the class name "TestWorkflowDifferences", or the phrase "single job" (case-insensitive).
+        Checks that the file content contains at least one of: 'Jekyll', 'TestWorkflowDifferences', or the phrase 'single job' (case-insensitive); the test fails if none are present.
         """
         with open(static_test_file, 'r') as f:
             content = f.read()
@@ -342,7 +364,16 @@ class TestCommonTestPatterns:
     """Test that both new files include common test patterns"""
     
     def test_both_validate_yaml_structure(self, jekyll_test_file, static_test_file):
-        """Test that both files validate YAML structure"""
+        """
+        Assert that both workflow test files define a `TestWorkflowStructure` class.
+        
+        Parameters:
+            jekyll_test_file (Path): Path to the Jekyll workflow test file.
+            static_test_file (Path): Path to the Static workflow test file.
+        
+        Raises:
+            AssertionError: If either file does not contain a top-level `TestWorkflowStructure` class.
+        """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -351,7 +382,13 @@ class TestCommonTestPatterns:
                     f"{test_file.name} should have TestWorkflowStructure class"
     
     def test_both_validate_metadata(self, jekyll_test_file, static_test_file):
-        """Test that both files validate workflow metadata"""
+        """
+        Verify that both Jekyll and Static workflow test files define a TestWorkflowMetadata class.
+        
+        Parameters:
+            jekyll_test_file (Path): Path to the Jekyll workflow test file.
+            static_test_file (Path): Path to the Static workflow test file.
+        """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -374,7 +411,7 @@ class TestCommonTestPatterns:
     
     def test_both_test_edge_cases(self, jekyll_test_file, static_test_file):
         """
-        Assert that both workflow test files include a TestEdgeCases test class.
+        Verify both workflow test files define a TestEdgeCases test class.
         
         Parameters:
             jekyll_test_file (Path): Path to the Jekyll workflow test file.
@@ -403,7 +440,11 @@ class TestCodeQuality:
     """Test code quality in new test files"""
     
     def test_no_syntax_errors(self, jekyll_test_file, static_test_file):
-        """Test that new files have no syntax errors"""
+        """
+        Verify that the Jekyll and Static workflow test files parse without SyntaxError.
+        
+        If a SyntaxError is encountered in either file, the test fails and reports the file name and error.
+        """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
                 content = f.read()
@@ -414,9 +455,9 @@ class TestCodeQuality:
     
     def test_all_test_methods_have_docstrings(self, jekyll_test_file, static_test_file):
         """
-        Verify every test method in the Jekyll and Static workflow test files has a docstring.
+        Ensure every test method in the Jekyll and Static workflow test files has a docstring.
         
-        Parses each provided test file, inspects classes whose names start with "Test" and their methods whose names start with "test_", and fails the test if any such method lacks a docstring. The assertion message includes up to five example method names missing docstrings.
+        Inspects top-level classes whose names start with "Test" and their methods whose names start with "test_". Fails the test if any such method lacks a docstring; the assertion message includes up to five example method names missing docstrings.
         
         Parameters:
             jekyll_test_file (Path): Path to the Jekyll workflow test file to inspect.
@@ -441,9 +482,9 @@ class TestCodeQuality:
     
     def test_consistent_indentation(self, jekyll_test_file, static_test_file):
         """
-        Verify that both workflow test files use consistent 4-space indentation.
+        Ensure both workflow test files use indentation in multiples of four spaces.
         
-        Checks each non-empty, non-comment line in the provided test files and asserts that any leading spaces are a multiple of four. Raises an assertion error identifying the file and line number when an inconsistency is found.
+        Checks each non-empty, non-comment line in the given files and fails with an assertion identifying the file and line number if a line's leading spaces are not a multiple of four.
         
         Parameters:
             jekyll_test_file (Path): Path to tests/workflows/test_jekyll_workflow.py.
@@ -462,9 +503,9 @@ class TestCodeQuality:
     
     def test_no_trailing_whitespace(self, jekyll_test_file, static_test_file):
         """
-        Ensure workflow test files do not contain excessive trailing whitespace.
+        Check that workflow test files do not contain excessive trailing whitespace.
         
-        Fails if either file contains 5 or more lines that end with whitespace characters; the assertion message lists the first offending line numbers.
+        Fails if either file contains 5 or more lines that end with whitespace; the assertion message lists the first offending line numbers.
         """
         for test_file in [jekyll_test_file, static_test_file]:
             with open(test_file, 'r') as f:
@@ -503,9 +544,9 @@ class TestTestCoverage:
     
     def test_static_covers_static_specific_features(self, static_test_file):
         """
-        Verify the static workflow test file asserts static-specific features for full-repository uploads.
+        Confirm the static workflow test file validates full-repository upload behaviour.
         
-        Asserts that the file content contains the token 'path' and either a '.' character or the word 'entire' (case-insensitive), indicating the test covers uploading the entire repository.
+        Asserts the file text contains 'path' and either '.' or the word 'entire' (case-insensitive), indicating coverage of uploading the entire repository.
         """
         with open(static_test_file, 'r') as f:
             content = f.read()
