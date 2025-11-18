@@ -12,7 +12,7 @@ This module validates consistency across all test files:
 import pytest
 import ast
 from pathlib import Path
-from typing import List, Dict, Set
+from typing import List
 
 
 @pytest.fixture(scope='module')
