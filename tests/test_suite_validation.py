@@ -14,9 +14,6 @@ This test suite validates the test suite itself, ensuring:
 import pytest
 import ast
 from pathlib import Path
-from typing import List, Set, Dict
-
-
 @pytest.fixture(scope='module')
 def repo_root():
     """
