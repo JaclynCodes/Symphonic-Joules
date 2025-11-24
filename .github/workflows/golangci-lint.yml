@@ -26,7 +26,7 @@ jobs:
 
       - name: Set up Go (if Go files found)
         if: steps.check-go.outputs.go_files_found == 'true'
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.21'
 
