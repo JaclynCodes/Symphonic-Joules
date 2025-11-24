@@ -307,8 +307,8 @@ class TestBuildJob:
         """Test that checkout action uses version 4"""
         checkout_steps = [s for s in build_steps if 'uses' in s and 'checkout' in s['uses']]
         assert len(checkout_steps) > 0, "No checkout step found"
-        assert '@v4' in checkout_steps[0]['uses'], \
-            "Checkout action should use version 4"
+        assert '@v5' in checkout_steps[0]['uses'], \
+            "Checkout action should use version 5"
 
     def test_has_setup_pages_step(self, build_steps):
         """Test that build job includes setup pages action"""
