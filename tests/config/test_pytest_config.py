@@ -10,7 +10,6 @@ This test suite validates the pytest configuration including:
 
 import pytest
 import configparser
-import os
 from pathlib import Path
 
 
