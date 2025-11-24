@@ -244,8 +244,8 @@ class TestEdgeCases:
     
     def test_no_duplicate_keys(self, settings_raw):
         """Test that JSON doesn't have duplicate keys"""
-        # Parse JSON and check key count
-        config = json.loads(settings_raw)
+        # Parse JSON to ensure it's valid (no exception means valid)
+        json.loads(settings_raw)
         # Count keys in raw JSON
         import re
         key_pattern = r'"([^"]+)"\s*:'
