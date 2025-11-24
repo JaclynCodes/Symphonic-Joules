@@ -764,7 +764,7 @@ class TestWorkflowSecurity:
         Ensure the workflow defines only the minimal permissions required for Pages deployment.
         
         Parameters:
-        	permissions (dict): Mapping of permission names to their granted scopes; expected to contain exactly `contents: read`, `pages: write`, and `id-token: write`.
+        permissions (dict): Mapping of permission names to their granted scopes; expected to contain exactly `contents: read`, `pages: write`, and `id-token: write`.
         """
         # Should only have contents:read, pages:write, id-token:write
         assert len(permissions) == 3, \
