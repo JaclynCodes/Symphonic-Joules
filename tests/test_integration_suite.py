@@ -131,7 +131,7 @@ class TestTestIsolation:
         initial_mtimes = {f: f.stat().st_mtime for f in workflows_dir.glob('*.yml')}
         
         # Run tests (in dry-run to avoid actual execution issues)
-        result = subprocess.run(
+        subprocess.run(
             [sys.executable, '-m', 'pytest', 
              str(repo_root / 'tests' / 'workflows'),
              '--collect-only'],
