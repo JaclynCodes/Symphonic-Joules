@@ -10,13 +10,9 @@ The test suite validates GitHub Actions workflows and project configuration file
 
 ### Workflow Tests
 
-- `tests/workflows/test_blank_workflow.py` - CI workflow validation (37 tests, 9 test classes)
-- `tests/workflows/test_jekyll_workflow.py` - Jekyll/GitHub Pages deployment validation (71 tests, 15 test classes)
-- `tests/workflows/test_static_workflow.py` - Static content deployment validation (79 tests, 16 test classes)
-- `tests/workflows/test_codeql_workflow.py` - CodeQL security analysis validation (30 tests, 8 test classes)
-- `tests/workflows/test_golangci_lint_workflow.py` - Go linting workflow validation (29 tests, 10 test classes)
-- `tests/workflows/test_license_check_workflow.py` - License checking workflow validation (31 tests, 8 test classes)
-- `tests/workflows/test_new_workflow_tests.py` - Validation tests for newly added workflow test files
+- `tests/workflows/test_blank_workflow.py` - CI workflow validation (43 tests, 9 test classes)
+- `tests/workflows/test_jekyll_workflow.py` - Jekyll/GitHub Pages deployment validation (72 tests, 15 test classes)
+- `tests/workflows/test_static_workflow.py` - Static content deployment validation (75 tests, 16 test classes)
 
 ### Configuration Files
 
@@ -27,11 +23,9 @@ The test suite validates GitHub Actions workflows and project configuration file
 
 ## Test Coverage Summary
 
-**Total Workflow Tests: 277 tests across 66 test classes**
+**Total Tests: 190 across 40 test classes**
 
-**Total Test Suite: 435 tests** (including validation and meta-tests)
-
-### Blank Workflow Tests (37 tests)
+### Blank Workflow Tests (43 tests)
 
 Tests for `.github/workflows/blank.yml` - CI workflow
 
@@ -64,7 +58,7 @@ Validates security best practices
 #### TestWorkflowFilePermissions (3 tests)
 Tests file location and permissions
 
-### Jekyll Workflow Tests (71 tests)
+### Jekyll Workflow Tests (72 tests)
 
 Tests for `.github/workflows/jekyll-gh-pages.yml` - Jekyll site deployment
 
@@ -77,10 +71,10 @@ Tests workflow naming conventions for Jekyll deployment
 #### TestTriggerConfiguration (5 tests)
 Validates push and workflow_dispatch triggers
 
-#### TestPermissionsConfiguration (5 tests)
+#### TestPermissionsConfiguration (7 tests)
 Tests OIDC permissions for secure GitHub Pages deployment
 
-#### TestConcurrencyConfiguration (4 tests)
+#### TestConcurrencyConfiguration (6 tests)
 Validates concurrency control for production deployments
 
 #### TestJobsConfiguration (6 tests)
@@ -94,25 +88,16 @@ Comprehensive validation of Jekyll build process
 #### TestDeployJob (8 tests)
 Tests deployment job configuration and dependencies
 
-#### TestWorkflowComments (4 tests)
-Validates documentation quality
-
-#### TestEdgeCases (6 tests)
-Tests YAML formatting and edge cases
-
 #### TestWorkflowSecurity (3 tests)
 Validates OIDC authentication and security best practices
 
-#### TestWorkflowFilePermissions (3 tests)
-Tests file location and permissions
+#### TestEdgeCases (4 tests)
+Tests YAML formatting and edge cases
 
-#### TestJobDependencies (2 tests)
-Validates job dependency chain
+#### TestWorkflowComments (3 tests)
+Validates documentation quality
 
-#### TestStepNaming (2 tests)
-Tests naming conventions for clarity
-
-### Static Workflow Tests (79 tests)
+### Static Workflow Tests (75 tests)
 
 Tests for `.github/workflows/static.yml` - Static content deployment
 
@@ -128,13 +113,13 @@ Validates trigger configuration (push, workflow_dispatch)
 #### TestPermissionsConfiguration (7 tests)
 Tests minimal permissions following least privilege principle
 
-#### TestConcurrencyConfiguration (5 tests)
+#### TestConcurrencyConfiguration (7 tests)
 Validates production deployment concurrency control
 
 #### TestJobsConfiguration (6 tests)
 Tests single deploy job architecture
 
-#### TestDeployJob (6 tests)
+#### TestDeployJob (7 tests)
 Tests deploy job environment and configuration
 
 #### TestDeploySteps (14 tests)
@@ -142,23 +127,17 @@ Comprehensive validation of deployment steps
 - Checkout, setup pages, artifact upload, deployment
 - Step ordering and parameter validation
 
-#### TestWorkflowComments (5 tests)
-Validates documentation and clarity
+#### TestWorkflowSecurity (6 tests)
+Validates OIDC, minimal permissions, and injection prevention
 
 #### TestEdgeCases (6 tests)
 Tests YAML formatting, empty steps, and consistency
 
-#### TestWorkflowSecurity (4 tests)
-Validates OIDC, minimal permissions, and injection prevention
-
-#### TestWorkflowFilePermissions (4 tests)
-Tests file location and descriptive naming
+#### TestWorkflowComments (4 tests)
+Validates documentation and clarity
 
 #### TestWorkflowDifferencesFromJekyll (3 tests)
 Validates appropriate differences from Jekyll workflow
-
-#### TestStepNaming (2 tests)
-Tests naming conventions and action-oriented names
 
 ## Running Tests
 
@@ -232,7 +211,7 @@ The following pytest markers are available:
 Install test dependencies with:
 
 ```bash
-python -m pip install -r tests/requirements.txt
+pip install -r tests/requirements.txt
 ```
 
 Required packages:
@@ -278,8 +257,8 @@ These tests are designed to run in CI/CD pipelines:
 # Example GitHub Actions workflow step
 - name: Run Tests
   run: |
-    python -m pip install -r tests/requirements.txt
-    python -m pytest tests/ -v --tb=short
+    pip install -r tests/requirements.txt
+    pytest tests/ -v --tb=short
 ```
 
 ## Test Results Summary
