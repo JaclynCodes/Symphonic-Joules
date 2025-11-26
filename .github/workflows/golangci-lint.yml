@@ -1,5 +1,7 @@
 # golangci-lint workflow (compatibility placeholder)
 name: golangci-lint
+permissions:
+  contents: read
 
 "on":
   push:
