@@ -1,0 +1,30 @@
+[lint]
+select = [
+		# Pyflakes - catches logical errors and unused imports
+		"F",
+		# flake8-bugbear - catches common bugs and design issues
+		"B",
+		# flake8-bandit - security vulnerabilities
+		"S",
+		# flake8-blind-except - catches bare except clauses
+		"BLE",
+		# flake8-debugger - catches debugger statements
+		"T10",
+		# flake8-executable - catches executable files
+		"EXE",
+		# flake8-unused-arguments - catches unused function arguments
+		"ARG",
+		# tryceratops - catches try/except anti-patterns
+		"TRY",
+		# Ruff-specific rules for bugs and errors
+		"RUF",
+		# pycodestyle subset rules - only error-level issues
+		"E7",  # Syntax errors
+		"E9",  # Runtime errors
+
+]
+# suppress common non critical issues
+ignore = ["I001", "F401", "W291", "W293", "Q000", "ANN001", "ANN201", "UP006", "UP045", "E501", "S101"]
+[lint.per-file-ignores]
+"**/__init__.py" = ["E402"]
+"**/conftest.py" = ["E402"]

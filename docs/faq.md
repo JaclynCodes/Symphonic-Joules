@@ -32,6 +32,10 @@ The specific programming language and technology stack will be determined during
 
 Prerequisites will be documented as they are established. The project aims to minimize external dependencies while providing powerful functionality.
 
+### What Python version do I need?
+
+The project is designed to work with Python 3.8 or higher. However, if you're on macOS and experience compatibility issues with newer Python versions (3.12+), you may need to use Python 3.11 as a temporary workaround. See the [Installation Guide](installation-setup.md#macos-python-version-compatibility) for detailed instructions.
+
 ## 🔬 Scientific Questions
 
 ### What scientific principles does the project use?
