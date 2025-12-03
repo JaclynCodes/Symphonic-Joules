@@ -15,20 +15,41 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def vscode_settings_path():
-    """Get path to VSCode settings file"""
+    """
+    Return the path to the VS Code workspace settings file.
+    
+    Returns:
+        Path: Path to the '.vscode/settings.json' file relative to the current working directory.
+    """
     return Path('.vscode/settings.json')
 
 
 @pytest.fixture(scope='module')
 def vscode_settings(vscode_settings_path):
-    """Load and parse VSCode settings"""
+    """
+    Load and parse the VS Code settings.json file into a Python object.
+    
+    Parameters:
+        vscode_settings_path (str | pathlib.Path): Path to the `.vscode/settings.json` file.
+    
+    Returns:
+        dict: Parsed JSON object representing the VS Code settings.
+    """
     with open(vscode_settings_path, 'r') as f:
         return json.load(f)
 
 
 @pytest.fixture(scope='module')
 def vscode_raw(vscode_settings_path):
-    """Get raw content of VSCode settings"""
+    """
+    Read the raw contents of the VS Code settings file.
+    
+    Parameters:
+        vscode_settings_path (str | pathlib.Path): Path to the `.vscode/settings.json` file.
+    
+    Returns:
+        str: The file contents as a raw string, including whitespace and formatting.
+    """
     with open(vscode_settings_path, 'r') as f:
         return f.read()
 
@@ -107,19 +128,32 @@ class TestSettingsValidation:
     """Test validity of settings values"""
     
     def test_all_keys_are_strings(self, vscode_settings):
-        """Test that all setting keys are strings"""
+        """
+        Verify that every top-level key in the parsed VSCode settings object is a string.
+        """
         for key in vscode_settings.keys():
             assert isinstance(key, str), f"Setting key should be string: {key}"
     
     def test_setting_keys_follow_convention(self, vscode_settings):
-        """Test that setting keys follow VSCode convention"""
+        """
+        Ensure top-level VSCode setting keys follow expected naming conventions.
+        
+        Checks that each top-level key either contains a dot (sectioned setting) or begins with a lowercase letter; raises an assertion error naming any offending key.
+        
+        Parameters:
+            vscode_settings (dict): Parsed .vscode/settings.json as a mapping of keys to values.
+        """
         # VSCode settings typically use camelCase with dots
         for key in vscode_settings.keys():
             assert '.' in key or key[0].islower(), \
                 f"Setting key '{key}' should follow VSCode naming convention"
     
     def test_array_values_contain_strings(self, vscode_settings):
-        """Test that array settings contain string values"""
+        """
+        Validate that any setting whose value is a list contains only allowed JSON value types.
+        
+        Allowed item types are `str`, `int`, `bool`, and `dict`; the test fails if any list contains an item of a different type.
+        """
         for key, value in vscode_settings.items():
             if isinstance(value, list):
                 for item in value:
@@ -161,7 +195,9 @@ class TestDirectoryStructure:
         assert vscode_dir.is_dir(), ".vscode should be a directory"
     
     def test_settings_in_correct_location(self, vscode_settings_path):
-        """Test that settings.json is in .vscode directory"""
+        """
+        Verify settings.json path is located inside the .vscode directory.
+        """
         assert '.vscode' in str(vscode_settings_path), \
             "settings.json should be in .vscode directory"
 
@@ -170,13 +206,28 @@ class TestWorkspaceBestPractices:
     """Test workspace configuration best practices"""
     
     def test_settings_file_size_reasonable(self, vscode_raw):
-        """Test that settings file is not excessively large"""
+        """
+        Ensure the VSCode workspace settings file is under 10,000 characters.
+        
+        Fail the test if the raw settings content length is 10,000 characters or greater to prevent excessively large workspace settings files.
+        """
         # Should be reasonable size for workspace settings
         assert len(vscode_raw) < 10000, \
             "Settings file seems excessively large (>10KB)"
     
     def test_no_sensitive_information(self, vscode_raw):
-        """Test that settings don't contain sensitive information"""
+        """
+        Ensure the raw settings content contains no sensitive values for common secret keywords.
+        
+        Checks for occurrences of 'password', 'token', 'api_key', 'secret', and 'credential' (case-insensitive).
+        If any of these appear in the file, they must appear only as setting keys (the left side of a colon); an assertion is raised if any occurrence appears in a value.
+        
+        Parameters:
+            vscode_raw (str): Raw string content of the .vscode/settings.json file.
+        
+        Raises:
+            AssertionError: If a sensitive keyword is found where it appears to be a value rather than a key.
+        """
         sensitive_patterns = ['password', 'token', 'api_key', 'secret', 'credential']
         lower_content = vscode_raw.lower()
         
@@ -213,7 +264,11 @@ class TestEdgeCases:
         assert len(vscode_settings.keys()) > 0, "Should have at least one setting"
     
     def test_no_duplicate_keys(self, vscode_raw):
-        """Test that JSON doesn't have duplicate keys"""
+        """
+        Assert the settings.json contains at most one occurrence of the `githubPullRequests.ignoredPullRequestBranches` top-level key.
+        
+        Checks the raw file content and raises an AssertionError if the exact key appears more than once.
+        """
         # Python's json.load() will use last value for duplicates
         # Check that parsing matches raw count
         key_count = vscode_raw.count('"githubPullRequests.ignoredPullRequestBranches"')

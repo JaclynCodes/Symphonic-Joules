@@ -17,19 +17,40 @@ from typing import List
 
 @pytest.fixture(scope='module')
 def repo_root():
-    """Get the repository root directory."""
+    """
+    Locate the repository root directory.
+    
+    Returns:
+        Path: Path to the repository root directory.
+    """
     return Path(__file__).parent.parent
 
 
 @pytest.fixture(scope='module')
 def all_workflow_test_files(repo_root):
-    """Get all workflow test files."""
+    """
+    Return the workflow test file paths found under the repository's tests/workflows directory.
+    
+    Parameters:
+        repo_root (Path): Path to the repository root.
+    
+    Returns:
+        List[Path]: Paths matching the pattern 'test_*_workflow.py' inside tests/workflows.
+    """
     workflows_dir = repo_root / 'tests' / 'workflows'
     return list(workflows_dir.glob('test_*_workflow.py'))
 
 
 def extract_test_classes(file_path: Path) -> List[str]:
-    """Extract test class names from a file."""
+    """
+    Collects names of classes defined in the given Python file whose names start with 'Test'.
+    
+    Parameters:
+        file_path (Path): Path to the Python source file to parse.
+    
+    Returns:
+        List[str]: A list of class names from the file that start with 'Test'.
+    """
     with open(file_path, 'r') as f:
         tree = ast.parse(f.read())
     
@@ -38,7 +59,15 @@ def extract_test_classes(file_path: Path) -> List[str]:
 
 
 def extract_fixtures(file_path: Path) -> List[str]:
-    """Extract fixture names from a file."""
+    """
+    Collect fixture function names defined in the given Python file.
+    
+    Parameters:
+        file_path (Path): Path to the Python file to parse for pytest fixtures.
+    
+    Returns:
+        fixtures (List[str]): Names of functions decorated with `fixture` (for example `@pytest.fixture` or `@fixture`).
+    """
     with open(file_path, 'r') as f:
         tree = ast.parse(f.read())
     
@@ -73,7 +102,11 @@ class TestConsistentStructure:
                     f"{test_file.name} should have module docstring"
     
     def test_all_files_have_similar_imports(self, all_workflow_test_files):
-        """Test that all files import similar core modules"""
+        """
+        Ensure every workflow test file includes imports for the core modules pytest, yaml, os and Path.
+        
+        This test iterates over the collected workflow test files and asserts that each file's source text contains the import identifiers for the required core modules, failing with a message that names the file and the missing import when an assertion fails.
+        """
         core_imports = ['pytest', 'yaml', 'os', 'Path']
         
         for test_file in all_workflow_test_files:
@@ -85,7 +118,11 @@ class TestConsistentStructure:
                         f"{test_file.name} should import {imp}"
     
     def test_all_files_have_workflow_path_fixture(self, all_workflow_test_files):
-        """Test that all files define workflow_path fixture"""
+        """
+        Verify every workflow test file defines a `workflow_path` fixture.
+        
+        Asserts that `workflow_path` appears in the fixtures extracted from each file; when absent the assertion message includes the offending filename.
+        """
         for test_file in all_workflow_test_files:
             fixtures = extract_fixtures(test_file)
             assert 'workflow_path' in fixtures, \
@@ -110,21 +147,30 @@ class TestCommonTestClasses:
                 f"{test_file.name} should have TestWorkflowStructure class"
     
     def test_all_files_have_metadata_tests(self, all_workflow_test_files):
-        """Test that all files have TestWorkflowMetadata class"""
+        """
+        Ensure each workflow test file defines a TestWorkflowMetadata test class.
+        """
         for test_file in all_workflow_test_files:
             classes = extract_test_classes(test_file)
             assert 'TestWorkflowMetadata' in classes, \
                 f"{test_file.name} should have TestWorkflowMetadata class"
     
     def test_all_files_have_security_tests(self, all_workflow_test_files):
-        """Test that all files have TestWorkflowSecurity class"""
+        """
+        Verify each workflow test file defines a TestWorkflowSecurity class.
+        
+        Raises:
+            AssertionError: if any workflow test file does not define `TestWorkflowSecurity`.
+        """
         for test_file in all_workflow_test_files:
             classes = extract_test_classes(test_file)
             assert 'TestWorkflowSecurity' in classes, \
                 f"{test_file.name} should have TestWorkflowSecurity class"
     
     def test_all_files_have_edge_case_tests(self, all_workflow_test_files):
-        """Test that all files have TestEdgeCases class"""
+        """
+        Ensure each workflow test file defines a `TestEdgeCases` test class.
+        """
         for test_file in all_workflow_test_files:
             classes = extract_test_classes(test_file)
             assert 'TestEdgeCases' in classes, \
@@ -153,7 +199,14 @@ class TestConsistentFixtureUsage:
                             break
     
     def test_consistent_fixture_naming(self, all_workflow_test_files):
-        """Test that fixture naming is consistent across files"""
+        """
+        Assert that a set of common fixture names appear in at least two workflow test files.
+        
+        Checks the presence of the fixtures 'workflow_path', 'workflow_raw', 'workflow_content' and 'jobs' in each provided workflow test file and fails if any of these common fixtures is used by fewer than two files. The assertion message lists which files use the missing fixture.
+        
+        Parameters:
+        	all_workflow_test_files (List[Path]): Workflow test files to inspect.
+        """
         common_fixtures = ['workflow_path', 'workflow_raw', 'workflow_content', 'jobs']
         
         fixture_usage = {fixture: [] for fixture in common_fixtures}
@@ -197,7 +250,9 @@ class TestConsistentTestNaming:
                                         f"{test_file.name}: {item.name} should start with 'test_'"
     
     def test_test_classes_start_with_test(self, all_workflow_test_files):
-        """Test that all test classes follow Test* naming"""
+        """
+        Verify that every test class name in each workflow test file starts with 'Test'.
+        """
         for test_file in all_workflow_test_files:
             classes = extract_test_classes(test_file)
             for cls in classes:
@@ -209,7 +264,12 @@ class TestConsistentDocumentation:
     """Test that documentation is consistent across files"""
     
     def test_all_test_methods_have_docstrings(self, all_workflow_test_files):
-        """Test that all test methods have docstrings"""
+        """
+        Ensure every test method defined in classes whose names start with `Test` includes a docstring.
+        
+        Parameters:
+            all_workflow_test_files (List[Path]): Iterable of workflow test file paths to inspect for test methods.
+        """
         for test_file in all_workflow_test_files:
             with open(test_file, 'r') as f:
                 tree = ast.parse(f.read())
@@ -227,7 +287,10 @@ class TestConsistentDocumentation:
                     f"{test_file.name} has methods without docstrings: {methods_without_docs[:3]}"
     
     def test_all_test_classes_have_docstrings(self, all_workflow_test_files):
-        """Test that all test classes have docstrings"""
+        """
+        Ensure every class whose name starts with 'Test' in each workflow test file has a docstring.
+        
+        """
         for test_file in all_workflow_test_files:
             with open(test_file, 'r') as f:
                 tree = ast.parse(f.read())
@@ -246,7 +309,11 @@ class TestSimilarComplexity:
     """Test that files have similar complexity and coverage"""
     
     def test_files_have_similar_test_counts(self, all_workflow_test_files):
-        """Test that files have reasonably similar test counts"""
+        """
+        Assert that workflow test files have similar numbers of test methods.
+        
+        Checks each file for methods named `test_*` inside classes starting with `Test`, enforces a minimum of 20 tests per file, and requires the largest test count to be no more than three times the smallest test count.
+        """
         test_counts = {}
         
         for test_file in all_workflow_test_files:
@@ -275,7 +342,11 @@ class TestSimilarComplexity:
             f"Test count variance too high: {min_count} to {max_count}"
     
     def test_files_have_similar_class_counts(self, all_workflow_test_files):
-        """Test that files have reasonably similar test class counts"""
+        """
+        Ensure each workflow test file defines at least five test classes.
+        
+        This test collects classes whose names start with 'Test' from each workflow test file and fails if any file has fewer than five such classes.
+        """
         class_counts = {}
         
         for test_file in all_workflow_test_files:

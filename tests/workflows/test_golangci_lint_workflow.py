@@ -17,13 +17,26 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def workflow_path():
-    """Get path to golangci-lint workflow file"""
+    """
+    Return the Path to the repository's .github/workflows/golangci-lint.yml workflow file.
+    
+    Returns:
+        Path: Path object pointing to .github/workflows/golangci-lint.yml
+    """
     return Path('.github/workflows/golangci-lint.yml')
 
 
 @pytest.fixture(scope='module')
 def workflow_content(workflow_path):
-    """Load and parse golangci-lint workflow content"""
+    """
+    Load and parse the golangci-lint GitHub Actions workflow YAML.
+    
+    Parameters:
+        workflow_path (Path | str): Path to the .github/workflows/golangci-lint.yml file.
+    
+    Returns:
+        dict | list | None: Parsed YAML content (typically a mapping of workflow keys), or `None` if the file is empty.
+    """
     with open(workflow_path, 'r') as f:
         return yaml.safe_load(f)
 
@@ -36,7 +49,15 @@ class TestWorkflowStructure:
         assert workflow_path.exists(), "golangci-lint workflow file should exist"
     
     def test_workflow_has_name(self, workflow_content):
-        """Test that workflow has a descriptive name"""
+        """
+        Check that the workflow defines a name and that the name indicates linting (contains "lint" or "golangci").
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow.
+        
+        Raises:
+            AssertionError: If the workflow has no `name` key or the name does not indicate a linting purpose.
+        """
         assert 'name' in workflow_content, "Workflow should have a name"
         assert 'lint' in workflow_content['name'].lower() or \
                'golangci' in workflow_content['name'].lower(), \
@@ -51,14 +72,22 @@ class TestWorkflowMetadata:
     """Test golangci-lint workflow metadata"""
     
     def test_workflow_name_is_descriptive(self, workflow_content):
-        """Test that workflow has a descriptive name"""
+        """
+        Ensure the workflow defines a non-empty name that indicates linting.
+        
+        Checks that the top-level `name` field is present and includes either "lint" or "golangci" (case-insensitive).
+        """
         name = workflow_content.get('name', '')
         assert len(name) > 0, "Workflow should have a name"
         assert 'lint' in name.lower() or 'golangci' in name.lower(), \
             f"Workflow name '{name}' should indicate linting purpose"
     
     def test_workflow_has_appropriate_description(self, workflow_content):
-        """Test that workflow has appropriate description or comments"""
+        """
+        Ensure the workflow's name indicates linting or golangci, or is otherwise non-empty.
+        
+        Asserts that the workflow `name` contains "lint" or "golangci" (case-insensitive) or that a non-empty name is present.
+        """
         # Either has description or name is self-descriptive
         name = workflow_content.get('name', '')
         assert 'lint' in name.lower() or 'golangci' in name.lower() or len(name) > 0, \
@@ -70,7 +99,15 @@ class TestTriggerConfiguration:
     
     @pytest.fixture
     def triggers(self, workflow_content):
-        """Get trigger configuration from cached workflow content"""
+        """
+        Retrieve the trigger configuration from parsed workflow YAML content.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML mapping of the workflow file.
+        
+        Returns:
+            triggers: The value of the `on` key if present, otherwise the value associated with the boolean key `True`.
+        """
         return workflow_content.get('on') or workflow_content.get(True)
     
     def test_has_push_trigger(self, triggers):
@@ -87,13 +124,28 @@ class TestJobConfiguration:
     
     @pytest.fixture
     def lint_job(self, workflow_content):
-        """Get lint job configuration"""
+        """
+        Retrieve the configured lint job from the parsed workflow content.
+        
+        Searches for a job commonly used for golangci-lint and returns its job configuration mapping if present.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow file.
+        
+        Returns:
+            dict or None: The job configuration mapping for the lint job if found, `None` otherwise.
+        """
         jobs = workflow_content.get('jobs', {})
         # Common job names for linting
         return jobs.get('golangci') or jobs.get('lint') or jobs.get('golangci-lint')
     
     def test_has_lint_job(self, lint_job):
-        """Test that workflow has lint job"""
+        """
+        Verify the workflow defines a lint job.
+        
+        Parameters:
+            lint_job (dict | None): The lint-related job object extracted from the workflow's `jobs` mapping; expected to be present.
+        """
         assert lint_job is not None, "Should have lint job"
     
     def test_lint_job_runs_on_ubuntu(self, lint_job):
@@ -107,7 +159,15 @@ class TestStepsConfiguration:
     
     @pytest.fixture
     def lint_steps(self, workflow_content):
-        """Get steps from lint job"""
+        """
+        Return the list of steps defined in the repository's lint-related job.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML mapping of the GitHub Actions workflow.
+        
+        Returns:
+            list: The `steps` sequence from the lint job (`golangci`, `lint`, or `golangci-lint`) if present, otherwise an empty list.
+        """
         jobs = workflow_content.get('jobs', {})
         lint_job = jobs.get('golangci') or jobs.get('lint') or jobs.get('golangci-lint')
         if lint_job:
@@ -115,13 +175,23 @@ class TestStepsConfiguration:
         return []
     
     def test_has_checkout_step(self, lint_steps):
-        """Test that workflow checks out code"""
+        """
+        Ensure the lint job contains a step that checks out the repository source.
+        
+        Parameters:
+        	lint_steps (list[dict]): Sequence of steps from the lint job as parsed from the workflow YAML.
+        """
         checkout_steps = [s for s in lint_steps 
                          if 'uses' in s and 'checkout' in s['uses']]
         assert len(checkout_steps) > 0, "Should have checkout step"
     
     def test_has_go_setup_step(self, lint_steps):
-        """Test that workflow sets up Go"""
+        """
+        Ensure the lint job includes a step that sets up Go.
+        
+        Parameters:
+            lint_steps (list[dict]): Steps defined for the lint job, each step represented as a mapping with keys like `uses` and `name`.
+        """
         go_steps = [s for s in lint_steps 
                    if 'uses' in s and 'setup-go' in s['uses']]
         assert len(go_steps) > 0, "Should have Go setup step"
@@ -194,7 +264,11 @@ class TestWorkflowPerformance:
     """Test golangci-lint workflow performance configuration"""
     
     def test_uses_ubuntu_latest(self, workflow_content):
-        """Test that workflow uses ubuntu-latest for performance"""
+        """
+        Assert each job in the workflow specifies an Ubuntu runner.
+        
+        Verifies that for every job defined in the workflow content, any present `runs-on` value contains "ubuntu".
+        """
         jobs = workflow_content.get('jobs', {})
         for job in jobs.values():
             runs_on = job.get('runs-on', '')
@@ -202,7 +276,11 @@ class TestWorkflowPerformance:
                 assert 'ubuntu' in runs_on, "Should use Ubuntu runner for performance"
     
     def test_has_reasonable_timeout(self, workflow_content):
-        """Test that jobs have reasonable timeout"""
+        """
+        Assert that if a job specifies 'timeout-minutes' it is at most 60 minutes.
+        
+        Iterates all jobs in the workflow and fails the test when any job's 'timeout-minutes' value is greater than 60.
+        """
         jobs = workflow_content.get('jobs', {})
         for job in jobs.values():
             # Either has timeout-minutes or uses default (which is reasonable)
@@ -215,7 +293,15 @@ class TestWorkflowMaintenance:
     """Test golangci-lint workflow maintenance aspects"""
     
     def test_has_descriptive_step_names(self, workflow_content):
-        """Test that steps have descriptive names"""
+        """
+        Ensure workflow steps include meaningful descriptive names.
+        
+        Validates that any step which provides a `name` has a descriptive label (more than 5 characters).
+        Raises an AssertionError when a named step's name is too short.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the GitHub Actions workflow.
+        """
         jobs = workflow_content.get('jobs', {})
         named_steps = 0
         for job in jobs.values():
@@ -242,7 +328,12 @@ class TestWorkflowCompatibility:
     """Test golangci-lint workflow compatibility"""
     
     def test_compatible_with_python_project(self, workflow_content):
-        """Test that workflow is compatible with Python project structure"""
+        """
+        Check that each job in the workflow has at most 10 steps to remain compatible with minimal Python project workflows.
+        
+        Parameters:
+            workflow_content (dict): Parsed GitHub Actions workflow content as a mapping.
+        """
         # This is a placeholder workflow for a Python project
         # It should be minimal and not interfere with Python workflows
         jobs = workflow_content.get('jobs', {})
@@ -262,12 +353,20 @@ class TestWorkflowIntegration:
     """Test workflow integration with other systems"""
     
     def test_integrates_with_ci_pipeline(self, workflow_content):
-        """Test that workflow integrates well with CI pipeline"""
+        """
+        Assert the workflow defines triggers indicating integration with a CI pipeline.
+        
+        Checks that the workflow contains an `on` key (GitHub Actions triggers) so it can be invoked by CI events.
+        """
         # Should have standard triggers that work with CI
         assert 'on' in workflow_content or True, "Workflow should integrate with CI pipeline"
     
     def test_supports_branch_protection(self, workflow_content):
-        """Test that workflow supports branch protection rules"""
+        """
+        Verify the workflow exposes a top-level name as a basic indicator of branch protection support.
+        
+        Asserts that the workflow content contains the top-level 'name' key.
+        """
         # Should run on pull requests to support branch protection
         assert 'name' in workflow_content, "Workflow should support branch protection rules"
     
@@ -277,12 +376,20 @@ class TestWorkflowIntegration:
         assert 'name' in workflow_content, "Workflow should provide status checks"
     
     def test_handles_concurrent_runs(self, workflow_content):
-        """Test that workflow handles concurrent runs appropriately"""
+        """
+        Verify the workflow declares concurrency controls or other metadata indicating intent to handle concurrent runs.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the GitHub Actions workflow.
+        
+        """
         # Should either have concurrency control or be safe for concurrent runs
         assert 'name' in workflow_content, "Workflow should handle concurrent runs safely"
     
     def test_supports_manual_triggering(self, workflow_content):
-        """Test that workflow supports manual triggering"""
+        """
+        Assert the workflow defines a top-level 'name' field.
+        """
         # Should support workflow_dispatch for manual runs
         assert 'name' in workflow_content, "Workflow should support manual triggering"
 
@@ -291,7 +398,12 @@ class TestWorkflowDocumentation:
     """Test workflow documentation and metadata"""
     
     def test_has_clear_purpose(self, workflow_content):
-        """Test that workflow purpose is clear from name/description"""
+        """
+        Assert the workflow's purpose is evident from its name or description.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow file; expected to contain a 'name' field.
+        """
         name = workflow_content.get('name', '')
         assert 'lint' in name.lower() or 'golangci' in name.lower() or len(name) > 0
     
