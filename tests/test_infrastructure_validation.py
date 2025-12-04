@@ -17,12 +17,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def tests_dir(repo_root):
-    """Get the tests directory."""
-    return repo_root / 'tests'
-
-
-@pytest.fixture(scope='module')
 def pytest_ini_path(repo_root):
     """Get pytest.ini file path."""
     return repo_root / 'pytest.ini'
