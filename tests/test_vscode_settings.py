@@ -14,12 +14,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def repo_root():
-    """Get the repository root directory."""
-    return Path(__file__).parent.parent
-
-
-@pytest.fixture(scope='module')
 def vscode_settings_path(repo_root):
     """Get path to VSCode settings file"""
     return repo_root / '.vscode' / 'settings.json'

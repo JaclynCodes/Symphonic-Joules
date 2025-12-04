@@ -16,12 +16,6 @@ import re
 
 
 @pytest.fixture(scope='module')
-def repo_root():
-    """Get the repository root directory."""
-    return Path(__file__).parent.parent
-
-
-@pytest.fixture(scope='module')
 def test_blank_workflow_path(repo_root):
     """Get path to test_blank_workflow.py."""
     return repo_root / 'tests' / 'workflows' / 'test_blank_workflow.py'
