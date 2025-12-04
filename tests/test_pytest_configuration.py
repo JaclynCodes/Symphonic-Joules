@@ -31,10 +31,10 @@ def pytest_ini_path(repo_root):
     Return the path to the repository's pytest.ini file.
     
     Parameters:
-    	repo_root (pathlib.Path): Repository root directory.
+        repo_root (pathlib.Path): Repository root directory.
     
     Returns:
-    	path (pathlib.Path): Path to `pytest.ini` at the repository root.
+        path (pathlib.Path): Path to `pytest.ini` at the repository root.
     """
     return repo_root / 'pytest.ini'
 
