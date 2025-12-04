@@ -222,8 +222,7 @@ class TestStepsConfiguration:
     
     def test_named_steps_have_valid_actions(self, steps):
         """
-        Test that every named step in the workflow has either a 'run' command or a 'uses' action.
-        This ensures that all steps with a 'name' key are valid GitHub Actions steps.
+        Assert that every named workflow step defines either a 'run' command or a 'uses' action.
         """
         for step in steps:
             if 'name' in step:

@@ -17,13 +17,26 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def workflow_path():
-    """Get path to license check workflow file"""
+    """
+    Locate the license-check GitHub Actions workflow file.
+    
+    Returns:
+        path (pathlib.Path): Path to `.github/workflows/license-check.yml`
+    """
     return Path('.github/workflows/license-check.yml')
 
 
 @pytest.fixture(scope='module')
 def workflow_content(workflow_path):
-    """Load and parse license check workflow content"""
+    """
+    Load and parse the license check workflow YAML.
+    
+    Parameters:
+        workflow_path (str | Path): Path to the workflow YAML file.
+    
+    Returns:
+        dict | list | None: Parsed YAML content — typically a mapping representing the workflow; returns `None` if the file is empty.
+    """
     with open(workflow_path, 'r') as f:
         return yaml.safe_load(f)
 
@@ -36,13 +49,21 @@ class TestWorkflowStructure:
         assert workflow_path.exists(), "License check workflow file should exist"
     
     def test_workflow_has_name(self, workflow_content):
-        """Test that workflow has a descriptive name"""
+        """
+        Assert the workflow defines a name and that the name includes the word "license".
+        
+        This test fails if the top-level `name` key is missing or if its value does not contain "license" (case-insensitive).
+        """
         assert 'name' in workflow_content, "Workflow should have a name"
         assert 'license' in workflow_content['name'].lower(), \
             "Workflow name should mention license"
     
     def test_workflow_has_triggers(self, workflow_content):
-        """Test that workflow has appropriate triggers"""
+        """
+        Ensure the workflow file defines triggers.
+        
+        Asserts that the parsed workflow contains a top-level 'on' key (or the improbable legacy True key) to indicate configured triggers.
+        """
         assert 'on' in workflow_content or True in workflow_content, "Workflow should have triggers"
 
 
@@ -51,7 +72,17 @@ class TestTriggerConfiguration:
     
     @pytest.fixture
     def triggers(self, workflow_content):
-        """Get trigger configuration from cached workflow content"""
+        """
+        Retrieve the workflow's trigger configuration from parsed workflow content.
+        
+        This returns the value under the `on` key, falling back to the legacy boolean `True` key when present.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow file.
+        
+        Returns:
+            dict or None: The trigger configuration mapping if found, `None` otherwise.
+        """
         return workflow_content.get('on') or workflow_content.get(True)
     
     def test_has_push_trigger(self, triggers):
@@ -68,17 +99,35 @@ class TestJobConfiguration:
     
     @pytest.fixture
     def license_job(self, workflow_content):
-        """Get license check job configuration"""
+        """
+        Retrieve the license-check job configuration from parsed workflow content.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow (mapping of top-level keys).
+        
+        Returns:
+            job (dict or None): The job configuration for a license-check job if present, `None` otherwise.
+        """
         jobs = workflow_content.get('jobs', {})
         # Common job names for license checking
         return jobs.get('license-check') or jobs.get('license') or jobs.get('check-licenses')
     
     def test_has_license_job(self, license_job):
-        """Test that workflow has license check job"""
+        """
+        Check that the workflow defines a job responsible for license checking.
+        
+        Parameters:
+            license_job (dict | None): The job object for license checking, or None if no matching job was found.
+        """
         assert license_job is not None, "Should have license check job"
     
     def test_license_job_runs_on_ubuntu(self, license_job):
-        """Test that license job runs on Ubuntu"""
+        """
+        Verify the license-check job targets an Ubuntu runner.
+        
+        Parameters:
+            license_job (dict): The job mapping extracted from the workflow YAML for the license-check job.
+        """
         assert 'runs-on' in license_job, "Job should specify runner"
         assert 'ubuntu' in license_job['runs-on'], "Should run on Ubuntu"
 
@@ -88,7 +137,15 @@ class TestStepsConfiguration:
     
     @pytest.fixture
     def license_steps(self, workflow_content):
-        """Get steps from license check job"""
+        """
+        Retrieve the steps list from the license check job in a workflow.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML workflow content (top-level mapping).
+        
+        Returns:
+            list: List of step mappings from the first matching job named `license-check`, `license`, or `check-licenses`; empty list if no such job is present.
+        """
         jobs = workflow_content.get('jobs', {})
         license_job = jobs.get('license-check') or jobs.get('license') or jobs.get('check-licenses')
         if license_job:
@@ -130,7 +187,12 @@ class TestSecurityConfiguration:
     """Test license check security configuration"""
     
     def test_has_appropriate_permissions(self, workflow_content):
-        """Test that workflow has appropriate permissions"""
+        """
+        Assert the workflow declares a 'contents' permission if a permissions block is present.
+        
+        Parameters:
+            workflow_content (dict): Parsed workflow YAML content as a mapping.
+        """
         # License checking typically needs read permissions
         permissions = workflow_content.get('permissions', {})
         if permissions:
@@ -146,7 +208,14 @@ class TestEdgeCases:
         assert workflow_content is not None, "Workflow should be valid"
     
     def test_workflow_yaml_is_valid(self, workflow_path):
-        """Test that workflow YAML is valid"""
+        """
+        Verify the workflow YAML parses successfully.
+        
+        Attempts to load the file using YAML parsing; the test fails if parsing raises an exception.
+        
+        Parameters:
+            workflow_path (Path): Path to the workflow YAML file to validate.
+        """
         with open(workflow_path, 'r') as f:
             content = f.read()
             # Should not raise exception
@@ -167,7 +236,11 @@ class TestWorkflowSecurity:
                     assert '@' in uses, f"Action {uses} should use pinned version"
     
     def test_no_hardcoded_secrets(self, workflow_content):
-        """Test that workflow doesn't contain hardcoded secrets"""
+        """
+        Assert the workflow content does not contain hardcoded sensitive terms.
+        
+        Scans the workflow YAML converted to a string for the substrings `password`, `token`, `key`, and `secret`, and fails the test if any are present. The check is bypassed when the workflow content also contains the term `license`, reflecting an allowed context in this test.
+        """
         yaml_str = str(workflow_content)
         sensitive_patterns = ['password', 'token', 'key', 'secret']
         for pattern in sensitive_patterns:
@@ -189,7 +262,11 @@ class TestWorkflowPerformance:
                 assert 'ubuntu' in runs_on, "Should use Ubuntu runner for performance"
     
     def test_has_reasonable_timeout(self, workflow_content):
-        """Test that jobs have reasonable timeout"""
+        """
+        Ensure each job's timeout, if specified, is at most 60 minutes.
+        
+        If a job defines `timeout-minutes`, this test asserts the value is less than or equal to 60.
+        """
         jobs = workflow_content.get('jobs', {})
         for job in jobs.values():
             # Either has timeout-minutes or uses default (which is reasonable)
@@ -280,7 +357,11 @@ class TestWorkflowIntegration:
     """Test workflow integration capabilities"""
     
     def test_integrates_with_compliance_systems(self, workflow_content):
-        """Test that workflow integrates with compliance systems"""
+        """
+        Ensure the workflow exposes a top-level name indicating it can integrate with compliance systems.
+        
+        Asserts that the parsed workflow defines a top-level `name`, which is used as a basic signal for exporting or identifying results in external compliance tooling.
+        """
         # Should be able to export results for compliance
         assert 'name' in workflow_content, "Workflow should integrate with compliance systems"
     
@@ -290,7 +371,9 @@ class TestWorkflowIntegration:
         assert 'name' in workflow_content, "Workflow should support license allowlists"
     
     def test_handles_license_conflicts(self, workflow_content):
-        """Test that workflow can detect license conflicts"""
+        """
+        Check that the workflow defines a top-level `name` key, used as a basic signal of license conflict handling capability.
+        """
         # Should identify incompatible license combinations
         assert 'name' in workflow_content, "Workflow should detect license conflicts"
     

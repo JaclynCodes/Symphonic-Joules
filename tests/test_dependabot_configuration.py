@@ -18,26 +18,55 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def dependabot_path():
-    """Get path to dependabot configuration file"""
+    """
+    Return the Path to the repository's Dependabot configuration file.
+    
+    Returns:
+        Path: Path object pointing to '.github/dependabot.yml'.
+    """
     return Path('.github/dependabot.yml')
 
 
 @pytest.fixture(scope='module')
 def dependabot_raw(dependabot_path):
-    """Load raw dependabot configuration content"""
+    """
+    Read and return the raw contents of the dependabot configuration file.
+    
+    Parameters:
+        dependabot_path (Path | str): Path to the .github/dependabot.yml file.
+    
+    Returns:
+        str: The file contents as a raw string.
+    """
     with open(dependabot_path, 'r') as f:
         return f.read()
 
 
 @pytest.fixture(scope='module')
 def dependabot_config(dependabot_raw):
-    """Parse dependabot configuration"""
+    """
+    Parse Dependabot YAML text into a Python object.
+    
+    Parameters:
+        dependabot_raw (str): Raw YAML content of the .github/dependabot.yml file.
+    
+    Returns:
+        Parsed configuration as native Python objects (typically dictionaries and lists).
+    """
     return yaml.safe_load(dependabot_raw)
 
 
 @pytest.fixture(scope='module')
 def updates_list(dependabot_config):
-    """Get list of update configurations"""
+    """
+    Extract the list of update entries from a parsed Dependabot configuration.
+    
+    Parameters:
+        dependabot_config (dict): Parsed YAML mapping representing the Dependabot configuration.
+    
+    Returns:
+        list: The value of the top-level `updates` list from the configuration, or an empty list if absent.
+    """
     return dependabot_config.get('updates', [])
 
 
@@ -50,7 +79,12 @@ class TestDependabotFileStructure:
             "dependabot.yml should exist at .github/dependabot.yml"
     
     def test_dependabot_file_is_readable(self, dependabot_path):
-        """Test that dependabot.yml is readable"""
+        """
+        Verify that the Dependabot configuration file at the given path can be opened and contains content.
+        
+        Parameters:
+            dependabot_path (pathlib.Path): Path to the .github/dependabot.yml file to check.
+        """
         with open(dependabot_path, 'r') as f:
             content = f.read()
             assert len(content) > 0, "dependabot.yml should not be empty"
@@ -68,7 +102,11 @@ class TestDependabotFileStructure:
             "dependabot.yml should use spaces for indentation, not tabs"
     
     def test_dependabot_has_comment_header(self, dependabot_raw):
-        """Test that dependabot.yml has a descriptive comment header"""
+        """
+        Check that the first five lines include a descriptive comment referencing Dependabot or dependencies.
+        
+        Ensures the top of .github/dependabot.yml contains a short human-readable header mentioning "Dependabot" or the word "dependency".
+        """
         lines = dependabot_raw.split('\n')
         assert any('Dependabot' in line or 'dependency' in line.lower() 
                    for line in lines[:5]), \
@@ -165,7 +203,9 @@ class TestDirectoryConfiguration:
             "pip should monitor /tests directory for requirements.txt"
     
     def test_github_actions_directory_is_root(self, updates_list):
-        """Test that github-actions monitors root directory"""
+        """
+        Verifies the dependabot update for the `github-actions` ecosystem monitors the repository root directory.
+        """
         actions_config = next((u for u in updates_list 
                               if u.get('package-ecosystem') == 'github-actions'), None)
         assert actions_config is not None, "Should have github-actions configuration"
@@ -181,7 +221,11 @@ class TestDirectoryConfiguration:
             "docker should monitor root directory"
     
     def test_all_directories_start_with_slash(self, updates_list):
-        """Test that all directories use absolute paths"""
+        """
+        Assert every update provides a directory path that begins with '/'.
+        
+        Checks that each update has a 'directory' field and that its value starts with the root slash character.
+        """
         for update in updates_list:
             directory = update.get('directory')
             assert directory is not None, "All updates should specify directory"
@@ -200,7 +244,9 @@ class TestScheduleConfiguration:
                 f"{ecosystem} should have schedule configuration"
     
     def test_all_schedules_are_weekly(self, updates_list):
-        """Test that all schedules use weekly interval"""
+        """
+        Ensure every update's schedule interval is 'weekly'.
+        """
         for update in updates_list:
             schedule = update.get('schedule', {})
             interval = schedule.get('interval')
@@ -224,7 +270,11 @@ class TestScheduleConfiguration:
                 f"All schedules should run at '09:00', got '{time}'"
     
     def test_schedule_time_format(self, updates_list):
-        """Test that time uses HH:MM format"""
+        """
+        Validate that each update's schedule time is formatted as HH:MM.
+        
+        Asserts that every update in `updates_list` contains a `schedule.time` value matching the two-digit hour and two-digit minute pattern (e.g. "09:00"); raises an assertion error identifying the offending value if any do not match.
+        """
         import re
         time_pattern = re.compile(r'^\d{2}:\d{2}$')
         for update in updates_list:
@@ -266,7 +316,12 @@ class TestPullRequestLimits:
             "docker should allow 5 concurrent PRs"
     
     def test_all_pr_limits_are_positive_integers(self, updates_list):
-        """Test that all PR limits are positive integers"""
+        """
+        Ensure every update entry's `open-pull-requests-limit` is a positive integer.
+        
+        Parameters:
+            updates_list (list[dict]): The list of update configuration dictionaries extracted from dependabot.yml.
+        """
         for update in updates_list:
             limit = update.get('open-pull-requests-limit')
             assert isinstance(limit, int), \
@@ -325,7 +380,12 @@ class TestCommitMessageConfiguration:
     """Test commit message configurations"""
     
     def test_all_have_commit_message_config(self, updates_list):
-        """Test that all ecosystems configure commit messages"""
+        """
+        Ensure every update entry includes a commit-message configuration.
+        
+        Parameters:
+            updates_list (list): List of update dictionaries parsed from dependabot.yml; each dictionary represents an ecosystem update and is expected to contain a 'commit-message' key.
+        """
         for update in updates_list:
             ecosystem = update.get('package-ecosystem')
             assert 'commit-message' in update, \
@@ -348,7 +408,9 @@ class TestCommitMessageConfiguration:
             "github-actions should use 'ci' commit message prefix"
     
     def test_docker_uses_docker_prefix(self, updates_list):
-        """Test that docker uses 'docker' prefix"""
+        """
+        Assert that the Docker update's commit-message prefix is 'docker'.
+        """
         docker_config = next((u for u in updates_list 
                              if u.get('package-ecosystem') == 'docker'), None)
         commit_msg = docker_config.get('commit-message', {})
@@ -397,7 +459,11 @@ class TestConfigurationConsistency:
                 "All ecosystems should have identical schedule configuration"
     
     def test_reviewer_consistency(self, updates_list):
-        """Test that all configs have same reviewers"""
+        """
+        Ensure every update's reviewers set is identical across all updates.
+        
+        Compares reviewer lists as sets so ordering differences do not affect the comparison.
+        """
         reviewers_sets = [set(u.get('reviewers', [])) for u in updates_list]
         first_reviewers = reviewers_sets[0]
         for reviewers in reviewers_sets[1:]:
@@ -417,7 +483,17 @@ class TestSecurityBestPractices:
     """Test security and best practice configurations"""
     
     def test_no_hardcoded_tokens(self, dependabot_raw):
-        """Test that no API tokens are hardcoded"""
+        """
+        Ensure the Dependabot configuration does not contain likely hardcoded secrets.
+        
+        Scans the provided raw dependabot.yml content (case-insensitive) for sensitive keywords such as "token", "password", "secret", and "key" on non-comment lines. Fails the test if a candidate sensitive keyword is found on a non-comment line that is not clearly part of an allowed context (for example, a `package-ecosystem` entry).
+        
+        Parameters:
+            dependabot_raw (str): Raw text content of .github/dependabot.yml to be scanned.
+        
+        Raises:
+            AssertionError: If a potential sensitive value is detected in the configuration.
+        """
         sensitive_patterns = ['token', 'password', 'secret', 'key']
         lines = dependabot_raw.lower().split('\n')
         for line in lines:
@@ -429,7 +505,11 @@ class TestSecurityBestPractices:
                             f"Potential sensitive data in config: {line[:50]}"
     
     def test_reasonable_pr_limits(self, updates_list):
-        """Test that PR limits are reasonable (not too high)"""
+        """
+        Ensure each update's 'open-pull-requests-limit' is at most 20 to avoid spamming maintainers.
+        
+        Checks each update in the provided list and fails if any 'open-pull-requests-limit' exceeds 20. Missing limits are treated as 0.
+        """
         for update in updates_list:
             limit = update.get('open-pull-requests-limit', 0)
             assert limit <= 20, \
@@ -455,7 +535,11 @@ class TestDocumentationQuality:
             "File should start with descriptive comment"
     
     def test_ecosystems_have_comments(self, dependabot_raw):
-        """Test that each ecosystem section has explanatory comments"""
+        """
+        Ensure there are at least as many ecosystem-specific explanatory comments as ecosystem entries.
+        
+        Counts comment lines that mention any of: "version", "enable", "pip", "actions", or "docker" (case-insensitive) and asserts that this count is greater than or equal to the number of `package-ecosystem` entries in the raw dependabot YAML.
+        """
         lines = dependabot_raw.split('\n')
         ecosystem_count = dependabot_raw.count('package-ecosystem:')
         comment_count = sum(1 for line in lines 
@@ -477,7 +561,11 @@ class TestEdgeCases:
             "Each ecosystem should only be configured once"
     
     def test_no_empty_reviewer_lists(self, updates_list):
-        """Test that reviewer lists are not empty"""
+        """
+        Assert every update contains a non-empty 'reviewers' list.
+        
+        Raises an assertion failure if any update's 'reviewers' field is missing or has length zero.
+        """
         for update in updates_list:
             reviewers = update.get('reviewers', [])
             assert len(reviewers) > 0, \
@@ -491,7 +579,11 @@ class TestEdgeCases:
                 "Assignee list should not be empty"
     
     def test_directory_paths_valid(self, updates_list):
-        """Test that directory paths are valid"""
+        """
+        Validate directory paths used in Dependabot updates.
+        
+        Ensures each update's `directory` does not end with a trailing slash unless it is the root path `'/'`, and does not contain parent-directory references (`'..'`).
+        """
         for update in updates_list:
             directory = update.get('directory', '')
             assert not directory.endswith('/') or directory == '/', \

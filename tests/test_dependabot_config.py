@@ -18,20 +18,38 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def dependabot_path():
-    """Get path to dependabot.yml file"""
+    """
+    Return the repository Path for the .github/dependabot.yml file.
+    
+    Returns:
+        path (Path): Path object pointing to the '.github/dependabot.yml' file.
+    """
     return Path('.github/dependabot.yml')
 
 
 @pytest.fixture(scope='module')
 def dependabot_content(dependabot_path):
-    """Load and parse dependabot.yml content"""
+    """
+    Load and parse the repository's Dependabot YAML configuration.
+    
+    Parameters:
+        dependabot_path (Path | str): File path to the .github/dependabot.yml file.
+    
+    Returns:
+        dict | list | None: Parsed YAML structure from the file (typically a mapping), or `None` if the file is empty.
+    """
     with open(dependabot_path, 'r') as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture(scope='module')
 def dependabot_raw(dependabot_path):
-    """Get raw content of dependabot.yml"""
+    """
+    Read and return the raw text contents of the dependabot.yml file.
+    
+    Returns:
+        str: The file's raw text content.
+    """
     with open(dependabot_path, 'r') as f:
         return f.read()
 
@@ -48,12 +66,21 @@ class TestDependabotStructure:
         assert dependabot_content is not None, "Should parse as valid YAML"
     
     def test_has_version_field(self, dependabot_content):
-        """Test that version field is present"""
+        """
+        Verify the Dependabot configuration includes a top-level version of 2.
+        
+        Asserts that the parsed Dependabot YAML contains a 'version' key and that its value equals 2.
+        """
         assert 'version' in dependabot_content, "Must have version field"
         assert dependabot_content['version'] == 2, "Should use Dependabot v2"
     
     def test_has_updates_section(self, dependabot_content):
-        """Test that updates section exists"""
+        """
+        Verify the top-level 'updates' section exists and is a list.
+        
+        Parameters:
+            dependabot_content (dict): Parsed YAML content of .github/dependabot.yml.
+        """
         assert 'updates' in dependabot_content, "Must have updates section"
         assert isinstance(dependabot_content['updates'], list), "Updates should be a list"
 
@@ -63,7 +90,15 @@ class TestPackageEcosystems:
     
     @pytest.fixture
     def ecosystems(self, dependabot_content):
-        """Get list of configured ecosystems"""
+        """
+        Extract the list of package ecosystems configured in the Dependabot content.
+        
+        Parameters:
+            dependabot_content (dict): Parsed contents of `.github/dependabot.yml` (e.g. result of `yaml.safe_load`).
+        
+        Returns:
+            list[str]: Package-ecosystem values from each update entry, in the same order they appear.
+        """
         return [update['package-ecosystem'] for update in dependabot_content.get('updates', [])]
     
     def test_has_pip_ecosystem(self, ecosystems):
@@ -71,7 +106,12 @@ class TestPackageEcosystems:
         assert 'pip' in ecosystems, "Should monitor Python pip dependencies"
     
     def test_has_github_actions_ecosystem(self, ecosystems):
-        """Test that github-actions ecosystem is configured"""
+        """
+        Verify repository is configured to monitor GitHub Actions dependencies.
+        
+        Parameters:
+            ecosystems (list): List of configured `package-ecosystem` values from Dependabot updates.
+        """
         assert 'github-actions' in ecosystems, "Should monitor GitHub Actions versions"
     
     def test_has_docker_ecosystem(self, ecosystems):
@@ -89,14 +129,27 @@ class TestPipConfiguration:
     
     @pytest.fixture
     def pip_config(self, dependabot_content):
-        """Get pip update configuration"""
+        """
+        Locate the Dependabot update entry for the pip ecosystem.
+        
+        Parameters:
+            dependabot_content (dict): Parsed contents of .github/dependabot.yml.
+        
+        Returns:
+            dict or None: The update mapping for 'package-ecosystem' == 'pip' if present, otherwise `None`.
+        """
         for update in dependabot_content.get('updates', []):
             if update.get('package-ecosystem') == 'pip':
                 return update
         return None
     
     def test_pip_config_exists(self, pip_config):
-        """Test that pip configuration exists"""
+        """
+        Check that a Dependabot update entry for the `pip` ecosystem exists.
+        
+        Raises:
+            AssertionError: If no pip configuration is found in the parsed dependabot configuration.
+        """
         assert pip_config is not None, "Pip configuration should exist"
     
     def test_pip_directory_is_tests(self, pip_config):
@@ -111,12 +164,19 @@ class TestPipConfiguration:
         assert 'interval' in schedule, "Schedule should have interval"
     
     def test_pip_schedule_is_weekly(self, pip_config):
-        """Test that pip updates run weekly"""
+        """
+        Assert that the pip update configuration uses a weekly schedule.
+        """
         schedule = pip_config['schedule']
         assert schedule['interval'] == 'weekly', "Should check weekly for updates"
     
     def test_pip_has_pr_limit(self, pip_config):
-        """Test that pip has PR limit configured"""
+        """
+        Verify the pip update configuration specifies a positive `open-pull-requests-limit`.
+        
+        Parameters:
+            pip_config (dict): The Dependabot update entry for the `pip` ecosystem; must contain the `open-pull-requests-limit` key whose value is an integer greater than 0.
+        """
         assert 'open-pull-requests-limit' in pip_config, "Should limit open PRs"
         limit = pip_config['open-pull-requests-limit']
         assert isinstance(limit, int) and limit > 0, "PR limit should be positive integer"
@@ -145,7 +205,9 @@ class TestScheduleConfiguration:
                     f"{update['package-ecosystem']} weekly schedule should specify day"
     
     def test_schedules_have_time_specified(self, dependabot_content):
-        """Test that schedules specify a time"""
+        """
+        Assert every update entry's schedule includes a 'time' field.
+        """
         for update in dependabot_content.get('updates', []):
             schedule = update.get('schedule', {})
             assert 'time' in schedule, \
@@ -173,14 +235,24 @@ class TestCommitMessageConfiguration:
     """Test commit message configurations"""
     
     def test_all_updates_have_commit_message_config(self, dependabot_content):
-        """Test that all updates have commit message configuration"""
+        """
+        Ensure every update entry contains a `commit-message` configuration.
+        
+        Checks each entry in the `updates` list and asserts the presence of the `commit-message`
+        key; the assertion message includes the `package-ecosystem` value when available.
+        """
         for update in dependabot_content.get('updates', []):
             ecosystem = update.get('package-ecosystem')
             assert 'commit-message' in update, \
                 f"{ecosystem} should have commit-message configuration"
     
     def test_commit_messages_have_prefix(self, dependabot_content):
-        """Test that all commit message configs have a prefix"""
+        """
+        Assert every update's `commit-message` configuration includes a `prefix`.
+        
+        Checks each update entry in the Dependabot configuration and fails the test
+        if any `commit-message` mapping does not contain the `prefix` key.
+        """
         for update in dependabot_content.get('updates', []):
             msg_config = update.get('commit-message', {})
             assert 'prefix' in msg_config, \
@@ -195,7 +267,9 @@ class TestYAMLFormatting:
         assert '\t' not in dependabot_raw, "YAML should use spaces, not tabs"
     
     def test_consistent_indentation(self, dependabot_raw):
-        """Test that indentation is consistent"""
+        """
+        Assert that every non-empty, non-comment line in the raw dependabot YAML uses indentation that is a multiple of 2 spaces.
+        """
         lines = dependabot_raw.split('\n')
         
         for i, line in enumerate(lines, 1):

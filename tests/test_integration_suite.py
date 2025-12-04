@@ -18,13 +18,26 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def repo_root():
-    """Get the repository root directory."""
+    """
+    Return the repository root directory.
+    
+    Returns:
+        Path: Path to the repository root directory.
+    """
     return Path(__file__).parent.parent
 
 
 @pytest.fixture(scope='module')
 def tests_dir(repo_root):
-    """Get the tests directory."""
+    """
+    Get the repository's tests directory.
+    
+    Parameters:
+        repo_root (Path): Path to the repository root.
+    
+    Returns:
+        Path: Path to the `tests` directory under the repository root.
+    """
     return repo_root / 'tests'
 
 
@@ -32,7 +45,11 @@ class TestTestExecution:
     """Test that the test suite can execute successfully"""
     
     def test_pytest_collection_works(self, tests_dir):
-        """Test that pytest can collect all tests without errors"""
+        """
+        Run pytest in collection-only mode against the tests/workflows directory and assert that test collection succeeds.
+        
+        On failure, the assertion includes pytest stderr to aid diagnosis. Success is defined as pytest exit code 0 or 5 (no tests collected).
+        """
         result = subprocess.run(
             [sys.executable, '-m', 'pytest', str(tests_dir / 'workflows'), 
              '--collect-only', '-q'],
@@ -46,7 +63,11 @@ class TestTestExecution:
             f"Test collection failed:\n{result.stderr}"
     
     def test_workflow_tests_are_discoverable(self, tests_dir):
-        """Test that workflow tests are discoverable by pytest"""
+        """
+        Verify pytest can discover tests under the workflows test directory.
+        
+        Asserts that pytest's collection output for the tests/workflows directory indicates tests were found; on failure the assertion message includes pytest's stdout.
+        """
         result = subprocess.run(
             [sys.executable, '-m', 'pytest', str(tests_dir / 'workflows'),
              '--collect-only', '-q'],
@@ -80,7 +101,12 @@ class TestFixtureInitialization:
     """Test that fixtures initialize correctly"""
     
     def test_workflow_path_fixture_resolves(self, repo_root):
-        """Test that workflow_path fixture can resolve workflow files"""
+        """
+        Verify that the `workflow_path` fixture resolves to an existing workflow file.
+        
+        Asserts that the repository's `.github/workflows/blank.yml` file exists when the
+        fixture from `test_blank_workflow` is imported and exercised.
+        """
         # Import the test module to verify fixtures work
         import sys
         sys.path.insert(0, str(repo_root / 'tests' / 'workflows'))
@@ -124,7 +150,11 @@ class TestTestIsolation:
                 "Test file should use module-scoped fixtures for performance"
     
     def test_tests_dont_modify_workflow_files(self, repo_root):
-        """Test that tests are read-only and don't modify workflow files"""
+        """
+        Verify workflow YAML files under .github/workflows are not modified by the test suite.
+        
+        Checks that each `.yml` file's modification time remains the same after running the workflow tests; fails with a message naming any file that changed.
+        """
         workflows_dir = repo_root / '.github' / 'workflows'
         
         # Get initial state
@@ -179,7 +209,11 @@ class TestTestCoverage:
     """Test that test coverage is comprehensive"""
     
     def test_all_workflow_aspects_tested(self, repo_root):
-        """Test that tests cover all critical workflow aspects"""
+        """
+        Ensure workflow tests cover a majority of predefined critical aspects.
+        
+        For each test file under tests/workflows matching test_*.py, assert the file references at least five of the seven critical aspects: structure, metadata, trigger, job, step, security, and permission.
+        """
         test_files = list((repo_root / 'tests' / 'workflows').glob('test_*.py'))
         
         critical_aspects = [
@@ -228,7 +262,12 @@ class TestDocumentation:
                         f"Class {cls.name} in {test_file.name} should have docstring"
     
     def test_all_test_methods_documented(self, tests_dir):
-        """Test that all test methods have docstrings"""
+        """
+        Verify that every method whose name starts with `test_` inside classes named `Test*` under `tests/workflows` has a non-empty docstring.
+        
+        Raises:
+            AssertionError: if any test method is missing a docstring; the message includes the method name, class name and file.
+        """
         import ast
         
         test_files = list((tests_dir / 'workflows').glob('test_*.py'))

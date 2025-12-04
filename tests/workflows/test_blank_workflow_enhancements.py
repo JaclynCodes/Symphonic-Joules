@@ -16,26 +16,55 @@ from pathlib import Path
 
 @pytest.fixture(scope='module')
 def workflow_path():
-    """Get path to blank workflow file"""
+    """
+    Return the Path to the blank GitHub Actions workflow file.
+    
+    Returns:
+        Path: Repository-relative path to `.github/workflows/blank.yml`.
+    """
     return Path('.github/workflows/blank.yml')
 
 
 @pytest.fixture(scope='module')
 def workflow_content(workflow_path):
-    """Load and parse workflow content"""
+    """
+    Load and parse a GitHub Actions workflow YAML file.
+    
+    Parameters:
+        workflow_path (str | pathlib.Path): Path to the workflow YAML file.
+    
+    Returns:
+        Parsed workflow content as a Python object (typically a dict).
+    """
     with open(workflow_path, 'r') as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture(scope='module')
 def build_job(workflow_content):
-    """Get build job configuration"""
+    """
+    Retrieve the 'build' job configuration from parsed GitHub Actions workflow content.
+    
+    Parameters:
+        workflow_content (dict): Parsed YAML content of a workflow file (as returned by yaml.safe_load).
+    
+    Returns:
+        dict: The mapping for the `jobs.build` entry if present, otherwise an empty dictionary.
+    """
     return workflow_content.get('jobs', {}).get('build', {})
 
 
 @pytest.fixture(scope='module')
 def steps(build_job):
-    """Get list of steps from build job"""
+    """
+    Extracts the list of steps from a workflow build job.
+    
+    Parameters:
+        build_job (dict): Parsed mapping for a GitHub Actions job (from workflow YAML).
+    
+    Returns:
+        list: List of step mappings defined on the job; returns an empty list if no steps are present.
+    """
     return build_job.get('steps', [])
 
 
@@ -160,7 +189,15 @@ class TestDependencyInstallation:
                     f"Should install {tool} in dependency installation step"
     
     def test_uses_python_module_syntax(self, steps):
-        """Test that installation uses python -m pip syntax"""
+        """
+        Ensure dependency installation steps invoke pip with Python module syntax when appropriate.
+        
+        Parameters:
+        	steps (list[dict]): Parsed list of job steps from the workflow; each step is a mapping with keys like `name` and `run`.
+        
+        Notes:
+        	For any step whose name indicates it installs dependencies, this test requires that `pip install` invocations use `python -m pip` or `python3 -m pip`, while allowing a bare `pip install` only when it appears as the command start.
+        """
         install_steps = [s for s in steps 
                         if 'install' in str(s.get('name', '')).lower() and
                         'dependencies' in str(s.get('name', '')).lower()]
@@ -177,7 +214,15 @@ class TestFlake8Linting:
     """Test flake8 linting step configuration"""
     
     def test_has_flake8_step(self, steps):
-        """Test that workflow includes flake8 linting step"""
+        """
+        Assert the workflow defines a flake8 linting step.
+        
+        Parameters:
+            steps (list): Sequence of step mappings from the workflow (each step is typically a dict). 
+        
+        Raises:
+            AssertionError: If no step has a name containing "flake8" (case-insensitive).
+        """
         flake8_steps = [s for s in steps 
                        if 'flake8' in str(s.get('name', '')).lower()]
         assert len(flake8_steps) > 0, \
@@ -224,7 +269,15 @@ class TestFlake8Linting:
                 "flake8 should use --count to show number of issues"
     
     def test_flake8_has_warning_check(self, steps):
-        """Test that flake8 includes warning-level check with exit-zero"""
+        """
+        Assert that at least one flake8 step allows warnings by including `--exit-zero`.
+        
+        Parameters:
+            steps (list[dict]): Parsed list of workflow steps (each step as a mapping). The test checks `run` fields of steps whose `name` contains "flake8".
+        
+        Raises:
+            AssertionError: If no flake8 run command contains `--exit-zero`.
+        """
         flake8_steps = [s for s in steps 
                        if 'flake8' in str(s.get('name', '')).lower()]
         for step in flake8_steps:
@@ -234,7 +287,12 @@ class TestFlake8Linting:
                 "Should have flake8 check with --exit-zero for warnings"
     
     def test_flake8_max_complexity_set(self, steps):
-        """Test that flake8 configures max complexity"""
+        """
+        Ensure flake8 run steps set `--max-complexity` to 10 or 15 when present.
+        
+        For each step whose name references flake8, if the step's run command includes `--max-complexity`,
+        the value must be either 10 or 15.
+        """
         flake8_steps = [s for s in steps 
                        if 'flake8' in str(s.get('name', '')).lower()]
         for step in flake8_steps:
@@ -278,7 +336,11 @@ class TestPytestExecution:
             "Workflow should include pytest execution step"
     
     def test_pytest_uses_module_syntax(self, steps):
-        """Test that pytest is run using python -m pytest"""
+        """
+        Ensure pytest is invoked via the Python module interface.
+        
+        Checks each workflow step that runs pytest uses either `python -m pytest` or `python3 -m pytest`.
+        """
         pytest_steps = [s for s in steps 
                        if 'pytest' in str(s.get('run', ''))]
         for step in pytest_steps:
@@ -287,7 +349,11 @@ class TestPytestExecution:
                 "Should use 'python -m pytest' for better compatibility"
     
     def test_pytest_targets_tests_directory(self, steps):
-        """Test that pytest runs tests from tests/ directory"""
+        """
+        Assert that pytest run commands target the tests/ directory.
+        
+        Checks each workflow step whose run command invokes pytest includes a reference to the tests/ directory, either as 'tests/' or 'tests '.
+        """
         pytest_steps = [s for s in steps 
                        if 'pytest' in str(s.get('run', ''))]
         for step in pytest_steps:
@@ -305,7 +371,11 @@ class TestPytestExecution:
                 "pytest should run in verbose mode"
     
     def test_pytest_uses_short_traceback(self, steps):
-        """Test that pytest uses short traceback format"""
+        """
+        Assert that pytest run commands request short traceback formatting.
+        
+        Searches the workflow steps for commands invoking pytest and verifies each run command includes either `--tb=short` or `-tb=short` to produce short tracebacks.
+        """
         pytest_steps = [s for s in steps 
                        if 'pytest' in str(s.get('run', ''))]
         for step in pytest_steps:
@@ -340,7 +410,12 @@ class TestStepOrdering:
             "Checkout must happen before Python setup"
     
     def test_python_setup_before_dependency_install(self, steps):
-        """Test that Python setup happens before dependency installation"""
+        """
+        Ensure the Python setup step occurs before the dependency installation step.
+        
+        Parameters:
+            steps (list[dict]): Ordered list of step mappings from the workflow's build job; each step may include 'uses' and/or 'name'.
+        """
         python_idx = next((i for i, s in enumerate(steps) 
                           if 'actions/setup-python' in str(s.get('uses', ''))), -1)
         install_idx = next((i for i, s in enumerate(steps) 
@@ -353,7 +428,15 @@ class TestStepOrdering:
             "Python setup must happen before dependency installation"
     
     def test_dependency_install_before_linting(self, steps):
-        """Test that dependencies are installed before linting"""
+        """
+        Assert that the dependency installation step appears before the flake8 linting step in the provided workflow steps.
+        
+        Parameters:
+            steps (list[dict]): Ordered list of step dictionaries from the workflow job (each step typically contains keys like `name`, `uses`, or `run`).
+        
+        Raises:
+            AssertionError: If a dependency installation step or a flake8 step is missing, or if the dependency installation step does not appear before the flake8 step.
+        """
         install_idx = next((i for i, s in enumerate(steps) 
                            if 'install' in str(s.get('name', '')).lower() and
                            'dependencies' in str(s.get('name', '')).lower()), -1)
@@ -366,7 +449,14 @@ class TestStepOrdering:
             "Dependency installation must happen before linting"
     
     def test_linting_before_tests(self, steps):
-        """Test that linting happens before running tests"""
+        """
+        Assert that the flake8 linting step appears before the pytest test step in the workflow.
+        
+        Checks that a step whose name contains "flake8" exists and that a step whose run command contains "pytest" exists, and that the flake8 step occurs earlier than the pytest step.
+        
+        Parameters:
+            steps (list[dict]): Parsed list of workflow steps (each step is a mapping, commonly containing 'name' and 'run').
+        """
         flake8_idx = next((i for i, s in enumerate(steps) 
                           if 'flake8' in str(s.get('name', '')).lower()), -1)
         pytest_idx = next((i for i, s in enumerate(steps) 
@@ -390,7 +480,12 @@ class TestWorkflowIntegration:
             "Original demo steps should be preserved"
     
     def test_all_new_steps_have_names(self, steps):
-        """Test that all new steps have descriptive names"""
+        """
+        Ensure every workflow step that contains a `uses` or `run` field provides a `name` field.
+        
+        Parameters:
+            steps (list[dict]): Parsed list of workflow steps where each step is a mapping of step keys to values.
+        """
         for step in steps:
             if 'uses' in step or 'run' in step:
                 assert 'name' in step, \
@@ -456,7 +551,12 @@ class TestEdgeCases:
                     "Should not use hardcoded Python paths"
     
     def test_no_sudo_commands(self, steps):
-        """Test that no steps require sudo"""
+        """
+        Ensure no workflow step run command contains 'sudo'.
+        
+        Parameters:
+            steps (list[dict]): Parsed job steps from the workflow; each step may include a 'run' string. The test fails if any `run` value contains the substring `sudo`.
+        """
         for step in steps:
             run_cmd = step.get('run', '')
             if isinstance(run_cmd, str):
@@ -464,7 +564,14 @@ class TestEdgeCases:
                     "Should not require sudo in CI environment"
     
     def test_all_tool_installations_from_pypi(self, steps):
-        """Test that all Python tools are installed from PyPI"""
+        """
+        Ensure all Python tool installation commands use PyPI packages.
+        
+        Scans steps whose name indicates an installation step and asserts that any `pip install` invocation does not use VCS/git sources (for example `git+`); the test fails if a git-based installation source is present.
+        
+        Parameters:
+            steps (list[dict]): Parsed list of workflow steps (each step is a mapping, typically containing `name` and `run` keys).
+        """
         install_steps = [s for s in steps 
                         if 'install' in str(s.get('name', '')).lower()]
         for step in install_steps:
