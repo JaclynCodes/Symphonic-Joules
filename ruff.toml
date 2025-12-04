@@ -24,7 +24,7 @@ select = [
 
 ]
 # suppress common non critical issues
-ignore = ["I001", "F401", "W291", "W293", "Q000", "ANN001", "ANN201", "UP006", "UP045", "E501", "S101"]
+ignore = ["I001", "W291", "W293", "Q000", "UP006", "UP045", "E501", "S101"]
 [lint.per-file-ignores]
 "**/__init__.py" = ["E402"]
 "**/conftest.py" = ["E402"]
