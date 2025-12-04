@@ -16,12 +16,6 @@ from typing import List
 
 
 @pytest.fixture(scope='module')
-def repo_root():
-    """Get the repository root directory."""
-    return Path(__file__).parent.parent
-
-
-@pytest.fixture(scope='module')
 def all_workflow_test_files(repo_root):
     """Get all workflow test files."""
     workflows_dir = repo_root / 'tests' / 'workflows'

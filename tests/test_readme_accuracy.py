@@ -15,18 +15,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def repo_root():
-    """Get the repository root directory."""
-    return Path(__file__).parent.parent
-
-
-@pytest.fixture(scope='module')
-def readme_path(repo_root):
-    """Get the README.md path in tests directory."""
-    return repo_root / 'tests' / 'README.md'
-
-
-@pytest.fixture(scope='module')
 def readme_content(readme_path):
     """Load README content."""
     with open(readme_path, 'r') as f:

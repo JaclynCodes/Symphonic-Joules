@@ -17,18 +17,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def repo_root():
-    """Get the repository root directory."""
-    return Path(__file__).parent.parent
-
-
-@pytest.fixture(scope='module')
-def tests_dir(repo_root):
-    """Get the tests directory."""
-    return repo_root / 'tests'
-
-
-@pytest.fixture(scope='module')
 def pytest_ini_path(repo_root):
     """Get pytest.ini file path."""
     return repo_root / 'pytest.ini'
@@ -167,7 +155,7 @@ class TestTestDiscovery:
         py_files = list(tests_dir.rglob('*.py'))
         for py_file in py_files:
             name = py_file.name
-            assert name.startswith('test_') or name == '__init__.py', \
+            assert name.startswith('test_') or name == '__init__.py' or name == 'conftest.py', \
                 f"Unexpected Python file in tests/: {py_file.relative_to(tests_dir)}"
     
     def test_init_files_present(self, tests_dir):

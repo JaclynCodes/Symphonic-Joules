@@ -15,24 +15,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def repo_root():
-    """Get repository root directory"""
-    return Path(__file__).parent.parent
-
-
-@pytest.fixture(scope='module')
-def faq_path(repo_root):
-    """Get FAQ file path"""
-    return repo_root / 'docs' / 'faq.md'
-
-
-@pytest.fixture(scope='module')
-def installation_path(repo_root):
-    """Get installation guide path"""
-    return repo_root / 'docs' / 'installation-setup.md'
-
-
-@pytest.fixture(scope='module')
 def faq_content(faq_path):
     """Load FAQ content"""
     with open(faq_path, 'r') as f:

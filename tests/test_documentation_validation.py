@@ -20,18 +20,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def faq_path():
-    """Get path to FAQ document"""
-    return Path('docs/faq.md')
-
-
-@pytest.fixture(scope='module')
-def installation_path():
-    """Get path to installation document"""
-    return Path('docs/installation-setup.md')
-
-
-@pytest.fixture(scope='module')
 def faq_content(faq_path):
     """Load FAQ content"""
     with open(faq_path, 'r') as f:

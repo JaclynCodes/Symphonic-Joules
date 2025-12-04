@@ -17,12 +17,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def dependabot_path():
-    """Get path to dependabot.yml file"""
-    return Path('.github/dependabot.yml')
-
-
-@pytest.fixture(scope='module')
 def dependabot_content(dependabot_path):
     """Load and parse dependabot.yml content"""
     with open(dependabot_path, 'r') as f:

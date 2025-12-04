@@ -16,18 +16,6 @@ import sys
 from pathlib import Path
 
 
-@pytest.fixture(scope='module')
-def repo_root():
-    """Get the repository root directory."""
-    return Path(__file__).parent.parent
-
-
-@pytest.fixture(scope='module')
-def tests_dir(repo_root):
-    """Get the tests directory."""
-    return repo_root / 'tests'
-
-
 class TestTestExecution:
     """Test that the test suite can execute successfully"""
     
