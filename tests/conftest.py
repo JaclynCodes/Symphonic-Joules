@@ -45,3 +45,15 @@ def vscode_settings(vscode_settings_path):
     """Load and parse VSCode settings."""
     with open(vscode_settings_path, 'r') as f:
         return json.load(f)
+
+
+@pytest.fixture(scope='module')
+def faq_path(repo_root):
+    """Get path to FAQ document."""
+    return repo_root / 'docs' / 'faq.md'
+
+
+@pytest.fixture(scope='module')
+def installation_path(repo_root):
+    """Get path to installation guide."""
+    return repo_root / 'docs' / 'installation-setup.md'
