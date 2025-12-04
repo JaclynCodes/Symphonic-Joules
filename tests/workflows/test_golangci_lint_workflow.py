@@ -312,9 +312,8 @@ class TestWorkflowMaintenance:
                     name = step['name']
                     assert len(name) > 5, f"Step name '{name}' should be descriptive and meaningful"
         
-        # At least some steps should be named for a real workflow
-        # But this is a placeholder, so we'll be lenient
-        assert named_steps >= 0, "Step names should be descriptive when present"
+        # For a real linting workflow, at least some steps should have names
+        assert named_steps > 0, "Expected at least one named step for readability"
     
     def test_workflow_is_documented(self, workflow_content):
         """Test that workflow has proper documentation"""
