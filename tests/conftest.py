@@ -6,6 +6,7 @@ code duplication and ensure consistency.
 """
 
 import pytest
+import json
 from pathlib import Path
 
 
@@ -31,3 +32,16 @@ def tests_dir(repo_root):
 def readme_path(repo_root):
     """Get the README.md path in tests directory."""
     return repo_root / 'tests' / 'README.md'
+
+
+@pytest.fixture(scope='module')
+def vscode_settings_path(repo_root):
+    """Get path to VSCode settings file."""
+    return repo_root / '.vscode' / 'settings.json'
+
+
+@pytest.fixture(scope='module')
+def vscode_settings(vscode_settings_path):
+    """Load and parse VSCode settings."""
+    with open(vscode_settings_path, 'r') as f:
+        return json.load(f)

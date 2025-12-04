@@ -13,19 +13,6 @@ import json
 from pathlib import Path
 
 
-@pytest.fixture(scope='module')
-def vscode_settings_path(repo_root):
-    """Get path to VSCode settings file"""
-    return repo_root / '.vscode' / 'settings.json'
-
-
-@pytest.fixture(scope='module')
-def vscode_settings(vscode_settings_path):
-    """Load and parse VSCode settings"""
-    with open(vscode_settings_path, 'r') as f:
-        return json.load(f)
-
-
 class TestVSCodeSettingsStructure:
     """Test VSCode settings structure"""
     

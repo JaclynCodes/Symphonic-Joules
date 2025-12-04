@@ -14,19 +14,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def vscode_settings_path():
-    """Get path to VSCode settings file"""
-    return Path('.vscode/settings.json')
-
-
-@pytest.fixture(scope='module')
-def vscode_settings(vscode_settings_path):
-    """Load and parse VSCode settings"""
-    with open(vscode_settings_path, 'r') as f:
-        return json.load(f)
-
-
-@pytest.fixture(scope='module')
 def vscode_raw(vscode_settings_path):
     """Get raw content of VSCode settings"""
     with open(vscode_settings_path, 'r') as f:
