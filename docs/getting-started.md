@@ -14,8 +14,12 @@ Before you begin, ensure you have the following installed:
 ### Quick Start
 
 ```bash
-# Clone the repository
+# Clone the repository (using git)
 git clone https://github.com/JaclynCodes/Symphonic-Joules.git
+cd Symphonic-Joules
+
+# Or using GitHub CLI
+gh repo clone JaclynCodes/Symphonic-Joules
 cd Symphonic-Joules
 
 # Installation steps will be added as development progresses
@@ -26,8 +30,12 @@ cd Symphonic-Joules
 For contributors and developers:
 
 ```bash
-# Clone your fork
+# Clone your fork (using git)
 git clone https://github.com/your-username/Symphonic-Joules.git
+cd Symphonic-Joules
+
+# Or using GitHub CLI
+gh repo clone your-username/Symphonic-Joules
 cd Symphonic-Joules
 
 # Set up development environment

@@ -20,7 +20,12 @@ Symphonic-Joules is currently in early development. The project does not yet hav
 
 1. **Clone the Repository**
    ```bash
+   # Using git
    git clone https://github.com/JaclynCodes/Symphonic-Joules.git
+   cd Symphonic-Joules
+   
+   # Or using GitHub CLI
+   gh repo clone JaclynCodes/Symphonic-Joules
    cd Symphonic-Joules
    ```
 

@@ -23,8 +23,12 @@ This project is currently in development. Prerequisites will be added as the pro
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone the repository (using git)
 git clone https://github.com/JaclynCodes/Symphonic-Joules.git
+cd Symphonic-Joules
+
+# Or using GitHub CLI
+gh repo clone JaclynCodes/Symphonic-Joules
 cd Symphonic-Joules
 
 # Installation instructions will be added as development progresses
