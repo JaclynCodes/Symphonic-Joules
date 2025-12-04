@@ -42,14 +42,14 @@ Usage examples and documentation will be provided as features are implemented.
 Symphonic-Joules/
 ├── .github/          # GitHub workflows and templates
 ├── docs/             # Documentation files
-├── src/              # Source code (to be added)
-├── tests/            # Test files (to be added)
-├── examples/         # Example usage (to be added)
+├── tests/            # Test files
 ├── CONTRIBUTING.md   # Contribution guidelines
 ├── CHANGELOG.md      # Project changelog
-├── LICENSE          # Project license
-└── README.md        # This file
+├── LICENSE           # Project license
+└── README.md         # This file
 ```
+
+**Note**: Source code (`src/`) and examples (`examples/`) directories will be added as development progresses.
 
 ## 🤝 Contributing
 

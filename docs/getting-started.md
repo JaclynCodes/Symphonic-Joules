@@ -55,10 +55,15 @@ Configuration options and settings will be documented here as they become availa
 
 ## 🎯 Next Steps
 
-- Explore the [examples](examples/) directory
-- Read the [API Reference](api-reference.md)
-- Check out the [Architecture Overview](architecture.md)
-- Join the community discussions
+After familiarizing yourself with Symphonic-Joules:
+
+- Read the [API Reference](api-reference.md) (coming soon)
+- Review the [Architecture Overview](architecture.md)
+- Explore the [FAQ](faq.md) for common questions
+- Join the community discussions on GitHub
+- Check the project [Roadmap](../README.md#roadmap) for upcoming features
+
+**Note**: Example code and tutorials will be added to an `examples/` directory as the project develops.
 
 ## 🚨 Troubleshooting
 

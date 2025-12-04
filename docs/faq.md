@@ -125,11 +125,13 @@ Feature requests can be submitted through GitHub Issues. Please include:
 
 ### Are there tutorials available?
 
-Tutorials will be added to the [examples](examples/) directory as the project develops. These will include:
+Tutorials and example code will be added as the project develops. These will include:
 - Basic usage examples
 - Scientific analysis workflows
 - Advanced techniques and methods
 - Real-world applications
+
+**Note**: Watch the repository for updates as the `examples/` directory is populated during development.
 
 ### How do I stay updated on project progress?
 
