@@ -57,7 +57,7 @@ Configuration options and settings will be documented here as they become availa
 
 After familiarizing yourself with Symphonic-Joules:
 
-- Read the [API Reference](api-reference.md) (coming soon)
+- Read the [API Reference](api-reference.md)
 - Review the [Architecture Overview](architecture.md)
 - Explore the [FAQ](faq.md) for common questions
 - Join the community discussions on GitHub

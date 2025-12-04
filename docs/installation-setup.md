@@ -10,6 +10,7 @@ git clone https://github.com/JaclynCodes/Symphonic-Joules.git
 cd Symphonic-Joules
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r tests/requirements.txt  # Install test dependencies
 pytest
 ```
 
