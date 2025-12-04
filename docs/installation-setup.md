@@ -1,5 +1,23 @@
 # Installation and Setup for Symphonic-Joules
 
+## Quick Start
+
+**For developers wanting to get started immediately:**
+
+```bash
+# Clone, setup, and test
+git clone https://github.com/JaclynCodes/Symphonic-Joules.git
+cd Symphonic-Joules
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r tests/requirements.txt  # Install test dependencies
+pytest
+```
+
+Continue reading for detailed information about installation methods and troubleshooting.
+
+---
+
 ## Important Note
 
 This document addresses the installation and setup process for **Symphonic-Joules**, a project focused on audio processing and energy calculations.
