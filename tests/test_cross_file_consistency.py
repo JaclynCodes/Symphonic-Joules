@@ -32,10 +32,10 @@ def all_workflow_test_files(repo_root):
     Collect workflow test files under tests/workflows matching the pattern `test_*_workflow.py`.
     
     Parameters:
-    	repo_root (Path): Repository root directory.
+        repo_root (Path): Repository root directory.
     
     Returns:
-    	List[Path]: Paths to files in tests/workflows that match `test_*_workflow.py`.
+        List[Path]: Paths to files in tests/workflows that match `test_*_workflow.py`.
     """
     workflows_dir = repo_root / 'tests' / 'workflows'
     return list(workflows_dir.glob('test_*_workflow.py'))
