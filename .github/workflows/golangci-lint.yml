@@ -34,7 +34,7 @@ jobs:
 
       - name: golangci-lint (if Go files found)
         if: steps.check-go.outputs.go_files_found == 'true'
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
 
