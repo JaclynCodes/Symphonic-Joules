@@ -15,7 +15,13 @@ Thank you for your interest in contributing to Symphonic-Joules! This document p
 
 1. **Fork the Repository**
    ```bash
+   # Clone your fork using git
    git clone https://github.com/your-username/Symphonic-Joules.git
+   
+   # Or using GitHub CLI
+   gh repo clone your-username/Symphonic-Joules
+   
+   # Navigate into the directory
    cd Symphonic-Joules
    ```
 
