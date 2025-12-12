@@ -13,16 +13,18 @@ This test suite validates the GitHub Actions workflow configuration including:
 import pytest
 import yaml
 import os
+from pathlib import Path
 
 
 # Module-level fixtures to cache expensive file I/O and parsing operations
 @pytest.fixture(scope='module')
-def workflow_path(get_workflow_path):
+def workflow_path():
     """
     Module-scoped fixture for workflow file path.
     Computed once and shared across all tests in this module.
     """
-    return get_workflow_path('blank.yml')
+    repo_root = Path(__file__).parent.parent.parent
+    return repo_root / '.github' / 'workflows' / 'blank.yml'
 
 
 @pytest.fixture(scope='module')
@@ -38,9 +40,15 @@ def workflow_raw(workflow_path):
 @pytest.fixture(scope='module')
 def workflow_content(workflow_raw):
     """
-    Module-scoped fixture for parsed workflow content.
-    YAML parsing is done once and cached for all tests.
-    Reuses workflow_raw to avoid redundant file I/O.
+    Parse the workflow YAML text into a Python mapping for use by tests.
+    
+    Provided as a module-scoped fixture so the YAML is parsed once per test module and reused.
+    
+    Parameters:
+        workflow_raw (str): Raw YAML content of the workflow file.
+    
+    Returns:
+        dict | None: Parsed workflow content as a Python dictionary, or `None` if the YAML is empty.
     """
     return yaml.safe_load(workflow_raw)
 
@@ -48,8 +56,13 @@ def workflow_content(workflow_raw):
 @pytest.fixture(scope='module')
 def jobs(workflow_content):
     """
-    Module-scoped fixture for jobs configuration.
-    Extracted once and shared across all tests in this module.
+    Provide the workflow's jobs mapping for reuse across tests.
+    
+    Parameters:
+        workflow_content (dict): Parsed YAML content of the workflow file.
+    
+    Returns:
+        dict: Mapping of job names to job configuration dictionaries; returns an empty dict if no `jobs` key is present.
     """
     return workflow_content.get('jobs', {})
 
@@ -111,7 +124,17 @@ class TestBranchConfiguration:
         assert 'base' not in branches, f"{trigger_name} trigger should not include 'base' branch (should be 'main')"
     
     def _assert_trigger_has_branches(self, triggers, trigger_key, trigger_name):
-        """Helper method to assert that a trigger has branch configuration"""
+        """
+        Assert that a specific trigger entry includes a 'branches' key.
+        
+        Parameters:
+            triggers (dict): Mapping of trigger keys to their configuration dictionaries.
+            trigger_key (str): Key used to look up the trigger configuration in `triggers`.
+            trigger_name (str): Human-readable trigger name used in assertion messages.
+        
+        Raises:
+            AssertionError: If the trigger configuration is missing or does not contain a 'branches' entry.
+        """
         trigger_config = triggers.get(trigger_key)
         assert trigger_config is not None, f"{trigger_name} trigger configuration is None"
         assert 'branches' in trigger_config, f"{trigger_name} trigger missing branches configuration"
@@ -122,7 +145,14 @@ class TestBranchConfiguration:
         ('workflow_dispatch', 'Workflow dispatch'),
     ])
     def test_trigger_exists(self, triggers, trigger_key, trigger_name):
-        """Test that required triggers are configured"""
+        """
+        Verify that the workflow defines the specified trigger key.
+        
+        Parameters:
+            triggers (dict): Mapping of triggers parsed from the workflow content.
+            trigger_key (str): The event key to check for (for example 'push').
+            trigger_name (str): Human-readable name used in the assertion message.
+        """
         assert trigger_key in triggers, f"{trigger_name} trigger not configured"
     
     @pytest.mark.parametrize("trigger_key,trigger_name", [
@@ -191,12 +221,28 @@ class TestStepsConfiguration:
     
     @pytest.fixture
     def steps(self, workflow_content):
-        """Get workflow steps from cached workflow content"""
+        """
+        Return the list of steps defined for the 'build' job in the parsed workflow content.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow as a dictionary.
+        
+        Returns:
+            list: The steps array from `workflow_content['jobs']['build']['steps']`.
+        """
         return workflow_content['jobs']['build']['steps']
     
     @pytest.fixture
     def checkout_steps(self, steps):
-        """Get checkout steps from the workflow"""
+        """
+        Return steps that reference a checkout action.
+        
+        Parameters:
+            steps (list[dict]): Sequence of workflow step mappings to search.
+        
+        Returns:
+            list[dict]: Subset of `steps` that contain a `uses` key whose value includes "checkout".
+        """
         return [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
     
     def test_has_checkout_step(self, checkout_steps):
@@ -218,22 +264,33 @@ class TestStepsConfiguration:
         for i, step in enumerate(steps):
             assert 'uses' in step or 'run' in step, f"Step {i} missing 'uses' or 'run' key"
     
-    def test_named_steps_have_valid_actions(self, steps):
+    def test_named_steps_have_run_commands(self, steps):
         """
-        Test that every named step in the workflow has either a 'run' command or a 'uses' action.
-        This ensures that all steps with a 'name' key are valid GitHub Actions steps.
+        Ensure every workflow step that has a `name` key also defines a `run` command.
+        
+        Parameters:
+            steps (list[dict]): Sequence of step mappings from a job's `steps` list in the workflow; each mapping may contain keys like `name`, `uses`, and `run`.
+        
+        Raises:
+            AssertionError: If a step contains `name` but does not include a `run` key, an assertion is raised identifying the offending step by name.
         """
         for step in steps:
             if 'name' in step:
-                assert 'run' in step or 'uses' in step, \
-                    f"Named step '{step['name']}' must have either 'run' or 'uses'"
+                assert 'run' in step, f"Named step '{step['name']}' missing 'run' command"
     
     @pytest.mark.parametrize("step_name,error_message", [
         ('Run a one-line script', "One-line script step not found"),
         ('Run a multi-line script', "Multi-line script step not found"),
     ])
     def test_script_step_exists(self, steps, step_name, error_message):
-        """Test that required script steps exist"""
+        """
+        Assert that a step with the given name exists in the provided steps list.
+        
+        Parameters:
+        	steps (list[dict]): List of step dictionaries from a job's `steps` section.
+        	step_name (str): The expected `name` value for the required script step.
+        	error_message (str): Assertion message displayed if the named step is not found.
+        """
         matching_steps = [s for s in steps if s.get('name') == step_name]
         assert len(matching_steps) > 0, error_message
     
@@ -315,7 +372,15 @@ class TestEdgeCases:
             assert len(step_names) == len(set(step_names)), f"Duplicate step names in job '{job_name}'"
     
     def test_runner_is_valid(self, jobs):
-        """Test that runner configuration is valid"""
+        """
+        Verify each job's `runs-on` runner, when specified as a string, is an accepted runner identifier.
+        
+        Parameters:
+            jobs (dict): Mapping of job names to their job configuration dictionaries; each job's 'runs-on' value is validated.
+        
+        Raises:
+            AssertionError: If a job's string `runs-on` value is not one of the allowed runner identifiers.
+        """
         valid_runners = [
             'ubuntu-latest', 'ubuntu-22.04', 'ubuntu-20.04',
             'windows-latest', 'windows-2022', 'windows-2019',
@@ -347,7 +412,11 @@ class TestWorkflowSecurity:
                             f"Potential hardcoded secret pattern '{pattern}' found"
     
     def test_checkout_action_is_pinned_or_versioned(self, jobs):
-        """Test that actions use version tags (security best practice)"""
+        """
+        Ensure every action referenced in job steps includes a version tag.
+        
+        Asserts that any step with a `uses` key contains an `@` version delimiter (for example, `actions/checkout@v4`).
+        """
         for _job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
             for step in steps:
@@ -382,7 +451,12 @@ class TestParametrizedRefactoring:
     """Test the parametrized test refactoring improvements"""
     
     def test_parametrize_decorator_reduces_code_duplication(self, workflow_content):
-        """Verify that parametrized tests improve maintainability"""
+        """
+        Ensure the workflow defines the 'push', 'pull_request' and 'workflow_dispatch' triggers.
+        
+        Checks the parsed workflow content exposes trigger configuration (via the `on` key or a True mapping)
+        and that each of the three expected trigger types is present.
+        """
         # This test validates that the refactoring approach is sound
         # by ensuring the workflow structure supports multiple trigger types
         triggers = workflow_content.get(True) or workflow_content.get('on')
@@ -392,7 +466,15 @@ class TestParametrizedRefactoring:
             assert trigger_type in triggers, f"Expected trigger type '{trigger_type}' not found"
     
     def test_all_branch_triggers_have_consistent_configuration(self, workflow_content):
-        """Test that push and pull_request triggers have identical branch configs"""
+        """
+        Verify that the `push` and `pull_request` triggers define the same branch filter and that it equals ['main'].
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow (result of yaml.safe_load).
+        
+        Raises:
+            AssertionError: If the push and pull_request branch lists differ, or if either is not exactly ['main'].
+        """
         triggers = workflow_content.get(True) or workflow_content.get('on')
         
         push_branches = triggers.get('push', {}).get('branches', [])
@@ -435,11 +517,23 @@ class TestTriggerConfiguration:
     
     @pytest.fixture
     def triggers(self, workflow_content):
-        """Get trigger configuration from workflow content"""
+        """
+        Retrieve the workflow's trigger/event configuration.
+        
+        Parameters:
+            workflow_content (dict): Parsed workflow YAML content.
+        
+        Returns:
+            The trigger configuration value from the parsed workflow content (value of the `on` key or a top-level boolean key), or `None` if no trigger configuration is present.
+        """
         return workflow_content.get(True) or workflow_content.get('on')
     
     def test_workflow_dispatch_has_no_branches(self, triggers):
-        """Test that workflow_dispatch doesn't have branch configuration"""
+        """
+        Ensure the `workflow_dispatch` trigger does not specify any branch filters.
+        
+        If `workflow_dispatch` is present as a mapping, this test asserts that it does not include a `branches` key.
+        """
         workflow_dispatch = triggers.get('workflow_dispatch')
         assert workflow_dispatch is not None, "workflow_dispatch should be configured"
         
@@ -465,7 +559,12 @@ class TestTriggerConfiguration:
                 f"Trigger '{trigger_key}' is not a valid GitHub workflow event"
     
     def test_branch_filter_format_is_correct(self, triggers):
-        """Test that branch filters are in correct format (list of strings)"""
+        """
+        Validate that the 'branches' filters for `push` and `pull_request` triggers, if present, are lists of strings.
+        
+        Parameters:
+            triggers (dict): Mapping of trigger names to their configuration objects parsed from the workflow content.
+        """
         for trigger_name in ['push', 'pull_request']:
             if trigger_name in triggers:
                 trigger_config = triggers[trigger_name]
@@ -486,7 +585,9 @@ class TestTriggerConfiguration:
                     f"{trigger_name} should use 'branches' not 'branches-ignore' for clarity"
     
     def test_no_conflicting_branch_filters(self, triggers):
-        """Test that triggers don't have both branches and branches-ignore"""
+        """
+        Ensure push and pull_request triggers do not specify both 'branches' and 'branches-ignore'.
+        """
         for trigger_name in ['push', 'pull_request']:
             if trigger_name in triggers:
                 trigger_config = triggers[trigger_name]
@@ -505,12 +606,28 @@ class TestStepValidation:
     
     @pytest.fixture
     def steps(self, workflow_content):
-        """Get workflow steps"""
+        """
+        Retrieve the `steps` list for the `build` job from the parsed workflow content.
+        
+        Parameters:
+            workflow_content (dict): Parsed YAML content of the workflow.
+        
+        Returns:
+            list: Steps defined for the `build` job.
+        """
         return workflow_content['jobs']['build']['steps']
     
     @pytest.fixture
     def checkout_steps(self, steps):
-        """Get checkout steps"""
+        """
+        Filter steps to those that use a checkout action.
+        
+        Parameters:
+            steps (list[dict]): Sequence of step mappings from a job's `steps` list.
+        
+        Returns:
+            list[dict]: List of step mappings whose `uses` value references a checkout action.
+        """
         return [s for s in steps if 'uses' in s and 'checkout' in s['uses']]
     
     def test_checkout_is_first_step(self, steps):
@@ -533,7 +650,12 @@ class TestStepValidation:
                 assert len(run_content) > 0, f"Step {i} has empty run command"
     
     def test_multiline_run_commands_use_pipe_syntax(self, steps):
-        """Test that multi-line commands are properly formatted"""
+        """
+        Validate that any step with a multi-line `run` command contains more than one line.
+        
+        Parameters:
+            steps (list[dict]): Sequence of workflow step dictionaries; steps that include a `run` key may contain single- or multi-line shell commands.
+        """
         for step in steps:
             if 'run' in step and '\n' in step['run']:
                 # Multi-line run commands should exist
@@ -679,7 +801,11 @@ class TestWorkflowDocumentation:
             "Workflow should have at least 3 comment lines for documentation"
     
     def test_comments_are_not_too_long(self, workflow_raw):
-        """Test that comment lines are reasonable length"""
+        """
+        Ensure comment lines in the raw workflow are under 100 characters.
+        
+        Raises an AssertionError if any comment line is 100 characters or longer; the assertion message includes the first 50 characters of the offending line.
+        """
         comment_lines = [line for line in workflow_raw.split('\n') 
                         if line.strip().startswith('#')]
         
@@ -749,7 +875,9 @@ class TestEdgeCaseScenarios:
                 "First action step should be checkout"
     
     def test_no_windows_line_endings(self, workflow_raw):
-        """Test that file doesn't use Windows line endings"""
+        """
+        Ensure the workflow file uses Unix (LF) line endings and does not contain Windows (CRLF) line endings.
+        """
         assert '\r\n' not in workflow_raw, \
             "Workflow should use Unix line endings (LF), not Windows (CRLF)"
     
@@ -778,7 +906,16 @@ class TestParameterizedWorkflowValidation:
         (2, 'script'),  # Third step should be a script
     ])
     def test_step_types_in_order(self, workflow_content, step_index, expected_type):
-        """Test that steps follow expected type pattern"""
+        """
+        Assert that the step at a given index has the expected type.
+        
+        Checks the `build` job's steps and, if `step_index` is within range, asserts that the step at that index is an action when `expected_type` is `'action'` (contains a `uses` key) or a script when `expected_type` is `'script'` (contains a `run` key). If `step_index` is out of range the test does nothing.
+        
+        Parameters:
+            workflow_content (dict): Parsed workflow YAML as a dictionary.
+            step_index (int): Zero-based index of the step to validate.
+            expected_type (str): Expected step type, either `'action'` or `'script'`.
+        """
         steps = workflow_content['jobs']['build']['steps']
         
         if step_index < len(steps):
