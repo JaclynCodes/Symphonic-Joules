@@ -14,6 +14,9 @@ Thank you for your interest in contributing to Symphonic-Joules! This document p
 ### Submitting Changes
 
 1. **Fork the Repository**
+   - Navigate to the [Symphonic-Joules repository](https://github.com/JaclynCodes/Symphonic-Joules)
+   - Click the "Fork" button in the top-right corner
+   - Clone your fork locally:
    ```bash
    git clone https://github.com/your-username/Symphonic-Joules.git
    cd Symphonic-Joules

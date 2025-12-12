@@ -13,18 +13,16 @@ This test suite validates the GitHub Actions workflow configuration including:
 import pytest
 import yaml
 import os
-from pathlib import Path
 
 
 # Module-level fixtures to cache expensive file I/O and parsing operations
 @pytest.fixture(scope='module')
-def workflow_path():
+def workflow_path(get_workflow_path):
     """
     Module-scoped fixture for workflow file path.
     Computed once and shared across all tests in this module.
     """
-    repo_root = Path(__file__).parent.parent.parent
-    return repo_root / '.github' / 'workflows' / 'blank.yml'
+    return get_workflow_path('blank.yml')
 
 
 @pytest.fixture(scope='module')
@@ -220,11 +218,15 @@ class TestStepsConfiguration:
         for i, step in enumerate(steps):
             assert 'uses' in step or 'run' in step, f"Step {i} missing 'uses' or 'run' key"
     
-    def test_named_steps_have_run_commands(self, steps):
-        """Test that named steps have run commands"""
+    def test_named_steps_have_valid_actions(self, steps):
+        """
+        Test that every named step in the workflow has either a 'run' command or a 'uses' action.
+        This ensures that all steps with a 'name' key are valid GitHub Actions steps.
+        """
         for step in steps:
             if 'name' in step:
-                assert 'run' in step, f"Named step '{step['name']}' missing 'run' command"
+                assert 'run' in step or 'uses' in step, \
+                    f"Named step '{step['name']}' must have either 'run' or 'uses'"
     
     @pytest.mark.parametrize("step_name,error_message", [
         ('Run a one-line script', "One-line script step not found"),
