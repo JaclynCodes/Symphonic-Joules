@@ -12,6 +12,7 @@ This test suite validates the GitHub Actions workflow configuration including:
 
 import pytest
 import yaml
+import os
 
 
 # Module-level fixtures to cache expensive file I/O and parsing operations
