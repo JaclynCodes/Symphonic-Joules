@@ -12,20 +12,18 @@ Tests cover:
 
 import pytest
 import yaml
-from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def workflow_path():
+def workflow_path(get_workflow_path):
     """Get path to golangci-lint workflow file"""
-    return Path('.github/workflows/golangci-lint.yml')
+    return get_workflow_path('golangci-lint.yml')
 
 
 @pytest.fixture(scope='module')
-def workflow_content(workflow_path):
+def workflow_content(load_workflow_file):
     """Load and parse golangci-lint workflow content"""
-    with open(workflow_path, 'r') as f:
-        return yaml.safe_load(f)
+    return load_workflow_file('golangci-lint.yml')
 
 
 class TestWorkflowStructure:

@@ -11,20 +11,18 @@ This module tests the new Python testing and linting features added to the CI wo
 
 import pytest
 import yaml
-from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def workflow_path():
+def workflow_path(get_workflow_path):
     """Get path to blank workflow file"""
-    return Path('.github/workflows/blank.yml')
+    return get_workflow_path('blank.yml')
 
 
 @pytest.fixture(scope='module')
-def workflow_content(workflow_path):
+def workflow_content(load_workflow_file):
     """Load and parse workflow content"""
-    with open(workflow_path, 'r') as f:
-        return yaml.safe_load(f)
+    return load_workflow_file('blank.yml')
 
 
 @pytest.fixture(scope='module')
