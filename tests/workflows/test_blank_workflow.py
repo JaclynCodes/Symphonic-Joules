@@ -13,18 +13,16 @@ This test suite validates the GitHub Actions workflow configuration including:
 import pytest
 import yaml
 import os
-from pathlib import Path
 
 
 # Module-level fixtures to cache expensive file I/O and parsing operations
 @pytest.fixture(scope='module')
-def workflow_path():
+def workflow_path(get_workflow_path):
     """
     Module-scoped fixture for workflow file path.
     Computed once and shared across all tests in this module.
     """
-    repo_root = Path(__file__).parent.parent.parent
-    return repo_root / '.github' / 'workflows' / 'blank.yml'
+    return get_workflow_path('blank.yml')
 
 
 @pytest.fixture(scope='module')

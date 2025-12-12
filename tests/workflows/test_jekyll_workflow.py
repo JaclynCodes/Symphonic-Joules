@@ -13,14 +13,12 @@ This test suite validates the GitHub Actions Jekyll deployment workflow includin
 
 import pytest
 import yaml
-from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def workflow_path():
+def workflow_path(get_workflow_path):
     """Module-scoped fixture for Jekyll workflow file path."""
-    repo_root = Path(__file__).parent.parent.parent
-    return repo_root / '.github' / 'workflows' / 'jekyll-gh-pages.yml'
+    return get_workflow_path('jekyll-gh-pages.yml')
 
 
 @pytest.fixture(scope='module')

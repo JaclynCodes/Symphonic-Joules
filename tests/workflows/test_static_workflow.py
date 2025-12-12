@@ -13,14 +13,12 @@ This test suite validates the GitHub Actions static content deployment workflow 
 
 import pytest
 import yaml
-from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def workflow_path():
+def workflow_path(get_workflow_path):
     """Module-scoped fixture for static workflow file path."""
-    repo_root = Path(__file__).parent.parent.parent
-    return repo_root / '.github' / 'workflows' / 'static.yml'
+    return get_workflow_path('static.yml')
 
 
 @pytest.fixture(scope='module')
