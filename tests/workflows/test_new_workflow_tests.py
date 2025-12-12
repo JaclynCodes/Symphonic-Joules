@@ -20,12 +20,6 @@ from pathlib import Path
 
 
 @pytest.fixture(scope='module')
-def repo_root():
-    """Get the repository root directory."""
-    return Path(__file__).parent.parent.parent
-
-
-@pytest.fixture(scope='module')
 def workflows_test_dir(repo_root):
     """Get the workflows test directory."""
     return repo_root / 'tests' / 'workflows'
