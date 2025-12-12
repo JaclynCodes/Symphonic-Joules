@@ -11,8 +11,3 @@ numpy>=1.21.0
 # Data visualization (to be added as features are implemented)
 # matplotlib>=3.5.0
 # plotly>=5.0.0
-
-# Testing dependencies
-pytest>=7.0.0
-pytest-cov>=3.0.0
-PyYAML>=5.1
