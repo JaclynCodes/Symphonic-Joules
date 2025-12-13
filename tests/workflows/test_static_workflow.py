@@ -470,6 +470,8 @@ class TestWorkflowSecurity:
                 lines = workflow_raw.split('\n')
                 for line in lines:
                     if pattern in line.lower() and not line.strip().startswith('#'):
+                        if pattern == 'token' and 'id-token' in line.lower():
+                            continue
                         assert 'secrets.' in line or '${{' in line or 'GITHUB_TOKEN' in line, \
                             f"Potential hardcoded secret pattern '{pattern}' found"
     
