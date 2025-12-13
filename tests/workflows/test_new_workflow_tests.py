@@ -105,8 +105,8 @@ class TestNewFilesFollowPattern:
     def test_new_files_use_module_scoped_fixtures(self, jekyll_test_file, static_test_file):
         """Test that new files use module-scoped fixtures like blank test"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert "scope='module'" in content, \
                     f"{test_file.name} should use module-scoped fixtures"
@@ -114,8 +114,8 @@ class TestNewFilesFollowPattern:
     def test_new_files_have_workflow_path_fixture(self, jekyll_test_file, static_test_file):
         """Test that new files define workflow_path fixture"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'def workflow_path()' in content, \
                     f"{test_file.name} should define workflow_path fixture"
@@ -123,8 +123,8 @@ class TestNewFilesFollowPattern:
     def test_new_files_have_workflow_content_fixture(self, jekyll_test_file, static_test_file):
         """Test that new files define workflow_content fixture"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'def workflow_content(' in content, \
                     f"{test_file.name} should define workflow_content fixture"
@@ -135,8 +135,8 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_has_sufficient_test_classes(self, jekyll_test_file):
         """Test that Jekyll test file has sufficient test classes"""
-        with open(jekyll_test_file, 'r') as f:
-            content = f.read()
+        with open(jekyll_test_file, 'r') as file:
+            content = file.read()
             tree = ast.parse(content)
             
             test_classes = [node for node in ast.walk(tree)
@@ -148,8 +148,8 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_has_sufficient_tests(self, jekyll_test_file):
         """Test that Jekyll test file has sufficient test methods"""
-        with open(jekyll_test_file, 'r') as f:
-            content = f.read()
+        with open(jekyll_test_file, 'r') as file:
+            content = file.read()
             tree = ast.parse(content)
             
             test_count = 0
@@ -165,8 +165,8 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_tests_build_and_deploy_jobs(self, jekyll_test_file):
         """Test that Jekyll test file tests both build and deploy jobs"""
-        with open(jekyll_test_file, 'r') as f:
-            content = f.read()
+        with open(jekyll_test_file, 'r') as file:
+            content = file.read()
             
             assert 'TestBuildJob' in content, \
                 "Jekyll test should have TestBuildJob class"
@@ -175,8 +175,8 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_tests_permissions(self, jekyll_test_file):
         """Test that Jekyll test file validates permissions"""
-        with open(jekyll_test_file, 'r') as f:
-            content = f.read()
+        with open(jekyll_test_file, 'r') as file:
+            content = file.read()
             
             assert 'TestPermissionsConfiguration' in content, \
                 "Jekyll test should validate permissions"
@@ -185,8 +185,8 @@ class TestJekyllTestFileStructure:
     
     def test_jekyll_tests_concurrency(self, jekyll_test_file):
         """Test that Jekyll test file validates concurrency settings"""
-        with open(jekyll_test_file, 'r') as f:
-            content = f.read()
+        with open(jekyll_test_file, 'r') as file:
+            content = file.read()
             
             assert 'TestConcurrencyConfiguration' in content, \
                 "Jekyll test should validate concurrency"
@@ -199,8 +199,8 @@ class TestStaticTestFileStructure:
     
     def test_static_has_sufficient_test_classes(self, static_test_file):
         """Test that static test file has sufficient test classes"""
-        with open(static_test_file, 'r') as f:
-            content = f.read()
+        with open(static_test_file, 'r') as file:
+            content = file.read()
             tree = ast.parse(content)
             
             test_classes = [node for node in ast.walk(tree)
@@ -212,8 +212,8 @@ class TestStaticTestFileStructure:
     
     def test_static_has_sufficient_tests(self, static_test_file):
         """Test that static test file has sufficient test methods"""
-        with open(static_test_file, 'r') as f:
-            content = f.read()
+        with open(static_test_file, 'r') as file:
+            content = file.read()
             tree = ast.parse(content)
             
             test_count = 0
@@ -229,8 +229,8 @@ class TestStaticTestFileStructure:
     
     def test_static_tests_single_job_architecture(self, static_test_file):
         """Test that static test validates single job architecture"""
-        with open(static_test_file, 'r') as f:
-            content = f.read()
+        with open(static_test_file, 'r') as file:
+            content = file.read()
             
             # Static workflow has single deploy job (no separate build)
             assert 'TestDeployJob' in content or 'deploy' in content.lower(), \
@@ -238,8 +238,8 @@ class TestStaticTestFileStructure:
     
     def test_static_tests_permissions(self, static_test_file):
         """Test that static test file validates permissions"""
-        with open(static_test_file, 'r') as f:
-            content = f.read()
+        with open(static_test_file, 'r') as file:
+            content = file.read()
             
             assert 'TestPermissionsConfiguration' in content, \
                 "Static test should validate permissions"
@@ -248,8 +248,8 @@ class TestStaticTestFileStructure:
     
     def test_static_compares_with_jekyll(self, static_test_file):
         """Test that static test file compares differences with Jekyll workflow"""
-        with open(static_test_file, 'r') as f:
-            content = f.read()
+        with open(static_test_file, 'r') as file:
+            content = file.read()
             
             # Should have test class comparing differences
             has_comparison = 'Jekyll' in content or \
@@ -266,8 +266,8 @@ class TestCommonTestPatterns:
     def test_both_validate_yaml_structure(self, jekyll_test_file, static_test_file):
         """Test that both files validate YAML structure"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'TestWorkflowStructure' in content, \
                     f"{test_file.name} should have TestWorkflowStructure class"
@@ -275,8 +275,8 @@ class TestCommonTestPatterns:
     def test_both_validate_metadata(self, jekyll_test_file, static_test_file):
         """Test that both files validate workflow metadata"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'TestWorkflowMetadata' in content, \
                     f"{test_file.name} should have TestWorkflowMetadata class"
@@ -284,8 +284,8 @@ class TestCommonTestPatterns:
     def test_both_validate_security(self, jekyll_test_file, static_test_file):
         """Test that both files validate security"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'TestWorkflowSecurity' in content, \
                     f"{test_file.name} should have TestWorkflowSecurity class"
@@ -293,8 +293,8 @@ class TestCommonTestPatterns:
     def test_both_test_edge_cases(self, jekyll_test_file, static_test_file):
         """Test that both files test edge cases"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'TestEdgeCases' in content, \
                     f"{test_file.name} should have TestEdgeCases class"
@@ -302,8 +302,8 @@ class TestCommonTestPatterns:
     def test_both_validate_file_permissions(self, jekyll_test_file, static_test_file):
         """Test that both files validate file permissions"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'TestWorkflowFilePermissions' in content, \
                     f"{test_file.name} should have TestWorkflowFilePermissions class"
@@ -315,8 +315,8 @@ class TestCodeQuality:
     def test_no_syntax_errors(self, jekyll_test_file, static_test_file):
         """Test that new files have no syntax errors"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 try:
                     ast.parse(content)
                 except SyntaxError as e:
@@ -325,8 +325,8 @@ class TestCodeQuality:
     def test_all_test_methods_have_docstrings(self, jekyll_test_file, static_test_file):
         """Test that all test methods have docstrings"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 missing_docstrings = []
@@ -344,8 +344,8 @@ class TestCodeQuality:
     def test_consistent_indentation(self, jekyll_test_file, static_test_file):
         """Test that new files use consistent 4-space indentation"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                lines = f.readlines()
+            with open(test_file, 'r') as file:
+                lines = file.readlines()
                 
                 for i, line in enumerate(lines, 1):
                     if line.strip() and not line.strip().startswith('#'):
@@ -357,8 +357,8 @@ class TestCodeQuality:
     def test_no_trailing_whitespace(self, jekyll_test_file, static_test_file):
         """Test that new files don't have trailing whitespace"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                lines = f.readlines()
+            with open(test_file, 'r') as file:
+                lines = file.readlines()
                 
                 lines_with_trailing = []
                 for i, line in enumerate(lines, 1):
@@ -390,8 +390,8 @@ class TestMetadata:
         for workflow in new_workflows:
             workflow_path = Path(f'.github/workflows/{workflow}')
             if workflow_path.exists():
-                with open(workflow_path, 'r') as f:
-                    content = yaml.safe_load(f)
+                with open(workflow_path, 'r') as file:
+                    content = yaml.safe_load(file)
                     assert 'name' in content, f"Workflow {workflow} should have a name"
 
 
@@ -404,8 +404,8 @@ class TestSecurity:
         for workflow in new_workflows:
             workflow_path = Path(f'.github/workflows/{workflow}')
             if workflow_path.exists():
-                with open(workflow_path, 'r') as f:
-                    content = yaml.safe_load(f)
+                with open(workflow_path, 'r') as file:
+                    content = yaml.safe_load(file)
                     # Should have some form of permission configuration
                     assert 'permissions' in content or 'jobs' in content, \
                         f"Workflow {workflow} should have proper configuration"
@@ -420,8 +420,8 @@ class TestEdgeCases:
         for workflow in new_workflows:
             workflow_path = Path(f'.github/workflows/{workflow}')
             if workflow_path.exists():
-                with open(workflow_path, 'r') as f:
-                    content = f.read()
+                with open(workflow_path, 'r') as file:
+                    content = file.read()
                     # Should not raise exception
                     yaml.safe_load(content)
 
@@ -431,8 +431,8 @@ class TestTestCoverage:
     
     def test_jekyll_covers_jekyll_specific_features(self, jekyll_test_file):
         """Test that Jekyll test covers Jekyll-specific features"""
-        with open(jekyll_test_file, 'r') as f:
-            content = f.read()
+        with open(jekyll_test_file, 'r') as file:
+            content = file.read()
             
             jekyll_features = ['jekyll-build-pages', 'Build with Jekyll', '_site']
             covered = sum(1 for feature in jekyll_features if feature in content)
@@ -442,8 +442,8 @@ class TestTestCoverage:
     
     def test_static_covers_static_specific_features(self, static_test_file):
         """Test that static test covers static-specific features"""
-        with open(static_test_file, 'r') as f:
-            content = f.read()
+        with open(static_test_file, 'r') as file:
+            content = file.read()
             
             # Static workflow uploads entire repo
             assert 'path' in content and ('.' in content or 'entire' in content.lower()), \
@@ -452,8 +452,8 @@ class TestTestCoverage:
     def test_both_cover_github_pages_deployment(self, jekyll_test_file, static_test_file):
         """Test that both files cover GitHub Pages deployment"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 assert 'pages' in content.lower() and 'deploy' in content.lower(), \
                     f"{test_file.name} should cover Pages deployment"

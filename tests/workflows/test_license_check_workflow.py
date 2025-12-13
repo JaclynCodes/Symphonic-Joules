@@ -25,7 +25,7 @@ def workflow_path():
 def workflow_content(workflow_path):
     """Load and parse license check workflow content"""
     with open(workflow_path, 'r') as file:
-        return yaml.safe_load(f)
+        return yaml.safe_load(file)
 
 
 class TestWorkflowStructure:

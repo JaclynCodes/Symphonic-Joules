@@ -122,8 +122,8 @@ class TestTestFileContent:
     def test_all_test_files_have_docstrings(self, test_files):
         """Test that all test files have module-level docstrings"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 docstring = ast.get_docstring(tree)
                 
@@ -135,24 +135,24 @@ class TestTestFileContent:
     def test_all_test_files_import_pytest(self, test_files):
         """Test that all test files import pytest"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 assert 'import pytest' in content, \
                     f"Test file {test_file.name} should import pytest"
     
     def test_all_test_files_import_yaml(self, test_files):
         """Test that workflow test files import yaml for parsing"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 assert 'import yaml' in content, \
                     f"Test file {test_file.name} should import yaml"
     
     def test_all_test_files_have_test_classes(self, test_files):
         """Test that all test files contain test classes"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 test_classes = [node for node in ast.walk(tree) 
@@ -165,8 +165,8 @@ class TestTestFileContent:
     def test_test_classes_have_docstrings(self, test_files):
         """Test that all test classes have docstrings"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 test_classes = [node for node in ast.walk(tree) 
@@ -185,24 +185,24 @@ class TestFixtureUsage:
     def test_workflow_path_fixture_exists(self, test_files):
         """Test that all test files define workflow_path fixture"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 assert 'def workflow_path()' in content, \
                     f"Test file {test_file.name} should define workflow_path fixture"
     
     def test_workflow_content_fixture_exists(self, test_files):
         """Test that all test files define workflow_content fixture"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 assert 'def workflow_content(' in content, \
                     f"Test file {test_file.name} should define workflow_content fixture"
     
     def test_fixtures_use_module_scope(self, test_files):
         """Test that expensive fixtures use module scope for performance"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 for node in ast.walk(tree):
@@ -258,7 +258,7 @@ class TestTestMethodNaming:
         """Test that all test methods have descriptive docstrings"""
         for test_file in test_files:
             with open(test_file, 'r') as file:
-                content = f.read()
+                content = file.read()
                 tree = ast.parse(content)
                 
                 for node in ast.walk(tree):
@@ -273,8 +273,8 @@ class TestTestMethodNaming:
     def test_test_names_are_descriptive(self, test_files):
         """Test that test method names are sufficiently descriptive"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 for node in ast.walk(tree):
@@ -294,8 +294,8 @@ class TestTestOrganization:
     def test_tests_grouped_by_functionality(self, test_files):
         """Test that tests are organized into logical test classes"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 test_classes = [node for node in ast.walk(tree) 
@@ -316,8 +316,8 @@ class TestTestOrganization:
         ]
         
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 class_names = [node.name for node in ast.walk(tree) 
@@ -335,16 +335,16 @@ class TestTestCoverage:
     def test_tests_validate_yaml_structure(self, test_files):
         """Test that all test files validate YAML structure"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 assert 'yaml' in content.lower() or 'YAML' in content, \
                     f"Test file {test_file.name} should validate YAML structure"
     
     def test_tests_validate_workflow_metadata(self, test_files):
         """Test that all test files validate workflow metadata"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 # Should test workflow name
                 assert 'name' in content and 'workflow' in content.lower(), \
                     f"Test file {test_file.name} should validate workflow metadata"
@@ -352,8 +352,8 @@ class TestTestCoverage:
     def test_tests_validate_security(self, test_files):
         """Test that all test files include security validation"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 security_keywords = ['security', 'permission', 'token', 'secret']
                 has_security_test = any(keyword in content.lower() 
                                        for keyword in security_keywords)
@@ -363,8 +363,8 @@ class TestTestCoverage:
     def test_tests_validate_edge_cases(self, test_files):
         """Test that all test files include edge case testing"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 assert 'edge' in content.lower() or 'Edge' in content, \
                     f"Test file {test_file.name} should include edge case testing"
 
@@ -380,8 +380,8 @@ class TestREADMEAccuracy:
     def test_readme_documents_all_test_files(self, tests_root, test_files):
         """Test that README mentions all test files"""
         readme = tests_root / 'README.md'
-        with open(readme, 'r') as f:
-            content = f.read()
+        with open(readme, 'r') as file:
+            content = file.read()
             
             for test_file in test_files:
                 assert test_file.name in content, \
@@ -390,8 +390,8 @@ class TestREADMEAccuracy:
     def test_readme_has_run_instructions(self, tests_root):
         """Test that README includes instructions for running tests"""
         readme = tests_root / 'README.md'
-        with open(readme, 'r') as f:
-            content = f.read()
+        with open(readme, 'r') as file:
+            content = file.read()
             
             assert 'pytest' in content.lower(), \
                 "README should include pytest run instructions"
@@ -401,8 +401,8 @@ class TestREADMEAccuracy:
     def test_readme_documents_dependencies(self, tests_root):
         """Test that README documents test dependencies"""
         readme = tests_root / 'README.md'
-        with open(readme, 'r') as f:
-            content = f.read()
+        with open(readme, 'r') as file:
+            content = file.read()
             
             assert 'dependencies' in content.lower() or 'requirements' in content.lower(), \
                 "README should document test dependencies"
@@ -424,16 +424,16 @@ class TestTestInfrastructure:
     def test_requirements_includes_pytest(self, tests_root):
         """Test that requirements.txt includes pytest"""
         requirements = tests_root / 'requirements.txt'
-        with open(requirements, 'r') as f:
-            content = f.read()
+        with open(requirements, 'r') as file:
+            content = file.read()
             assert 'pytest' in content.lower(), \
                 "requirements.txt should include pytest"
     
     def test_requirements_includes_yaml(self, tests_root):
         """Test that requirements.txt includes PyYAML"""
         requirements = tests_root / 'requirements.txt'
-        with open(requirements, 'r') as f:
-            content = f.read()
+        with open(requirements, 'r') as file:
+            content = file.read()
             assert 'yaml' in content.lower(), \
                 "requirements.txt should include PyYAML"
     
@@ -451,8 +451,8 @@ class TestCodeQuality:
     def test_no_syntax_errors(self, test_files):
         """Test that all test files have valid Python syntax"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 try:
                     ast.parse(content)
                 except SyntaxError as e:
@@ -462,8 +462,8 @@ class TestCodeQuality:
         """Test for obviously unused imports (basic check)"""
         # This is a simplified check - full unused import detection requires more complex analysis
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 # Check if Path is imported but never used
                 if 'from pathlib import Path' in content:
@@ -474,8 +474,8 @@ class TestCodeQuality:
     def test_consistent_indentation(self, test_files):
         """Test that all files use consistent indentation (4 spaces)"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                lines = f.readlines()
+            with open(test_file, 'r') as file:
+                lines = file.readlines()
                 
                 for i, line in enumerate(lines, 1):
                     if line.strip() and not line.strip().startswith('#'):
@@ -491,8 +491,8 @@ class TestTestCompleteness:
     def test_sufficient_test_count(self, test_files):
         """Test that each test file has sufficient test coverage"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 test_methods = []
@@ -510,8 +510,8 @@ class TestTestCompleteness:
     def test_minimum_test_classes(self, test_files):
         """Test that each file has minimum number of test classes for organization"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 test_classes = [node for node in ast.walk(tree) 
