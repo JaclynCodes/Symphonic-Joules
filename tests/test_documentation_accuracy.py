@@ -35,15 +35,15 @@ def installation_path(repo_root):
 @pytest.fixture(scope='module')
 def faq_content(faq_path):
     """Load FAQ content"""
-    with open(faq_path, 'r') as f:
-        return f.read()
+    with open(faq_path, 'r') as file:
+        return file.read()
 
 
 @pytest.fixture(scope='module')
 def installation_content(installation_path):
     """Load installation guide content"""
-    with open(installation_path, 'r') as f:
-        return f.read()
+    with open(installation_path, 'r') as file:
+        return file.read()
 
 
 class TestFAQStructure:

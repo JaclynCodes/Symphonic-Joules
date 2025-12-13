@@ -29,8 +29,8 @@ def settings_path(vscode_dir):
 @pytest.fixture(scope='module')
 def settings_raw(settings_path):
     """Load raw VSCode settings content"""
-    with open(settings_path, 'r') as f:
-        return f.read()
+    with open(settings_path, 'r') as file:
+        return file.read()
 
 
 @pytest.fixture(scope='module')

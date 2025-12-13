@@ -25,8 +25,8 @@ def dependabot_path():
 @pytest.fixture(scope='module')
 def dependabot_raw(dependabot_path):
     """Load raw dependabot configuration content"""
-    with open(dependabot_path, 'r') as f:
-        return f.read()
+    with open(dependabot_path, 'r') as file:
+        return file.read()
 
 
 @pytest.fixture(scope='module')
@@ -51,8 +51,8 @@ class TestDependabotFileStructure:
     
     def test_dependabot_file_is_readable(self, dependabot_path):
         """Test that dependabot.yml is readable"""
-        with open(dependabot_path, 'r') as f:
-            content = f.read()
+        with open(dependabot_path, 'r') as file:
+            content = file.read()
             assert len(content) > 0, "dependabot.yml should not be empty"
     
     def test_dependabot_is_valid_yaml(self, dependabot_raw):
@@ -124,19 +124,19 @@ class TestPackageEcosystems:
     
     def test_has_pip_ecosystem(self, updates_list):
         """Test that pip ecosystem is configured"""
-        ecosystems = [u.get('package-ecosystem') for u in updates_list]
+        ecosystems = [update.get('package-ecosystem') for update in updates_list]
         assert 'pip' in ecosystems, \
             "Should configure pip for Python dependencies"
     
     def test_has_github_actions_ecosystem(self, updates_list):
         """Test that github-actions ecosystem is configured"""
-        ecosystems = [u.get('package-ecosystem') for u in updates_list]
+        ecosystems = [update.get('package-ecosystem') for update in updates_list]
         assert 'github-actions' in ecosystems, \
             "Should configure github-actions for workflow dependencies"
     
     def test_has_docker_ecosystem(self, updates_list):
         """Test that docker ecosystem is configured"""
-        ecosystems = [u.get('package-ecosystem') for u in updates_list]
+        ecosystems = [update.get('package-ecosystem') for update in updates_list]
         assert 'docker' in ecosystems, \
             "Should configure docker for future Dockerfile support"
     
@@ -158,24 +158,24 @@ class TestDirectoryConfiguration:
     
     def test_pip_directory_is_tests(self, updates_list):
         """Test that pip ecosystem monitors /tests directory"""
-        pip_config = next((u for u in updates_list 
-                          if u.get('package-ecosystem') == 'pip'), None)
+        pip_config = next((update for update in updates_list 
+                          if update.get('package-ecosystem') == 'pip'), None)
         assert pip_config is not None, "Should have pip configuration"
         assert pip_config.get('directory') == '/tests', \
             "pip should monitor /tests directory for requirements.txt"
     
     def test_github_actions_directory_is_root(self, updates_list):
         """Test that github-actions monitors root directory"""
-        actions_config = next((u for u in updates_list 
-                              if u.get('package-ecosystem') == 'github-actions'), None)
+        actions_config = next((update for update in updates_list 
+                              if update.get('package-ecosystem') == 'github-actions'), None)
         assert actions_config is not None, "Should have github-actions configuration"
         assert actions_config.get('directory') == '/', \
             "github-actions should monitor root directory for workflows"
     
     def test_docker_directory_is_root(self, updates_list):
         """Test that docker monitors root directory"""
-        docker_config = next((u for u in updates_list 
-                             if u.get('package-ecosystem') == 'docker'), None)
+        docker_config = next((update for update in updates_list 
+                             if update.get('package-ecosystem') == 'docker'), None)
         assert docker_config is not None, "Should have docker configuration"
         assert docker_config.get('directory') == '/', \
             "docker should monitor root directory"
@@ -239,29 +239,29 @@ class TestPullRequestLimits:
     
     def test_pip_has_pr_limit(self, updates_list):
         """Test that pip configuration has PR limit"""
-        pip_config = next((u for u in updates_list 
-                          if u.get('package-ecosystem') == 'pip'), None)
+        pip_config = next((update for update in updates_list 
+                          if update.get('package-ecosystem') == 'pip'), None)
         assert 'open-pull-requests-limit' in pip_config, \
             "pip should have open-pull-requests-limit configured"
     
     def test_pip_pr_limit_is_10(self, updates_list):
         """Test that pip allows up to 10 open PRs"""
-        pip_config = next((u for u in updates_list 
-                          if u.get('package-ecosystem') == 'pip'), None)
+        pip_config = next((update for update in updates_list 
+                          if update.get('package-ecosystem') == 'pip'), None)
         assert pip_config.get('open-pull-requests-limit') == 10, \
             "pip should allow 10 concurrent PRs for test dependencies"
     
     def test_github_actions_pr_limit_is_5(self, updates_list):
         """Test that github-actions allows up to 5 open PRs"""
-        actions_config = next((u for u in updates_list 
-                              if u.get('package-ecosystem') == 'github-actions'), None)
+        actions_config = next((update for update in updates_list 
+                              if update.get('package-ecosystem') == 'github-actions'), None)
         assert actions_config.get('open-pull-requests-limit') == 5, \
             "github-actions should allow 5 concurrent PRs"
     
     def test_docker_pr_limit_is_5(self, updates_list):
         """Test that docker allows up to 5 open PRs"""
-        docker_config = next((u for u in updates_list 
-                             if u.get('package-ecosystem') == 'docker'), None)
+        docker_config = next((update for update in updates_list 
+                             if update.get('package-ecosystem') == 'docker'), None)
         assert docker_config.get('open-pull-requests-limit') == 5, \
             "docker should allow 5 concurrent PRs"
     
@@ -333,24 +333,24 @@ class TestCommitMessageConfiguration:
     
     def test_pip_uses_deps_prefix(self, updates_list):
         """Test that pip uses 'deps' prefix"""
-        pip_config = next((u for u in updates_list 
-                          if u.get('package-ecosystem') == 'pip'), None)
+        pip_config = next((update for update in updates_list 
+                          if update.get('package-ecosystem') == 'pip'), None)
         commit_msg = pip_config.get('commit-message', {})
         assert commit_msg.get('prefix') == 'deps', \
             "pip should use 'deps' commit message prefix"
     
     def test_github_actions_uses_ci_prefix(self, updates_list):
         """Test that github-actions uses 'ci' prefix"""
-        actions_config = next((u for u in updates_list 
-                              if u.get('package-ecosystem') == 'github-actions'), None)
+        actions_config = next((update for update in updates_list 
+                              if update.get('package-ecosystem') == 'github-actions'), None)
         commit_msg = actions_config.get('commit-message', {})
         assert commit_msg.get('prefix') == 'ci', \
             "github-actions should use 'ci' commit message prefix"
     
     def test_docker_uses_docker_prefix(self, updates_list):
         """Test that docker uses 'docker' prefix"""
-        docker_config = next((u for u in updates_list 
-                             if u.get('package-ecosystem') == 'docker'), None)
+        docker_config = next((update for update in updates_list 
+                             if update.get('package-ecosystem') == 'docker'), None)
         commit_msg = docker_config.get('commit-message', {})
         assert commit_msg.get('prefix') == 'docker', \
             "docker should use 'docker' commit message prefix"
@@ -364,8 +364,8 @@ class TestCommitMessageConfiguration:
     
     def test_pip_has_development_prefix(self, updates_list):
         """Test that pip configures development dependency prefix"""
-        pip_config = next((u for u in updates_list 
-                          if u.get('package-ecosystem') == 'pip'), None)
+        pip_config = next((update for update in updates_list 
+                          if update.get('package-ecosystem') == 'pip'), None)
         commit_msg = pip_config.get('commit-message', {})
         assert 'prefix-development' in commit_msg, \
             "pip should configure prefix for development dependencies"
@@ -390,7 +390,7 @@ class TestConfigurationConsistency:
     
     def test_schedule_consistency(self, updates_list):
         """Test that all schedules are configured identically"""
-        schedules = [u.get('schedule') for u in updates_list]
+        schedules = [update.get('schedule') for update in updates_list]
         first_schedule = schedules[0]
         for schedule in schedules[1:]:
             assert schedule == first_schedule, \
@@ -398,7 +398,7 @@ class TestConfigurationConsistency:
     
     def test_reviewer_consistency(self, updates_list):
         """Test that all configs have same reviewers"""
-        reviewers_sets = [set(u.get('reviewers', [])) for u in updates_list]
+        reviewers_sets = [set(update.get('reviewers', [])) for update in updates_list]
         first_reviewers = reviewers_sets[0]
         for reviewers in reviewers_sets[1:]:
             assert reviewers == first_reviewers, \
@@ -406,7 +406,7 @@ class TestConfigurationConsistency:
     
     def test_assignee_consistency(self, updates_list):
         """Test that all configs have same assignees"""
-        assignees_sets = [set(u.get('assignees', [])) for u in updates_list]
+        assignees_sets = [set(update.get('assignees', [])) for update in updates_list]
         first_assignees = assignees_sets[0]
         for assignees in assignees_sets[1:]:
             assert assignees == first_assignees, \
@@ -472,7 +472,7 @@ class TestEdgeCases:
     
     def test_no_duplicate_ecosystems(self, updates_list):
         """Test that no ecosystem is configured multiple times"""
-        ecosystems = [u.get('package-ecosystem') for u in updates_list]
+        ecosystems = [update.get('package-ecosystem') for update in updates_list]
         assert len(ecosystems) == len(set(ecosystems)), \
             "Each ecosystem should only be configured once"
     

@@ -23,8 +23,8 @@ def workflow_path():
 @pytest.fixture(scope='module')
 def workflow_content(workflow_path):
     """Load and parse workflow content"""
-    with open(workflow_path, 'r') as f:
-        return yaml.safe_load(f)
+    with open(workflow_path, 'r') as file:
+        return yaml.safe_load(file)
 
 
 @pytest.fixture(scope='module')

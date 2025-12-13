@@ -22,15 +22,15 @@ def vscode_settings_path():
 @pytest.fixture(scope='module')
 def vscode_settings(vscode_settings_path):
     """Load and parse VSCode settings"""
-    with open(vscode_settings_path, 'r') as f:
-        return json.load(f)
+    with open(vscode_settings_path, 'r') as file:
+        return json.load(file)
 
 
 @pytest.fixture(scope='module')
 def vscode_raw(vscode_settings_path):
     """Get raw content of VSCode settings"""
-    with open(vscode_settings_path, 'r') as f:
-        return f.read()
+    with open(vscode_settings_path, 'r') as file:
+        return file.read()
 
 
 class TestVSCodeSettingsStructure:

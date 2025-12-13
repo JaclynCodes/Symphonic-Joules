@@ -101,8 +101,8 @@ class TestFixtureInitialization:
         import yaml
         
         workflow_file = repo_root / '.github' / 'workflows' / 'blank.yml'
-        with open(workflow_file, 'r') as f:
-            content = yaml.safe_load(f)
+        with open(workflow_file, 'r') as file:
+            content = yaml.safe_load(file)
         
         assert content is not None, "YAML parsing should succeed"
         assert isinstance(content, dict), "Parsed YAML should be a dictionary"
@@ -116,8 +116,8 @@ class TestTestIsolation:
         """Test that module-scoped fixtures are used for performance"""
         test_file = tests_dir / 'workflows' / 'test_blank_workflow.py'
         
-        with open(test_file, 'r') as f:
-            content = f.read()
+        with open(test_file, 'r') as file:
+            content = file.read()
             
             # Check that expensive operations use module scope
             assert "scope='module'" in content, \
@@ -128,7 +128,7 @@ class TestTestIsolation:
         workflows_dir = repo_root / '.github' / 'workflows'
         
         # Get initial state
-        initial_mtimes = {f: f.stat().st_mtime for f in workflows_dir.glob('*.yml')}
+        initial_mtimes = {workflow_file: workflow_file.stat().st_mtime for workflow_file in workflows_dir.glob('*.yml')}
         
         # Run tests (in dry-run to avoid actual execution issues)
         subprocess.run(
@@ -154,8 +154,8 @@ class TestErrorReporting:
         test_files = list((tests_dir / 'workflows').glob('test_*.py'))
         
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 lines = content.split('\n')
                 
                 # Find assert statements and check for messages
@@ -193,8 +193,8 @@ class TestTestCoverage:
         ]
         
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read().lower()
+            with open(test_file, 'r') as file:
+                content = file.read().lower()
                 
                 covered = sum(1 for aspect in critical_aspects 
                              if aspect in content)
@@ -214,8 +214,8 @@ class TestDocumentation:
         test_files = list((tests_dir / 'workflows').glob('test_*.py'))
         
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 test_classes = [node for node in ast.walk(tree)
