@@ -4,15 +4,13 @@ This directory contains comprehensive test suites for the Symphonic-Joules proje
 
 ## Overview
 
-The test suite validates GitHub Actions workflows and project configuration files with comprehensive coverage of structure, security, and best practices.
+The test suite validates the primary CI GitHub Actions workflow with coverage of structure, security, and best practices.
 
 ## Test Structure
 
 ### Workflow Tests
 
-- `tests/workflows/test_blank_workflow.py` - CI workflow validation (43 tests, 9 test classes)
-- `tests/workflows/test_jekyll_workflow.py` - Jekyll/GitHub Pages deployment validation (72 tests, 15 test classes)
-- `tests/workflows/test_static_workflow.py` - Static content deployment validation (75 tests, 16 test classes)
+- `tests/workflows/test_blank_workflow.py` - CI workflow validation (37 tests, 9 test classes)
 
 ### Configuration Files
 
@@ -21,123 +19,55 @@ The test suite validates GitHub Actions workflows and project configuration file
 - `tests/pytest.ini` - Test-specific configuration with markers
 - `tests/requirements.txt` - Test dependencies
 
+## Dependencies
+
+Install test dependencies with:
+
+```bash
+pip install -r tests/requirements.txt
+```
+
+Required packages:
+- pytest >= 7.0.0
+- pytest-cov >= 3.0.0
+- PyYAML >= 5.1
+
 ## Test Coverage Summary
 
-**Total Tests: 190 across 40 test classes**
+**Total Tests: 37 across 9 test classes**
 
-### Blank Workflow Tests (43 tests)
+### Blank Workflow Tests (37 tests)
 
 Tests for `.github/workflows/blank.yml` - CI workflow
 
-#### TestWorkflowStructure (4 tests)
+### TestWorkflowStructure (3 tests)
 Validates YAML syntax and basic structure
 
-#### TestWorkflowMetadata (3 tests)
+### TestWorkflowMetadata (3 tests)
 Tests workflow name and trigger configuration
 
-#### TestBranchConfiguration (8 tests)
+### TestBranchConfiguration (4 tests)
 **Critical**: Validates 'main' branch configuration
 - Tests push and pull request triggers
 - Verifies no legacy 'base' branch references
 
-#### TestJobsConfiguration (6 tests)
+### TestJobsConfiguration (6 tests)
 Validates job definitions and runner configuration
 
-#### TestStepsConfiguration (8 tests)
+### TestStepsConfiguration (7 tests)
 Validates individual workflow steps and actions
 
-#### TestWorkflowComments (3 tests)
+### TestWorkflowComments (3 tests)
 Validates documentation and badge references
 
-#### TestEdgeCases (6 tests)
+### TestEdgeCases (6 tests)
 Tests YAML formatting and consistency
 
-#### TestWorkflowSecurity (2 tests)
+### TestWorkflowSecurity (2 tests)
 Validates security best practices
 
-#### TestWorkflowFilePermissions (3 tests)
+### TestWorkflowFilePermissions (3 tests)
 Tests file location and permissions
-
-### Jekyll Workflow Tests (72 tests)
-
-Tests for `.github/workflows/jekyll-gh-pages.yml` - Jekyll site deployment
-
-#### TestWorkflowStructure (5 tests)
-Validates YAML syntax, structure, and GitHub Pages-specific sections
-
-#### TestWorkflowMetadata (3 tests)
-Tests workflow naming conventions for Jekyll deployment
-
-#### TestTriggerConfiguration (5 tests)
-Validates push and workflow_dispatch triggers
-
-#### TestPermissionsConfiguration (7 tests)
-Tests OIDC permissions for secure GitHub Pages deployment
-
-#### TestConcurrencyConfiguration (6 tests)
-Validates concurrency control for production deployments
-
-#### TestJobsConfiguration (6 tests)
-Tests build and deploy job definitions
-
-#### TestBuildJob (14 tests)
-Comprehensive validation of Jekyll build process
-- Checkout, setup pages, Jekyll build, artifact upload
-- Parameter validation and version checking
-
-#### TestDeployJob (8 tests)
-Tests deployment job configuration and dependencies
-
-#### TestWorkflowSecurity (3 tests)
-Validates OIDC authentication and security best practices
-
-#### TestEdgeCases (4 tests)
-Tests YAML formatting and edge cases
-
-#### TestWorkflowComments (3 tests)
-Validates documentation quality
-
-### Static Workflow Tests (75 tests)
-
-Tests for `.github/workflows/static.yml` - Static content deployment
-
-#### TestWorkflowStructure (5 tests)
-Validates YAML syntax and GitHub Pages sections
-
-#### TestWorkflowMetadata (4 tests)
-Tests descriptive workflow naming
-
-#### TestTriggerConfiguration (7 tests)
-Validates trigger configuration (push, workflow_dispatch)
-
-#### TestPermissionsConfiguration (7 tests)
-Tests minimal permissions following least privilege principle
-
-#### TestConcurrencyConfiguration (7 tests)
-Validates production deployment concurrency control
-
-#### TestJobsConfiguration (6 tests)
-Tests single deploy job architecture
-
-#### TestDeployJob (7 tests)
-Tests deploy job environment and configuration
-
-#### TestDeploySteps (14 tests)
-Comprehensive validation of deployment steps
-- Checkout, setup pages, artifact upload, deployment
-- Step ordering and parameter validation
-
-#### TestWorkflowSecurity (6 tests)
-Validates OIDC, minimal permissions, and injection prevention
-
-#### TestEdgeCases (6 tests)
-Tests YAML formatting, empty steps, and consistency
-
-#### TestWorkflowComments (4 tests)
-Validates documentation and clarity
-
-#### TestWorkflowDifferencesFromJekyll (3 tests)
-Validates appropriate differences from Jekyll workflow
 
 ## Running Tests
 
@@ -154,24 +84,12 @@ python3 -m pytest tests/ -v --cov=.github/workflows --cov-report=html
 ```bash
 # Run blank workflow tests
 python3 -m pytest tests/workflows/test_blank_workflow.py -v
-
-# Run Jekyll workflow tests
-python3 -m pytest tests/workflows/test_jekyll_workflow.py -v
-
-# Run static workflow tests
-python3 -m pytest tests/workflows/test_static_workflow.py -v
 ```
 
 ### Run Specific Test Classes
 ```bash
 # Run branch configuration tests (blank workflow)
 python3 -m pytest tests/workflows/test_blank_workflow.py::TestBranchConfiguration -v
-
-# Run security tests (Jekyll workflow)
-python3 -m pytest tests/workflows/test_jekyll_workflow.py::TestWorkflowSecurity -v
-
-# Run permissions tests (static workflow)
-python3 -m pytest tests/workflows/test_static_workflow.py::TestPermissionsConfiguration -v
 ```
 
 ### Run Tests with Markers
@@ -205,19 +123,6 @@ The following pytest markers are available:
 - `@pytest.mark.workflows` - Marks tests as workflow tests
 - `@pytest.mark.integration` - Marks tests as integration tests
 - `@pytest.mark.unit` - Marks tests as unit tests
-
-## Test Dependencies
-
-Install test dependencies with:
-
-```bash
-pip install -r tests/requirements.txt
-```
-
-Required packages:
-- pytest >= 7.0.0
-- pytest-cov >= 3.0.0
-- PyYAML >= 5.1
 
 ## Test Design Principles
 
@@ -263,13 +168,11 @@ These tests are designed to run in CI/CD pipelines:
 
 ## Test Results Summary
 
-All 190 tests pass successfully, validating:
-- YAML syntax and structure across all workflows
+All 37 tests pass successfully, validating:
+- YAML syntax and structure for the CI workflow
 - GitHub Actions best practices
-- Security configurations (OIDC, permissions)
-- Deployment workflows (Jekyll and static content)
 - Branch configurations and triggers
-- Job dependencies and step ordering
+- Job definitions, runner configuration, and step ordering
 - File permissions and locations
 - Documentation quality and clarity
 
