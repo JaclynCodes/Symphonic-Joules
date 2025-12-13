@@ -51,7 +51,7 @@ class TestTestExecution:
         Runs pytest in collection-only mode against tests/workflows and asserts that pytest exits with code 0 or 5; raises an AssertionError including pytest stderr if collection fails.
         
         Parameters:
-        	tests_dir (Path): Path to the repository's tests directory.
+            tests_dir (Path): Path to the repository's tests directory.
         """
         result = subprocess.run(
             [sys.executable, '-m', 'pytest', str(tests_dir / 'workflows'), 

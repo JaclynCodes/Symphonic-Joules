@@ -35,10 +35,10 @@ def workflows_test_dir(repo_root):
     Resolve the path to the repository's tests/workflows directory.
     
     Parameters:
-    	repo_root (Path): Path to the repository root.
+        repo_root (Path): Path to the repository root.
     
     Returns:
-    	Path: Path to the tests/workflows directory.
+        Path: Path to the tests/workflows directory.
     """
     return repo_root / 'tests' / 'workflows'
 
