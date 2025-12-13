@@ -59,7 +59,7 @@ def workflow_content(workflow_raw):
         workflow_raw (str): Raw YAML content of the workflow file.
     
     Returns:
-        Parsed YAML structure (typically a dict) representing the workflow content.
+    Parsed YAML structure (typically a dict) representing the workflow content.
     """
     return yaml.safe_load(workflow_raw)
 
