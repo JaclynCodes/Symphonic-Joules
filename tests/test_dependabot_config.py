@@ -25,15 +25,15 @@ def dependabot_path():
 @pytest.fixture(scope='module')
 def dependabot_content(dependabot_path):
     """Load and parse dependabot.yml content"""
-    with open(dependabot_path, 'r') as f:
-        return yaml.safe_load(f)
+    with open(dependabot_path, 'r') as file:
+        return yaml.safe_load(file)
 
 
 @pytest.fixture(scope='module')
 def dependabot_raw(dependabot_path):
     """Get raw content of dependabot.yml"""
-    with open(dependabot_path, 'r') as f:
-        return f.read()
+    with open(dependabot_path, 'r') as file:
+        return file.read()
 
 
 class TestDependabotStructure:

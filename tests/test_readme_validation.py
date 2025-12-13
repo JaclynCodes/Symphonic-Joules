@@ -31,8 +31,8 @@ def readme_path(repo_root):
 @pytest.fixture(scope='module')
 def readme_content(readme_path):
     """Load README content."""
-    with open(readme_path, 'r') as f:
-        return f.read()
+    with open(readme_path, 'r') as file:
+        return file.read()
 
 
 @pytest.fixture(scope='module')
@@ -44,8 +44,8 @@ def test_blank_workflow_path(repo_root):
 @pytest.fixture(scope='module')
 def actual_test_count(test_blank_workflow_path):
     """Count actual tests in test_blank_workflow.py."""
-    with open(test_blank_workflow_path, 'r') as f:
-        tree = ast.parse(f.read())
+    with open(test_blank_workflow_path, 'r') as file:
+        tree = ast.parse(file.read())
     
     count = 0
     for node in ast.walk(tree):
@@ -59,8 +59,8 @@ def actual_test_count(test_blank_workflow_path):
 @pytest.fixture(scope='module')
 def actual_test_classes(test_blank_workflow_path):
     """Get actual test class names and their test counts."""
-    with open(test_blank_workflow_path, 'r') as f:
-        tree = ast.parse(f.read())
+    with open(test_blank_workflow_path, 'r') as file:
+        tree = ast.parse(file.read())
     
     classes = {}
     for node in ast.walk(tree):
@@ -82,8 +82,8 @@ class TestREADMEExists:
     def test_readme_is_readable(self, readme_path):
         """Test that README is readable"""
         assert readme_path.is_file(), "README must be a file"
-        with open(readme_path, 'r') as f:
-            content = f.read()
+        with open(readme_path, 'r') as file:
+            content = file.read()
             assert len(content) > 0, "README should not be empty"
     
     def test_readme_has_title(self, readme_content):

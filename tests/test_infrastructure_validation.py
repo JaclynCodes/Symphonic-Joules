@@ -52,8 +52,8 @@ class TestPytestConfiguration:
     
     def test_pytest_ini_is_readable(self, pytest_ini_path):
         """Test that pytest.ini is readable"""
-        with open(pytest_ini_path, 'r') as f:
-            content = f.read()
+        with open(pytest_ini_path, 'r') as file:
+            content = file.read()
             assert len(content) > 0, "pytest.ini should not be empty"
     
     def test_pytest_section_exists(self, pytest_config):
@@ -282,9 +282,9 @@ class TestTestFileStructure:
                                 continue
                             # Check if it's a fixture
                             is_fixture = any(
-                                (isinstance(d, ast.Call) and hasattr(d.func, 'attr') and d.func.attr == 'fixture') or
-                                (isinstance(d, ast.Attribute) and d.attr == 'fixture')
-                                for d in item.decorator_list
+                                (isinstance(decorator, ast.Call) and hasattr(decorator.func, 'attr') and decorator.func.attr == 'fixture') or
+                                (isinstance(decorator, ast.Attribute) and decorator.attr == 'fixture')
+                                for decorator in item.decorator_list
                             )
                             if not is_fixture:
                                 assert False,                                     f"Method {item.name} in {node.name} ({test_file.name}) should start with 'test_' or be a fixture"

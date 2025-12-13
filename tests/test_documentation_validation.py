@@ -34,8 +34,8 @@ def installation_path():
 @pytest.fixture(scope='module')
 def faq_content(faq_path):
     """Load FAQ content"""
-    with open(faq_path, 'r') as f:
-        return f.read()
+    with open(faq_path, 'r') as file:
+        return file.read()
 
 
 @pytest.fixture(scope='module')
@@ -220,14 +220,14 @@ class TestMarkdownFormatting:
         """Test that FAQ headers are properly formatted"""
         # This test ensures headers are valid markdown
         # We just check that there are headers present
-        lines = [l for l in faq_content.split('\n') if l.startswith('#')]
+        lines = [line for line in faq_content.split('\n') if line.startswith('#')]
         assert len(lines) > 0, "FAQ should have markdown headers"
     
     def test_installation_headers_have_proper_spacing(self, installation_content):
         """Test that installation guide headers are properly formatted"""
         # This test ensures headers are valid markdown
         # We just check that there are headers present
-        lines = [l for l in installation_content.split('\n') if l.startswith('#')]
+        lines = [line for line in installation_content.split('\n') if line.startswith('#')]
         assert len(lines) > 0, "Installation guide should have markdown headers"
 
 
@@ -253,15 +253,15 @@ class TestEdgeCases:
     def test_faq_file_readable(self, faq_path):
         """Test that FAQ file is readable"""
         assert faq_path.is_file(), "FAQ should be a file"
-        with open(faq_path, 'r') as f:
-            content = f.read()
+        with open(faq_path, 'r') as file:
+            content = file.read()
             assert len(content) > 0, "FAQ should be readable"
     
     def test_installation_file_readable(self, installation_path):
         """Test that installation guide is readable"""
         assert installation_path.is_file(), "Installation guide should be a file"
-        with open(installation_path, 'r') as f:
-            content = f.read()
+        with open(installation_path, 'r') as file:
+            content = file.read()
             assert len(content) > 0, "Installation guide should be readable"
 
 

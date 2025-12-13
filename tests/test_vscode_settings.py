@@ -28,8 +28,8 @@ def vscode_settings_path(repo_root):
 @pytest.fixture(scope='module')
 def vscode_settings(vscode_settings_path):
     """Load and parse VSCode settings"""
-    with open(vscode_settings_path, 'r') as f:
-        return json.load(f)
+    with open(vscode_settings_path, 'r') as file:
+        return json.load(file)
 
 
 class TestVSCodeSettingsStructure:
@@ -122,8 +122,8 @@ class TestFileFormat:
     
     def test_file_ends_with_newline(self, vscode_settings_path):
         """Test that JSON file ends with newline"""
-        with open(vscode_settings_path, 'rb') as f:
-            content = f.read()
+        with open(vscode_settings_path, 'rb') as file:
+            content = file.read()
             # Check if file ends with newline
             if len(content) > 0:
                 # Allow either LF or CRLF
@@ -132,8 +132,8 @@ class TestFileFormat:
     
     def test_file_uses_consistent_indentation(self, vscode_settings_path):
         """Test that JSON uses consistent indentation"""
-        with open(vscode_settings_path, 'r') as f:
-            content = f.read()
+        with open(vscode_settings_path, 'r') as file:
+            content = file.read()
             lines = content.split('\n')
             
             # Count spaces at start of indented lines
@@ -175,8 +175,8 @@ class TestEdgeCases:
         """Test that .vscode directory is properly tracked"""
         gitignore_path = repo_root / '.gitignore'
         if gitignore_path.exists():
-            with open(gitignore_path, 'r') as f:
-                gitignore = f.read()
+            with open(gitignore_path, 'r') as file:
+                gitignore = file.read()
                 # .vscode/ should not be completely ignored
                 assert '.vscode/' not in gitignore or '!.vscode/settings.json' in gitignore, \
                     ".vscode/settings.json should be trackable by git"
