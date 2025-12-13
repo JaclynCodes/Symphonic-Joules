@@ -48,7 +48,7 @@ def readme_content(readme_path):
         readme_path (Path | str): Path to the README file.
     
     Returns:
-        content (str): The README file contents as a string.
+        str: The README file contents as a string.
     """
     with open(readme_path, 'r') as f:
         return f.read()
