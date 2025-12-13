@@ -44,7 +44,7 @@ def workflow_raw(workflow_path):
         workflow_path (str | Path): Path to the workflow YAML file.
     
     Returns:
-        raw_content (str): The workflow file contents as a string.
+        str: The workflow file contents as a string.
     """
     with open(workflow_path, 'r') as f:
         return f.read()
