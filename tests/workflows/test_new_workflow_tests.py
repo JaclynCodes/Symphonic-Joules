@@ -76,8 +76,8 @@ class TestNewFilesFollowPattern:
     def test_new_files_have_module_docstrings(self, jekyll_test_file, static_test_file):
         """Test that new files have comprehensive module docstrings"""
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 docstring = ast.get_docstring(tree)
                 
@@ -89,14 +89,14 @@ class TestNewFilesFollowPattern:
     def test_new_files_import_same_modules(self, jekyll_test_file, static_test_file, blank_test_file):
         """Test that new files import same core modules as blank test"""
         # Get imports from blank test file (reference)
-        with open(blank_test_file, 'r') as f:
+        with open(blank_test_file, 'r') as file:
             pass
         
         required_imports = ['pytest', 'yaml', 'os', 'Path']
         
         for test_file in [jekyll_test_file, static_test_file]:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 for imp in required_imports:
                     assert imp in content, \

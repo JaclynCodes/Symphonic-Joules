@@ -24,7 +24,7 @@ def workflow_path():
 @pytest.fixture(scope='module')
 def workflow_content(workflow_path):
     """Load and parse CodeQL workflow content"""
-    with open(workflow_path, 'r') as f:
+    with open(workflow_path, 'r') as file:
         return yaml.safe_load(f)
 
 
@@ -141,8 +141,8 @@ class TestEdgeCases:
     
     def test_workflow_yaml_is_valid(self, workflow_path):
         """Test that workflow YAML is valid"""
-        with open(workflow_path, 'r') as f:
-            content = f.read()
+        with open(workflow_path, 'r') as file:
+            content = file.read()
             # Should not raise exception
             yaml.safe_load(content)
 

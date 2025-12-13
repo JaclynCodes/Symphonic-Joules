@@ -30,15 +30,15 @@ def test_blank_workflow_path(repo_root):
 @pytest.fixture(scope='module')
 def test_file_ast(test_blank_workflow_path):
     """Parse test file into AST."""
-    with open(test_blank_workflow_path, 'r') as f:
-        return ast.parse(f.read())
+    with open(test_blank_workflow_path, 'r') as file:
+        return ast.parse(file.read())
 
 
 @pytest.fixture(scope='module')
 def test_file_content(test_blank_workflow_path):
     """Load test file content."""
-    with open(test_blank_workflow_path, 'r') as f:
-        return f.read()
+    with open(test_blank_workflow_path, 'r') as file:
+        return file.read()
 
 
 class TestDocumentation:
@@ -206,8 +206,8 @@ class TestCodeOrganization:
                     if isinstance(item, ast.FunctionDef):
                         # If it doesn't start with test_ and is not a fixture, should be private
                         if not item.name.startswith('test_') and \
-                           not any(d for d in item.decorator_list 
-                                  if isinstance(d, ast.Attribute) and d.attr == 'fixture'):
+                           not any(decorator for decorator in item.decorator_list 
+                                  if isinstance(decorator, ast.Attribute) and decorator.attr == 'fixture'):
                             assert item.name.startswith('_'), \
                                 f"Helper method {item.name} in {node.name} should start with underscore"
     

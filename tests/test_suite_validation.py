@@ -52,7 +52,7 @@ class TestTestFileStructure:
     
     def test_all_workflow_files_have_tests(self, workflow_files, test_files):
         """Test that every workflow file has a corresponding test file"""
-        workflow_names = {f.stem for f in workflow_files}
+        workflow_names = {workflow_file.stem for workflow_file in workflow_files}
         test_workflow_names = set()
         
         for test_file in test_files:
@@ -79,7 +79,7 @@ class TestTestFileStructure:
     
     def test_no_orphaned_test_files(self, workflow_files, test_files):
         """Test that there are no test files without corresponding workflows"""
-        workflow_names = {f.stem for f in workflow_files}
+        workflow_names = {workflow_file.stem for workflow_file in workflow_files}
         
         for test_file in test_files:
             # Skip meta-test files that don't correspond to workflows
@@ -218,11 +218,11 @@ class TestFixtureUsage:
                                                        'workflow_content', 'jobs']:
                                         # These should be module-scoped
                                         has_module_scope = any(
-                                            isinstance(kw, ast.keyword) and 
-                                            kw.arg == 'scope' and
-                                            isinstance(kw.value, ast.Constant) and
-                                            kw.value.value == 'module'
-                                            for kw in decorator.keywords
+                                            isinstance(keyword, ast.keyword) and 
+                                            keyword.arg == 'scope' and
+                                            isinstance(keyword.value, ast.Constant) and
+                                            keyword.value.value == 'module'
+                                            for keyword in decorator.keywords
                                         )
                                         assert has_module_scope, \
                                             f"Fixture {fixture_name} in {test_file.name} should use module scope"
@@ -234,8 +234,8 @@ class TestTestMethodNaming:
     def test_all_test_methods_start_with_test(self, test_files):
         """Test that all test methods follow test_* naming convention"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 for node in ast.walk(tree):
@@ -245,10 +245,10 @@ class TestTestMethodNaming:
                                not item.name.startswith('_'):
                                 # Check if it's a pytest fixture
                                 is_fixture = any(
-                                    (hasattr(d, 'id') and d.id == 'pytest' and 
-                                     hasattr(d, 'attr') and d.attr == 'fixture') or
-                                    (hasattr(d, 'attr') and d.attr == 'fixture')
-                                    for d in item.decorator_list
+                                    (hasattr(decorator, 'id') and decorator.id == 'pytest' and 
+                                     hasattr(decorator, 'attr') and decorator.attr == 'fixture') or
+                                    (hasattr(decorator, 'attr') and decorator.attr == 'fixture')
+                                    for decorator in item.decorator_list
                                 )
                                 if not is_fixture:
                                     assert item.name.startswith('test_'), \
@@ -257,7 +257,7 @@ class TestTestMethodNaming:
     def test_test_methods_have_docstrings(self, test_files):
         """Test that all test methods have descriptive docstrings"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
+            with open(test_file, 'r') as file:
                 content = f.read()
                 tree = ast.parse(content)
                 

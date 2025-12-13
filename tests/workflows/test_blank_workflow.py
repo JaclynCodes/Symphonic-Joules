@@ -33,8 +33,8 @@ def workflow_raw(workflow_path):
     Module-scoped fixture for raw workflow content.
     File is read once and cached for all tests.
     """
-    with open(workflow_path, 'r') as f:
-        return f.read()
+    with open(workflow_path, 'r') as file:
+        return file.read()
 
 
 @pytest.fixture(scope='module')

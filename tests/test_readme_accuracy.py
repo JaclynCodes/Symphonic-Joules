@@ -29,8 +29,8 @@ def readme_path(repo_root):
 @pytest.fixture(scope='module')
 def readme_content(readme_path):
     """Load README content."""
-    with open(readme_path, 'r') as f:
-        return f.read()
+    with open(readme_path, 'r') as file:
+        return file.read()
 
 
 class TestREADMEStructure:
@@ -76,8 +76,8 @@ class TestREADMETestCounts:
         total_tests = 0
         
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 
                 for node in ast.walk(tree):
@@ -93,7 +93,7 @@ class TestREADMETestCounts:
         matches = re.findall(test_count_pattern, readme_content, re.IGNORECASE)
         
         if matches:
-            documented_counts = [int(m) for m in matches]
+            documented_counts = [int(match) for match in matches]
             # Total should be documented somewhere
             assert total_tests in documented_counts or \
                    any(abs(total_tests - dc) <= 5 for dc in documented_counts), \
@@ -280,14 +280,14 @@ class TestREADMEConsistency:
         if matches:
             # Count actual test classes in one file as validation
             test_file = repo_root / 'tests' / 'workflows' / 'test_blank_workflow.py'
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 tree = ast.parse(content)
                 actual_classes = len([node for node in ast.walk(tree)
                                      if isinstance(node, ast.ClassDef)
                                      and node.name.startswith('Test')])
             
-            documented_counts = [int(m) for m in matches]
+            documented_counts = [int(match) for match in matches]
             # At least one documented count should be close to actual
             assert any(abs(actual_classes - dc) <= 2 for dc in documented_counts), \
                 f"README class counts should match implementation (actual: {actual_classes})"

@@ -30,8 +30,8 @@ def all_workflow_test_files(repo_root):
 
 def extract_test_classes(file_path: Path) -> List[str]:
     """Extract test class names from a file."""
-    with open(file_path, 'r') as f:
-        tree = ast.parse(f.read())
+    with open(file_path, 'r') as file:
+        tree = ast.parse(file.read())
     
     return [node.name for node in ast.walk(tree)
             if isinstance(node, ast.ClassDef) and node.name.startswith('Test')]
@@ -39,8 +39,8 @@ def extract_test_classes(file_path: Path) -> List[str]:
 
 def extract_fixtures(file_path: Path) -> List[str]:
     """Extract fixture names from a file."""
-    with open(file_path, 'r') as f:
-        tree = ast.parse(f.read())
+    with open(file_path, 'r') as file:
+        tree = ast.parse(file.read())
     
     fixtures = []
     for node in ast.walk(tree):
@@ -65,8 +65,8 @@ class TestConsistentStructure:
     def test_all_files_have_module_docstring(self, all_workflow_test_files):
         """Test that all test files have module docstrings"""
         for test_file in all_workflow_test_files:
-            with open(test_file, 'r') as f:
-                tree = ast.parse(f.read())
+            with open(test_file, 'r') as file:
+                tree = ast.parse(file.read())
                 docstring = ast.get_docstring(tree)
                 
                 assert docstring is not None, \
@@ -77,8 +77,8 @@ class TestConsistentStructure:
         core_imports = ['pytest', 'yaml', 'os', 'Path']
         
         for test_file in all_workflow_test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 for imp in core_imports:
                     assert imp in content, \
@@ -137,8 +137,8 @@ class TestConsistentFixtureUsage:
     def test_workflow_path_fixtures_use_module_scope(self, all_workflow_test_files):
         """Test that workflow_path fixtures use module scope"""
         for test_file in all_workflow_test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
+            with open(test_file, 'r') as file:
+                content = file.read()
                 
                 # Find workflow_path fixture definition
                 if 'def workflow_path()' in content:
@@ -176,8 +176,8 @@ class TestConsistentTestNaming:
     def test_test_methods_start_with_test(self, all_workflow_test_files):
         """Test that all test methods follow test_* naming"""
         for test_file in all_workflow_test_files:
-            with open(test_file, 'r') as f:
-                tree = ast.parse(f.read())
+            with open(test_file, 'r') as file:
+                tree = ast.parse(file.read())
                 
                 for node in ast.walk(tree):
                     if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
@@ -211,8 +211,8 @@ class TestConsistentDocumentation:
     def test_all_test_methods_have_docstrings(self, all_workflow_test_files):
         """Test that all test methods have docstrings"""
         for test_file in all_workflow_test_files:
-            with open(test_file, 'r') as f:
-                tree = ast.parse(f.read())
+            with open(test_file, 'r') as file:
+                tree = ast.parse(file.read())
                 
                 methods_without_docs = []
                 for node in ast.walk(tree):
@@ -229,8 +229,8 @@ class TestConsistentDocumentation:
     def test_all_test_classes_have_docstrings(self, all_workflow_test_files):
         """Test that all test classes have docstrings"""
         for test_file in all_workflow_test_files:
-            with open(test_file, 'r') as f:
-                tree = ast.parse(f.read())
+            with open(test_file, 'r') as file:
+                tree = ast.parse(file.read())
                 
                 classes_without_docs = []
                 for node in ast.walk(tree):
@@ -250,8 +250,8 @@ class TestSimilarComplexity:
         test_counts = {}
         
         for test_file in all_workflow_test_files:
-            with open(test_file, 'r') as f:
-                tree = ast.parse(f.read())
+            with open(test_file, 'r') as file:
+                tree = ast.parse(file.read())
                 
                 count = 0
                 for node in ast.walk(tree):

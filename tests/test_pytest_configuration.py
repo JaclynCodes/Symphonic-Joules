@@ -44,8 +44,8 @@ class TestPytestIniExists:
     
     def test_pytest_ini_is_readable(self, pytest_ini_path):
         """Test that pytest.ini is readable"""
-        with open(pytest_ini_path, 'r') as f:
-            content = f.read()
+        with open(pytest_ini_path, 'r') as file:
+            content = file.read()
             assert len(content) > 0, "pytest.ini should not be empty"
 
 
@@ -188,8 +188,8 @@ class TestRequirementsTxt:
     def test_requirements_includes_pytest(self, repo_root):
         """Test that requirements.txt includes pytest with version"""
         requirements = repo_root / 'tests' / 'requirements.txt'
-        with open(requirements, 'r') as f:
-            content = f.read()
+        with open(requirements, 'r') as file:
+            content = file.read()
             assert 'pytest' in content.lower(), \
                 "requirements.txt should include pytest"
             # Should have version specifier
@@ -199,16 +199,16 @@ class TestRequirementsTxt:
     def test_requirements_includes_pyyaml(self, repo_root):
         """Test that requirements.txt includes PyYAML"""
         requirements = repo_root / 'tests' / 'requirements.txt'
-        with open(requirements, 'r') as f:
-            content = f.read()
+        with open(requirements, 'r') as file:
+            content = file.read()
             assert 'yaml' in content.lower(), \
                 "requirements.txt should include PyYAML"
     
     def test_requirements_has_reasonable_versions(self, repo_root):
         """Test that requirements specify reasonable minimum versions"""
         requirements = repo_root / 'tests' / 'requirements.txt'
-        with open(requirements, 'r') as f:
-            lines = f.readlines()
+        with open(requirements, 'r') as file:
+            lines = file.readlines()
             
             for line in lines:
                 line = line.strip()
@@ -238,8 +238,8 @@ class TestProjectStructure:
         # Check if .gitignore exists and includes __pycache__
         gitignore = repo_root / '.gitignore'
         if gitignore.exists():
-            with open(gitignore, 'r') as f:
-                content = f.read()
+            with open(gitignore, 'r') as file:
+                content = file.read()
                 assert '__pycache__' in content or '*.pyc' in content, \
                     ".gitignore should ignore __pycache__ and .pyc files"
 

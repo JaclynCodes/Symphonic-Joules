@@ -26,8 +26,8 @@ def workflow_path():
 @pytest.fixture(scope='module')
 def workflow_raw(workflow_path):
     """Module-scoped fixture for raw workflow content."""
-    with open(workflow_path, 'r') as f:
-        return f.read()
+    with open(workflow_path, 'r') as file:
+        return file.read()
 
 
 @pytest.fixture(scope='module')
