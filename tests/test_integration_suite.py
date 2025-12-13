@@ -123,13 +123,13 @@ class TestFixtureInitialization:
         sys.path.insert(0, str(repo_root / 'tests' / 'workflows'))
         
         try:
-            from test_blank_workflow import workflow_path as blank_workflow_path
+            from test_blank_workflow import workflow_path
             
-            # Call the fixture (it's a function)
-            # Note: Fixtures need pytest context, so we test the logic directly
+            # Call the fixture function to test its logic directly
+            returned_path = workflow_path()
             expected_path = repo_root / '.github' / 'workflows' / 'blank.yml'
-            assert expected_path.exists(), \
-                f"Workflow file should exist at {expected_path}"
+            assert returned_path == expected_path, f"Fixture returned {returned_path}, expected {expected_path}"
+            assert returned_path.exists(), f"Workflow file should exist at {returned_path}"
         finally:
             sys.path.pop(0)
     
