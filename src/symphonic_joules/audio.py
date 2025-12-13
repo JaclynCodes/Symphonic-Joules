@@ -11,4 +11,5 @@ This module will provide tools for:
 # Placeholder for future audio processing functionality
 # Audio libraries like librosa or pydub will be integrated here
 
-__all__ = [p5.js]
+__all__ = []
+
