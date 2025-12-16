@@ -81,7 +81,7 @@ pip install -e ".[dev]"
 # Run the test suite to verify installation
 python -m pytest tests/ -v
 
-# Check package version
+# Check package version (note: Python package uses underscores, not hyphens)
 python -c "import symphonic_joules; print(symphonic_joules.__version__)"
 ```
 
@@ -91,10 +91,12 @@ For detailed installation instructions, troubleshooting, and platform-specific g
 
 ### Python API
 
-Currently, Symphonic-Joules provides a Python API for audio and energy computations. The package is designed to be imported and used programmatically:
+Currently, Symphonic-Joules provides a Python API for audio and energy computations. The package is designed to be imported and used programmatically.
+
+**Note**: The Python package name uses underscores (`symphonic_joules`) following Python naming conventions, while the repository and project name use hyphens (`Symphonic-Joules`).
 
 ```python
-# Import the package
+# Import the package (note: use underscores in Python)
 import symphonic_joules
 
 # Check version
@@ -206,9 +208,9 @@ We welcome contributions from developers, musicians, physicists, and anyone inte
 ### Contribution Pathways
 
 - 🐛 **Report Bugs**: [Create an Issue](https://github.com/JaclynCodes/Symphonic-Joules/issues/new)
-- 💡 **Suggest Features**: [Feature Request](https://github.com/JaclynCodes/Symphonic-Joules/issues/new?template=feature_request.md)
+- 💡 **Suggest Features**: [Feature Request](https://github.com/JaclynCodes/Symphonic-Joules/issues/new?labels=enhancement&template=feature_request.md)
 - 👶 **Good First Issues**: [Beginner-Friendly Tasks](https://github.com/JaclynCodes/Symphonic-Joules/labels/good%20first%20issue)
-- 📋 **Project Board**: [View Development Status](https://github.com/JaclynCodes/Symphonic-Joules/projects)
+- 📋 **Project Board**: [View Active Projects](https://github.com/JaclynCodes/Symphonic-Joules/projects)
 - 📖 **Improve Documentation**: Documentation PRs are always welcome!
 
 ### Guidelines
@@ -251,7 +253,7 @@ Read the full **[Contributing Guidelines](CONTRIBUTING.md)** for detailed inform
 - [ ] Web-based visualization dashboard
 - [ ] Community plugin system
 
-Track progress on our **[GitHub Projects Board](https://github.com/JaclynCodes/Symphonic-Joules/projects)**.
+See our **[Project Board](https://github.com/JaclynCodes/Symphonic-Joules/projects)** for detailed progress tracking and upcoming milestones.
 
 ## 🔬 Scientific Background
 
