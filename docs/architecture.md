@@ -326,8 +326,6 @@ def sequential_energy(signal):
 
 ### GPU Harmonics (Current and Future)
 
-**GPU Harmonics (Current and Future)**
-
 GPU architecture embodies massive parallelism—thousands of threads operating in harmony. The Fluidity Protocol embraces this through:
 
 - **Wave-Parallel FFT**: Frequency transforms map naturally to GPU thread blocks
@@ -449,8 +447,6 @@ def run_harmonic_circuit(audio_file):
 
 ### Resource Fluidity: Dynamic Adaptation
 
-### Resource Fluidity: Dynamic Adaptation
-
 The Fluidity Protocol emphasizes **dynamic resource adaptation** rather than static allocation:
 
 - **Elastic Buffer Sizing**: Buffers grow and shrink based on data flow patterns detected in Nudge phase
@@ -483,8 +479,6 @@ class FluidityManager:
                 multiprocessing.cpu_count()
             )
 ```
-
-### Algorithm Complexity: Natural Efficiency
 
 ### Algorithm Complexity: Natural Efficiency
 
