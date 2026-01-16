@@ -469,8 +469,8 @@ class FluidityManager:
         """Called during Nudge phase to adapt for next cycle."""
         # Detect memory pressure
         if cycle_metrics['memory_used'] > 0.8:
-            self.adaptive_params['chunk_size'] //= 2
-            self.adaptive_params['cache_size'] //= 2
+            self.adaptive_params['chunk_size'] = max(1, self.adaptive_params.get('chunk_size', 4096) // 2)
+            self.adaptive_params['cache_size'] = max(1, self.adaptive_params.get('cache_size', 128) // 2)
         
         # Detect CPU underutilization
         if cycle_metrics['cpu_usage'] < 0.5:
