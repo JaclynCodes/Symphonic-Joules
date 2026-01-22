@@ -344,8 +344,8 @@ class TestWorkflowSecurity:
                 for line in lines:
                     if pattern in line.lower() and not line.strip().startswith('#'):
                         # Skip if it's a valid GitHub Actions permission setting
-                        is_valid_permission = any(keyword in line.lower() for keyword in valid_permission_keywords)
-                        if is_valid_permission:
+                        contains_valid_permission = any(keyword in line.lower() for keyword in valid_permission_keywords)
+                        if contains_valid_permission:
                             continue
                         # Check if it's using GitHub secrets context
                         assert 'secrets.' in line or '${{' in line, \
