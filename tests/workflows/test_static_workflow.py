@@ -465,11 +465,18 @@ class TestWorkflowSecurity:
         suspicious_patterns = ['password', 'token', 'api_key', 'secret']
         lower_content = workflow_raw.lower()
         
+        # Valid GitHub Actions permission keywords that should not be flagged
+        valid_permission_keywords = ['id-token:', 'contents:', 'pages:', 'deployments:']
+        
         for pattern in suspicious_patterns:
             if pattern in lower_content:
                 lines = workflow_raw.split('\n')
                 for line in lines:
                     if pattern in line.lower() and not line.strip().startswith('#'):
+                        # Skip if it's a valid GitHub Actions permission setting
+                        is_valid_permission = any(keyword in line.lower() for keyword in valid_permission_keywords)
+                        if is_valid_permission:
+                            continue
                         assert 'secrets.' in line or '${{' in line or 'GITHUB_TOKEN' in line, \
                             f"Potential hardcoded secret pattern '{pattern}' found"
     
