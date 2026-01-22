@@ -14,6 +14,7 @@ import pytest
 import yaml
 import os
 from pathlib import Path
+from .conftest import check_for_hardcoded_secrets
 
 
 # Module-level fixtures to cache expensive file I/O and parsing operations
@@ -331,25 +332,7 @@ class TestWorkflowSecurity:
     
     def test_no_hardcoded_secrets(self, workflow_raw):
         """Test that workflow doesn't contain hardcoded secrets"""
-        suspicious_patterns = ['password', 'token', 'api_key', 'secret']
-        lower_content = workflow_raw.lower()
-        
-        # Valid GitHub Actions permission keywords that should not be flagged
-        valid_permission_keywords = ['id-token:', 'contents:', 'pages:', 'deployments:']
-        
-        for pattern in suspicious_patterns:
-            if pattern in lower_content:
-                # Make sure it's not in a comment or using secrets context
-                lines = workflow_raw.split('\n')
-                for line in lines:
-                    if pattern in line.lower() and not line.strip().startswith('#'):
-                        # Skip if it's a valid GitHub Actions permission setting
-                        contains_valid_permission = any(keyword in line.lower() for keyword in valid_permission_keywords)
-                        if contains_valid_permission:
-                            continue
-                        # Check if it's using GitHub secrets context
-                        assert 'secrets.' in line or '${{' in line, \
-                            f"Potential hardcoded secret pattern '{pattern}' found"
+        check_for_hardcoded_secrets(workflow_raw)
     
     def test_checkout_action_is_pinned_or_versioned(self, jobs):
         """Test that actions use version tags (security best practice)"""
