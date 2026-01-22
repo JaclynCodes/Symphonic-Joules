@@ -14,6 +14,7 @@ This test suite validates the GitHub Actions Jekyll deployment workflow includin
 import pytest
 import yaml
 from pathlib import Path
+from .conftest import check_for_hardcoded_secrets
 
 
 @pytest.fixture(scope='module')
@@ -422,16 +423,7 @@ class TestWorkflowSecurity:
     
     def test_no_hardcoded_secrets(self, workflow_raw):
         """Test that workflow doesn't contain hardcoded secrets"""
-        suspicious_patterns = ['password', 'token', 'api_key', 'secret']
-        lower_content = workflow_raw.lower()
-        
-        for pattern in suspicious_patterns:
-            if pattern in lower_content:
-                lines = workflow_raw.split('\n')
-                for line in lines:
-                    if pattern in line.lower() and not line.strip().startswith('#'):
-                        assert 'secrets.' in line or '${{' in line or 'GITHUB_TOKEN' in line, \
-                            f"Potential hardcoded secret pattern '{pattern}' found"
+        check_for_hardcoded_secrets(workflow_raw)
 
 
 class TestEdgeCases:
