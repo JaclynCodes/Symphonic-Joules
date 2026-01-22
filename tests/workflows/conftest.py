@@ -21,9 +21,6 @@ def check_for_hardcoded_secrets(workflow_raw):
     suspicious_patterns = ['password', 'token', 'api_key', 'secret']
     lower_content = workflow_raw.lower()
     
-    # Valid GitHub Actions permission keys (without colons for flexibility)
-    valid_permission_keys = {'id-token', 'contents', 'pages', 'deployments'}
-    
     for pattern in suspicious_patterns:
         if pattern not in lower_content:
             continue
@@ -68,15 +65,6 @@ def check_for_hardcoded_secrets(workflow_raw):
                 
             # Skip if this line is part of a permissions block
             if lineno in permissions_line_indices:
-                continue
-                
-            # Skip if it's a valid GitHub Actions permission setting
-            # (format-agnostic check for permission keys)
-            lower_line = line.lower().strip()
-            contains_valid_permission = any(
-                lower_line.startswith(key) for key in valid_permission_keys
-            )
-            if contains_valid_permission:
                 continue
                 
             # Check if it's using GitHub secrets context or GITHUB_TOKEN
