@@ -1,4 +1,4 @@
-# Documentation
+#Documentation
 
 Welcome to the Symphonic-Joules documentation! This directory contains comprehensive guides and references for the project.
 

@@ -32,6 +32,10 @@ The specific programming language and technology stack will be determined during
 
 Prerequisites will be documented as they are established. The project aims to minimize external dependencies while providing powerful functionality.
 
+### What Python version do I need?
+
+The project is designed to work with Python 3.8 or higher. However, if you're on macOS and experience compatibility issues with newer Python versions (3.12+), you may need to use Python 3.11 as a temporary workaround. See the [Installation Guide](installation-setup.md#macos-python-version-compatibility) for detailed instructions.
+
 ## 🔬 Scientific Questions
 
 ### What scientific principles does the project use?
@@ -121,11 +125,13 @@ Feature requests can be submitted through GitHub Issues. Please include:
 
 ### Are there tutorials available?
 
-Tutorials will be added to the [examples](examples/) directory as the project develops. These will include:
+Tutorials and example code will be added as the project develops. These will include:
 - Basic usage examples
 - Scientific analysis workflows
 - Advanced techniques and methods
 - Real-world applications
+
+**Note**: Watch the repository for updates as the `examples/` directory is populated during development.
 
 ### How do I stay updated on project progress?
 
