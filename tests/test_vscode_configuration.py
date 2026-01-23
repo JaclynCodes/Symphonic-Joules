@@ -9,9 +9,10 @@ This module validates VSCode workspace settings:
 - Best practices and conventions
 """
 
-import pytest
 import json
-from pathlib import Path
+import re
+
+import pytest
 
 
 @pytest.fixture(scope='module')
@@ -216,7 +217,6 @@ class TestBestPractices:
     def test_no_absolute_paths(self, settings_raw):
         """Test that configuration doesn't contain absolute file paths"""
         # Absolute paths would break on different machines
-        import re
         # Check for Windows paths (C:\) or Unix absolute paths that aren't URLs
         abs_path_patterns = [
             r'[A-Z]:\\',  # Windows paths
@@ -262,7 +262,6 @@ class TestEdgeCases:
         # Parse JSON to ensure it's valid (no exception means valid)
         json.loads(settings_raw)
         # Count keys in raw JSON
-        import re
         key_pattern = r'"([^"]+)"\s*:'
         keys_in_raw = re.findall(key_pattern, settings_raw)
         unique_keys = set(keys_in_raw)
