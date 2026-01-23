@@ -71,6 +71,39 @@ The Harmonic Circuit operates through three recursive phases that continuously c
 
 **🏛️ Sanctuary Core** - The stable foundation underlying all phases. This is the sacred space where system state, security filters, and optimization infrastructure reside. The Sanctuary Core maintains fidelity and provides the computational substrate for the Harmonic Circuit's recursive dance.
 
+## 🔭 Vision vs. Current State
+
+The **Harmonic Circuit** architecture described in this document represents a **target architecture and design vision** for Symphonic-Joules, not a complete reflection of the current implementation in `src/symphonic_joules/`.
+
+### Current Implementation Status
+
+At present, the codebase focuses on:
+- Core **energy calculation** utilities
+- A minimal / placeholder **audio module** abstraction
+- Foundational scaffolding to support future extensions
+
+### Architectural Roadmap
+
+While the Pulse → Resonance → Nudge phases and Sanctuary Core are used here as guiding concepts, they are **not yet implemented as distinct modules or classes**. In the current state:
+
+- **Pulse-like responsibilities** (input ingestion, validation, normalization) are partially covered by basic data handling around energy calculations
+- **Resonance-like behavior** is represented by the existing numerical and energy computation functions
+- **Nudge-like feedback loops**, adaptive refinement, and advanced optimization are **planned but not yet present** in the code
+- **Sanctuary Core elements** (security filters, streaming infrastructure, SIMD/GPU optimization, plugin systems) are **aspirational** and will be introduced incrementally
+
+### Reading This Document
+
+This document should be read as a **roadmap and architectural intent**. Code examples in this document are primarily **conceptual illustrations** to demonstrate design patterns and principles, not production-ready implementations. As the project evolves, the implementation will more closely align with the Harmonic Circuit model, and this document will be updated to reflect concrete modules, APIs, and data flows.
+
+### Note on Code Examples and Dependencies
+
+Code examples in this document may reference libraries not currently in `requirements.txt`:
+- **scipy** (for FFT operations): Not included in core dependencies, but used in examples
+- **Quantum computing libraries** (Qiskit, Cirq): Future/conceptual dependencies for experimental features
+- Most code blocks are marked as "CONCEPTUAL EXAMPLE" or include placeholder functions
+
+These examples illustrate design patterns and architectural intent rather than providing copy-paste implementations.
+
 ## 🎯 Design Principles
 
 ### 1. Recursive Resonance
@@ -179,11 +212,14 @@ Rather than traditional input validation, Coherent State Filters ensure that all
 ```python
 def coherent_state_filter(input_signal):
     """
-    Validate input through harmonic coherence rather than rigid checks.
-    Returns filtered signal or raises IncoherentStateException.
+    CONCEPTUAL EXAMPLE ONLY - NOT EXECUTABLE CODE
     
-    Note: This is a conceptual example. Actual implementation would use
-    signal processing libraries like scipy.signal for spectral analysis.
+    This function illustrates the harmonic coherence validation flow.
+    All helper functions and exception classes shown here are placeholders
+    and are not implemented in the codebase.
+    
+    A real implementation would use signal processing libraries like
+    scipy.signal for spectral analysis and related operations.
     """
     # Check spectral coherence (placeholder - would use FFT analysis)
     if not has_expected_harmonics(input_signal):  # Conceptual function
@@ -219,25 +255,31 @@ The **Sanctuary Core**—the foundational state and infrastructure—is protecte
 4. **Coherence Monitoring**: Continuous validation that core remains in expected state
 
 ```python
+# CONCEPTUAL EXAMPLE - NOT EXECUTABLE CODE
+# Uses placeholder classes: ImmutableDict, EntropyMonitor, CoherenceViolationException, EntropyBreachException
+# In production, consider using types.MappingProxyType for immutable dictionaries
+
 class SanctuaryCore:
     """
     Protected core state and infrastructure.
     Maintains coherence across Harmonic Circuit cycles.
+    
+    This is a conceptual example illustrating the design pattern.
     """
     def __init__(self):
-        self._state = ImmutableDict()  # Protected state
+        self._state = ImmutableDict()  # Protected state (conceptual - see types.MappingProxyType)
         self._coherence_validators = []
-        self._entropy_monitor = EntropyMonitor()
+        self._entropy_monitor = EntropyMonitor()  # Conceptual placeholder
     
     def validate_coherence(self):
         """Ensure Sanctuary Core remains coherent"""
         for validator in self._coherence_validators:
             if not validator.check(self._state):
-                raise CoherenceViolationException()
+                raise CoherenceViolationException()  # Conceptual exception
         
         if self._entropy_monitor.exceeds_threshold():
             self._entropy_monitor.reset()
-            raise EntropyBreachException()
+            raise EntropyBreachException()  # Conceptual exception
 ```
 
 ### Security Through Resonance
@@ -266,22 +308,27 @@ Rather than generic optimization, the Fluidity Protocol aligns data transformati
 - Set memory limits that respect system capabilities, not arbitrary thresholds
 
 ```python
-# Fluidity Protocol: Stream processing aligned with Harmonic Circuit
+# CONCEPTUAL EXAMPLE - Illustrates design pattern for Harmonic Circuit streaming
+# Functions like pulse_normalize, resonance_process, nudge_adjust, get_previous_state
+# are placeholders representing future implementation modules
+
 def harmonic_stream_processor(file_path, chunk_size=4096):
     """
     Process audio file in chunks, each flowing through the Harmonic Circuit.
     Memory usage remains constant regardless of file size.
+    
+    This is a conceptual example showing the streaming pattern.
     """
     with open(file_path, 'rb') as f:
         while chunk := f.read(chunk_size):
             # Pulse: Ingest chunk
-            normalized_chunk = pulse_normalize(chunk)
+            normalized_chunk = pulse_normalize(chunk)  # Conceptual function
             
             # Resonance: Transform
-            transformed = resonance_process(normalized_chunk)
+            transformed = resonance_process(normalized_chunk)  # Conceptual function
             
             # Nudge: Refine based on previous state
-            refined = nudge_adjust(transformed, get_previous_state())
+            refined = nudge_adjust(transformed, get_previous_state())  # Conceptual functions
             
             yield refined
 
@@ -290,7 +337,7 @@ def inefficient_load(file_path):
     """Avoid: Forces entire file into memory, breaking flow."""
     with open(file_path, 'rb') as f:
         data = f.read()  # Blocks the stream
-        return process_all(data)
+        return process_all(data)  # Conceptual function
 ```
 
 ### Computational Fluidity: SIMD & Vectorization
@@ -365,7 +412,6 @@ def gpu_resonance_phase(signal_batch):
 ```python
 # Fluidity Protocol: Adaptive caching through resonance
 from functools import lru_cache
-import hashlib
 
 class ResonanceCache:
     """Cache that adapts based on access patterns (Nudge feedback)."""
@@ -397,12 +443,17 @@ class ResonanceCache:
     
     def _evict_least_resonant(self):
         """Evict item with lowest resonance (access count)."""
+        # Defensive: avoid ValueError if access_counts is unexpectedly empty
+        if not self.access_counts:
+            return
         least_used = min(self.access_counts.items(), key=lambda x: x[1])
         del self.cache[least_used[0]]
         del self.access_counts[least_used[0]]
 
 # Anti-pattern: No caching, recomputing constantly
 def compute_spectrum_inefficient(audio_data, fft_size):
+    # Note: This example assumes fft is imported from scipy.fft
+    from scipy.fft import fft
     return fft(audio_data, fft_size)  # Recomputed every time
 ```
 
@@ -422,25 +473,27 @@ def parallel_harmonic_circuits(audio_files):
     """
     Run independent Harmonic Circuits in parallel.
     Each file gets its own Pulse → Resonance → Nudge cycle.
+    
+    CONCEPTUAL EXAMPLE - run_harmonic_circuit is a placeholder function.
     """
     num_workers = multiprocessing.cpu_count()
     
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         # Each worker runs complete Harmonic Circuit
-        results = executor.map(run_harmonic_circuit, audio_files)
+        results = executor.map(run_harmonic_circuit, audio_files)  # Conceptual function
     
     return list(results)
 
 def run_harmonic_circuit(audio_file):
-    """Complete circuit for single file."""
+    """Complete circuit for single file. (Conceptual example)"""
     # Pulse
-    signal = pulse_load_and_normalize(audio_file)
+    signal = pulse_load_and_normalize(audio_file)  # Conceptual function
     
     # Resonance
-    spectrum = resonance_analyze(signal)
+    spectrum = resonance_analyze(signal)  # Conceptual function
     
     # Nudge
-    refined = nudge_refine(spectrum)
+    refined = nudge_refine(spectrum)  # Conceptual function
     
     return refined
 ```
@@ -455,6 +508,9 @@ The Fluidity Protocol emphasizes **dynamic resource adaptation** rather than sta
 - **Thermal Awareness** (Future): Adjust computation intensity based on thermal state
 
 ```python
+```python
+import multiprocessing
+
 class FluidityManager:
     """
     Manages system resources with fluidity principles.
@@ -475,7 +531,7 @@ class FluidityManager:
         # Detect CPU underutilization
         if cycle_metrics['cpu_usage'] < 0.5:
             self.adaptive_params['parallelism'] = min(
-                self.adaptive_params['parallelism'] * 2,
+                self.adaptive_params.get('parallelism', 1) * 2,
                 multiprocessing.cpu_count()
             )
 ```
@@ -540,7 +596,7 @@ def pulse_streaming_buffer(stream, window_size=1024):
 - No resource leaks between cycles
 
 ```python
-# Fluidity Protocol: Context manager for Pulse phase
+# Fluidity Protocol: Context manager for Pulse phase (Conceptual example)
 class PulseContext:
     """Manage resources for Pulse phase of Harmonic Circuit."""
     
@@ -561,8 +617,13 @@ class PulseContext:
             self.file_handle.close()
         self.buffer = None  # Release buffer
         return False
+    
+    def read_normalized(self):
+        """Read and normalize data (conceptual method)."""
+        # This is a placeholder - actual implementation would normalize audio data
+        return self.file_handle.read()
 
-# Usage in Harmonic Circuit
+# Usage in Harmonic Circuit (conceptual example)
 def harmonic_circuit_cycle(audio_path):
     # Pulse phase with automatic cleanup
     with PulseContext(audio_path) as pulse:
@@ -570,17 +631,17 @@ def harmonic_circuit_cycle(audio_path):
     # Resources released here, ready for next cycle
     
     # Resonance phase
-    spectrum = resonance_analyze(signal)
+    spectrum = resonance_analyze(signal)  # Conceptual function
     
     # Nudge phase
-    return nudge_refine(spectrum)
+    return nudge_refine(spectrum)  # Conceptual function
 
 # Anti-pattern: Manual management without cleanup
 def manual_resource_handling(audio_path):
     """Avoid: Resources may leak if exception occurs."""
     file_handle = open(audio_path, 'rb')
     data = file_handle.read()
-    process(data)
+    process(data)  # Conceptual function
     # File may not be closed if exception occurs above
 ```
 
@@ -645,7 +706,13 @@ The Alchemist transmutes the Harmonic Circuit into new forms, exploring possibil
 
 **Alchemist Activities**:
 ```python
-# Alchemist experiments with new phase implementations
+# Alchemist experiments with new phase implementations (Conceptual example)
+# Requires: scipy.fft.fft, logging module, and hypothetical quantum computing library
+from scipy.fft import fft
+import logging
+
+logger = logging.getLogger(__name__)
+
 class AlchemistExperiment:
     """Experimental new Resonance phase algorithm."""
     
@@ -654,17 +721,19 @@ class AlchemistExperiment:
         Testing quantum-inspired frequency analysis.
         May fail—that's okay, we'll learn from it.
         
-        Note: This is a conceptual example. quantum_fourier_transform
-        would need to be implemented using quantum computing libraries
+        CONCEPTUAL EXAMPLE: quantum_fourier_transform and validate_coherence
+        are placeholder functions. This would require quantum computing libraries
         like Qiskit or Cirq when quantum hardware becomes available.
+        
+        Note: scipy must be installed for this example (not in default requirements).
         """
         try:
             # Bold new approach (conceptual - requires quantum computing library)
-            result = quantum_fourier_transform(signal)  # Placeholder
+            result = quantum_fourier_transform(signal)  # Placeholder - not implemented
             
             # Validate against known good
             classical = fft(signal)
-            if validate_coherence(result, classical):
+            if validate_coherence(result, classical):  # Placeholder - not implemented
                 return result
             else:
                 logger.warning("Experiment diverged from classical result")
