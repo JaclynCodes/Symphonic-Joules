@@ -114,7 +114,6 @@ class TestREADMETestCounts:
     
     def test_readme_documents_total_test_count(self, readme_content, repo_root):
         """Test that README documents total test count"""
-        import ast
         
         # Count actual tests
         test_files = list((repo_root / 'tests' / 'workflows').glob('test_*.py'))
