@@ -45,12 +45,24 @@ jobs:
           echo "Parsing dashboard file..."
           
           # Extract tasks with runner emoji (in progress)
-          # Filter out headers (##) and legend entries (- emoji (text))
-          RUNNER_TASKS=$(grep -n "🏃" "$DASHBOARD_FILE" | grep -v "^[0-9]*:##" | grep -v "^[0-9]*:- 🏃 (" || true)
+          # Filtering strategy:
+          # 1. Find lines with 🏃 emoji
+          # 2. Exclude markdown headers (lines starting with ##)
+          # 3. Exclude legend/status lines that contain "(runner" or "emoji)" after the emoji
+          # 4. Accept task lines that follow format: "- 🏃 Task description"
+          RUNNER_TASKS=$(grep -n "🏃" "$DASHBOARD_FILE" | \
+                        grep -v "^[0-9]*:##" | \
+                        grep -v "(runner" | \
+                        grep -v "emoji)" | \
+                        grep "^[0-9]*:- 🏃 " || true)
           
           # Extract tasks with hand emoji (blocked/needs review)
-          # Filter out headers (##) and legend entries (- emoji (text))
-          HAND_TASKS=$(grep -n "✋" "$DASHBOARD_FILE" | grep -v "^[0-9]*:##" | grep -v "^[0-9]*:- ✋ (" || true)
+          # Same filtering strategy as above
+          HAND_TASKS=$(grep -n "✋" "$DASHBOARD_FILE" | \
+                      grep -v "^[0-9]*:##" | \
+                      grep -v "(hand" | \
+                      grep -v "emoji)" | \
+                      grep "^[0-9]*:- ✋ " || true)
           
           # Count tasks
           RUNNER_COUNT=$(echo "$RUNNER_TASKS" | grep -c . || echo "0")
@@ -58,6 +70,17 @@ jobs:
           
           echo "Found $RUNNER_COUNT tasks in progress"
           echo "Found $HAND_COUNT blocked tasks"
+          
+          # Display sample of found tasks for debugging
+          if [ "$RUNNER_COUNT" -gt 0 ]; then
+            echo "Sample in-progress task:"
+            echo "$RUNNER_TASKS" | head -1
+          fi
+          
+          if [ "$HAND_COUNT" -gt 0 ]; then
+            echo "Sample blocked task:"
+            echo "$HAND_TASKS" | head -1
+          fi
           
           # Save results to output
           {

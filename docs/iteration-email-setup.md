@@ -95,6 +95,27 @@ Both Unicode emoji and GitHub shortcodes are supported:
 - In Progress: `🏃` or `:runner:`
 - Blocked: `✋` or `:hand:`
 
+### Important Format Requirements
+
+For the parsing to work correctly, tasks **must** follow this exact format:
+
+```markdown
+- 🏃 Task description - @assignee
+- ✋ Another task - @assignee (optional notes)
+```
+
+**Critical formatting rules:**
+1. Start with a dash and space: `- `
+2. Followed by the emoji and space: `🏃 ` or `✋ `
+3. Then the task description
+4. Do NOT use parentheses immediately after the emoji (e.g., `🏃 (text)` will be filtered out as a legend entry)
+5. Avoid using the emoji in headers (`##`) or legend sections
+
+The workflow filters out:
+- Markdown headers containing emoji
+- Legend entries (lines with emoji followed by parentheses)
+- Summary statistics containing emoji
+
 ## Testing the Workflow
 
 ### Manual Trigger (Recommended for Testing)

@@ -209,12 +209,12 @@ class TestEmailConfiguration:
     """Tests for email sending configuration."""
 
     def test_uses_email_action(self, workflow_content):
-        """Verify workflow uses an email sending action."""
+        """Verify workflow uses the action-send-mail action."""
         steps = workflow_content['jobs']['parse-and-notify']['steps']
         uses_actions = [s.get('uses', '') for s in steps]
-        # Check for dawidd6/action-send-mail or similar email action
-        assert any('send-mail' in action.lower() or 'email' in action.lower() 
-                   for action in uses_actions)
+        # Check specifically for dawidd6/action-send-mail action
+        assert any('dawidd6/action-send-mail' in action for action in uses_actions), \
+               "Workflow should use dawidd6/action-send-mail action"
 
     def test_email_step_uses_secrets(self, workflow_content):
         """Verify email step references GitHub secrets."""
