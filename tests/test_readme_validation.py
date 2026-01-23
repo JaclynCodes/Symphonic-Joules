@@ -320,7 +320,6 @@ class TestREADMEConsistency:
     
     def test_readme_class_counts_match_implementation(self, readme_content, repo_root):
         """Test that class counts in README match actual implementation"""
-        import ast
         
         class_count_pattern = r'(\d+)\s+(?:test\s+)?classes'
         matches = re.findall(class_count_pattern, readme_content, re.IGNORECASE)
