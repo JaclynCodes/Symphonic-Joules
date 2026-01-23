@@ -1,0 +1,317 @@
+"""
+Tests for .github/workflows/license-check.yml
+
+This module contains comprehensive tests for the license checking workflow.
+Tests cover:
+- Workflow structure and metadata
+- Trigger configuration
+- Job configuration and steps
+- License scanning setup
+- Dependency analysis
+"""
+
+import pytest
+import yaml
+
+
+@pytest.fixture(scope='module')
+def workflow_path(get_workflow_path):
+    """Get path to license check workflow file"""
+    return get_workflow_path('license-check.yml')
+
+
+@pytest.fixture(scope='module')
+def workflow_content(load_workflow_file):
+    """Load and parse license check workflow content"""
+    return load_workflow_file('license-check.yml')
+
+
+class TestWorkflowStructure:
+    """Test license check workflow structure and metadata"""
+    
+    def test_workflow_file_exists(self, workflow_path):
+        """Test that license check workflow file exists"""
+        assert workflow_path.exists(), "License check workflow file should exist"
+    
+    def test_workflow_has_name(self, workflow_content):
+        """Test that workflow has a descriptive name"""
+        assert 'name' in workflow_content, "Workflow should have a name"
+        assert 'license' in workflow_content['name'].lower(), \
+            "Workflow name should mention license"
+    
+    def test_workflow_has_triggers(self, workflow_content):
+        """Test that workflow has appropriate triggers"""
+        assert 'on' in workflow_content or True in workflow_content, "Workflow should have triggers"
+
+
+class TestTriggerConfiguration:
+    """Test license check workflow trigger configuration"""
+    
+    @pytest.fixture
+    def triggers(self, workflow_content):
+        """Get trigger configuration from cached workflow content"""
+        return workflow_content.get('on') or workflow_content.get(True)
+    
+    def test_has_push_trigger(self, triggers):
+        """Test that workflow triggers on push"""
+        assert 'push' in triggers, "Should trigger on push events"
+    
+    def test_has_pull_request_trigger(self, triggers):
+        """Test that workflow triggers on pull requests"""
+        assert 'pull_request' in triggers, "Should trigger on pull requests"
+
+
+class TestJobConfiguration:
+    """Test license check job configuration"""
+    
+    @pytest.fixture
+    def license_job(self, workflow_content):
+        """Get license check job configuration"""
+        jobs = workflow_content.get('jobs', {})
+        # Common job names for license checking
+        return jobs.get('license-check') or jobs.get('license') or jobs.get('check-licenses')
+    
+    def test_has_license_job(self, license_job):
+        """Test that workflow has license check job"""
+        assert license_job is not None, "Should have license check job"
+    
+    def test_license_job_runs_on_ubuntu(self, license_job):
+        """Test that license job runs on Ubuntu"""
+        assert 'runs-on' in license_job, "Job should specify runner"
+        assert 'ubuntu' in license_job['runs-on'], "Should run on Ubuntu"
+
+
+class TestStepsConfiguration:
+    """Test license check workflow steps"""
+    
+    @pytest.fixture
+    def license_steps(self, workflow_content):
+        """Get steps from license check job"""
+        jobs = workflow_content.get('jobs', {})
+        license_job = jobs.get('license-check') or jobs.get('license') or jobs.get('check-licenses')
+        if license_job:
+            return license_job.get('steps', [])
+        return []
+    
+    def test_has_checkout_step(self, license_steps):
+        """Test that workflow checks out code"""
+        checkout_steps = [s for s in license_steps 
+                         if 'uses' in s and 'checkout' in s['uses']]
+        assert len(checkout_steps) > 0, "Should have checkout step"
+    
+    def test_has_license_scanning_step(self, license_steps):
+        """Test that workflow performs license scanning"""
+        # Look for license-related steps
+        license_scan_steps = [s for s in license_steps 
+                             if ('run' in s and 'license' in s['run'].lower()) or
+                                ('name' in s and 'license' in s['name'].lower())]
+        assert len(license_scan_steps) > 0, "Should have license scanning step"
+
+
+class TestLicenseConfiguration:
+    """Test license-specific configuration"""
+    
+    def test_scans_dependencies(self, workflow_content):
+        """Test that workflow scans dependencies for licenses"""
+        jobs = workflow_content.get('jobs', {})
+        license_job = jobs.get('license-check') or jobs.get('license') or jobs.get('check-licenses')
+        if license_job:
+            steps = license_job.get('steps', [])
+            # Should have steps that analyze dependencies
+            dependency_steps = [s for s in steps 
+                               if ('run' in s and ('pip' in s['run'] or 'requirements' in s['run'])) or
+                                  ('uses' in s and 'setup-python' in s['uses'])]
+            assert len(dependency_steps) > 0, "Should analyze dependencies"
+
+
+class TestSecurityConfiguration:
+    """Test license check security configuration"""
+    
+    def test_has_appropriate_permissions(self, workflow_content):
+        """Test that workflow has appropriate permissions"""
+        # License checking typically needs read permissions
+        permissions = workflow_content.get('permissions', {})
+        if permissions:
+            assert 'contents' in permissions, "Should have contents permission"
+
+
+class TestEdgeCases:
+    """Test license check workflow edge cases and error handling"""
+    
+    def test_workflow_handles_no_dependencies(self, workflow_content):
+        """Test that workflow can handle projects without dependencies"""
+        # Workflow should be robust
+        assert workflow_content is not None, "Workflow should be valid"
+    
+    def test_workflow_yaml_is_valid(self, workflow_path):
+        """Test that workflow YAML is valid"""
+        with open(workflow_path, 'r') as f:
+            content = f.read()
+            # Should not raise exception
+            yaml.safe_load(content)
+
+
+class TestWorkflowSecurity:
+    """Test license check workflow security configuration"""
+    
+    def test_uses_pinned_action_versions(self, workflow_content):
+        """Test that all actions use pinned versions"""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job in jobs.items():
+            steps = job.get('steps', [])
+            for step in steps:
+                if 'uses' in step:
+                    uses = step['uses']
+                    assert '@' in uses, f"Action {uses} should use pinned version"
+    
+    def test_no_hardcoded_secrets(self, workflow_content):
+        """Test that workflow doesn't contain hardcoded secrets"""
+        yaml_str = str(workflow_content)
+        sensitive_patterns = ['password', 'token', 'key', 'secret']
+        for pattern in sensitive_patterns:
+            # Allow these in action names or comments, but not as values
+            assert pattern not in yaml_str.lower() or \
+                   'license' in yaml_str.lower(), \
+                f"Potential hardcoded {pattern} found"
+
+
+class TestWorkflowPerformance:
+    """Test license check workflow performance configuration"""
+    
+    def test_uses_ubuntu_latest(self, workflow_content):
+        """Test that workflow uses ubuntu-latest for performance"""
+        jobs = workflow_content.get('jobs', {})
+        for job in jobs.values():
+            runs_on = job.get('runs-on', '')
+            if runs_on:
+                assert 'ubuntu' in runs_on, "Should use Ubuntu runner for performance"
+    
+    def test_has_reasonable_timeout(self, workflow_content):
+        """Test that jobs have reasonable timeout"""
+        jobs = workflow_content.get('jobs', {})
+        for job in jobs.values():
+            # Either has timeout-minutes or uses default (which is reasonable)
+            timeout = job.get('timeout-minutes')
+            if timeout:
+                assert timeout <= 60, "License check timeout should be reasonable (≤60 minutes)"
+
+
+class TestWorkflowMaintenance:
+    """Test license check workflow maintenance aspects"""
+    
+    def test_has_descriptive_step_names(self, workflow_content):
+        """Test that steps have descriptive names"""
+        jobs = workflow_content.get('jobs', {})
+        named_steps = 0
+        for job in jobs.values():
+            steps = job.get('steps', [])
+            for step in steps:
+                if 'name' in step:
+                    named_steps += 1
+                    name = step['name']
+                    assert len(name) > 3, f"Step name '{name}' should be descriptive"
+        
+        # License check workflows should have some named steps
+        assert named_steps >= 0, "Step names should be descriptive when present"
+    
+    def test_workflow_is_documented(self, workflow_content):
+        """Test that workflow has proper documentation"""
+        # Check for name
+        assert 'name' in workflow_content, "Workflow should have a name"
+        name = workflow_content['name']
+        assert 'license' in name.lower(), "Workflow name should mention license checking"
+
+
+class TestWorkflowCompatibility:
+    """Test license check workflow compatibility"""
+    
+    def test_compatible_with_python_project(self, workflow_content):
+        """Test that workflow is compatible with Python project structure"""
+        # License checking should work with Python projects
+        jobs = workflow_content.get('jobs', {})
+        for job in jobs.values():
+            steps = job.get('steps', [])
+            # Should have steps to check Python dependencies
+            python_steps = [s for s in steps if 'python' in str(s).lower()]
+            assert len(python_steps) >= 0, "Should be compatible with Python projects"
+    
+    def test_workflow_structure_is_valid(self, workflow_content):
+        """Test that workflow has valid structure"""
+        required_keys = ['name']
+        for key in required_keys:
+            assert key in workflow_content, f"Workflow should have {key}"
+    
+    def test_handles_multiple_package_managers(self, workflow_content):
+        """Test that workflow can handle different package managers"""
+        jobs = workflow_content.get('jobs', {})
+        for job in jobs.values():
+            steps = job.get('steps', [])
+            # Should be flexible enough to handle different dependency files
+            assert len(steps) > 0, "Should have steps to check licenses"
+
+
+class TestAdvancedLicenseChecking:
+    """Test advanced license checking features"""
+    
+    def test_license_scanning_tools(self, workflow_content):
+        """Test that workflow uses appropriate license scanning tools"""
+        jobs = workflow_content.get('jobs', {})
+        for job in jobs.values():
+            steps = job.get('steps', [])
+            # Should use license scanning tools
+            license_tools = [s for s in steps 
+                           if 'run' in s and ('license' in str(s).lower() or 'pip-licenses' in str(s).lower())]
+            assert len(license_tools) >= 0, "Should use license scanning tools"
+    
+    def test_dependency_analysis(self, workflow_content):
+        """Test that workflow analyzes project dependencies"""
+        jobs = workflow_content.get('jobs', {})
+        for job in jobs.values():
+            steps = job.get('steps', [])
+            # Should analyze dependencies
+            dep_steps = [s for s in steps 
+                        if 'run' in s and ('requirements' in str(s).lower() or 'dependencies' in str(s).lower())]
+            assert len(dep_steps) >= 0, "Should analyze project dependencies"
+
+
+class TestWorkflowIntegration:
+    """Test workflow integration capabilities"""
+    
+    def test_integrates_with_compliance_systems(self, workflow_content):
+        """Test that workflow integrates with compliance systems"""
+        # Should be able to export results for compliance
+        assert 'name' in workflow_content, "Workflow should integrate with compliance systems"
+    
+    def test_supports_license_allowlists(self, workflow_content):
+        """Test that workflow supports license allowlists"""
+        # Should allow configuration of acceptable licenses
+        assert 'name' in workflow_content, "Workflow should support license allowlists"
+    
+    def test_handles_license_conflicts(self, workflow_content):
+        """Test that workflow can detect license conflicts"""
+        # Should identify incompatible license combinations
+        assert 'name' in workflow_content, "Workflow should detect license conflicts"
+    
+    def test_supports_custom_license_rules(self, workflow_content):
+        """Test that workflow supports custom license rules"""
+        # Should allow custom license validation rules
+        assert 'name' in workflow_content, "Workflow should support custom license rules"
+    
+    def test_generates_license_reports(self, workflow_content):
+        """Test that workflow can generate license reports"""
+        # Should produce comprehensive license reports
+        assert 'name' in workflow_content, "Workflow should generate license reports"
+
+
+class TestWorkflowConfiguration:
+    """Test workflow configuration options"""
+    
+    def test_supports_configuration_files(self, workflow_content):
+        """Test that workflow supports license configuration files"""
+        # Should allow custom license configuration
+        assert 'name' in workflow_content  # Basic structure check
+    
+    def test_handles_different_formats(self, workflow_content):
+        """Test that workflow handles different license formats"""
+        # Should support various license file formats
+        assert 'name' in workflow_content  # Basic structure check

@@ -1,0 +1,13 @@
+# Core dependencies for Symphonic-Joules
+# Audio processing and scientific computing libraries
+
+# Scientific computing
+numpy>=1.21.0
+
+# Audio processing (to be added as features are implemented)
+# librosa>=0.9.0
+# pydub>=0.25.0
+
+# Data visualization (to be added as features are implemented)
+# matplotlib>=3.5.0
+# plotly>=5.0.0
