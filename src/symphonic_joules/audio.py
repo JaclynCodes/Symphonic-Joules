@@ -11,5 +11,7 @@ This module will provide tools for:
 # Placeholder for future audio processing functionality
 # Audio libraries like librosa or pydub will be integrated here
 
+# Public API exports - add exported function names as strings when implemented
+# Example: __all__ = ['load_audio', 'save_audio', 'analyze_frequency']
 __all__ = []
 
