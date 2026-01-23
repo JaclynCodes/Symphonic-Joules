@@ -43,6 +43,7 @@ Symphonic-Joules is an open-source project that explores the intersection of aud
 - 🛠️ **Extensible Framework**: Build upon a modular architecture
 - 🧪 **Test Coverage**: Comprehensive test suite with pytest
 - 📚 **Rich Documentation**: Detailed guides for users and contributors
+- 📧 **Automated Status Updates**: GitHub Actions workflow for iteration progress notifications
 
 ## 🚀 Quick Start
 
@@ -129,6 +130,7 @@ For more examples and tutorials, see **[docs/examples/](docs/examples/)** and **
 Symphonic-Joules/
 ├── .github/              # GitHub workflows, issue templates, and CI/CD
 │   ├── workflows/        # CI/CD workflow definitions
+│   │   └── iteration-status-emails.yml  # Automated status notifications
 │   └── ISSUE_TEMPLATE/   # Issue templates
 ├── docs/                 # Comprehensive documentation
 │   ├── getting-started.md          # Getting started guide
@@ -137,6 +139,8 @@ Symphonic-Joules/
 │   ├── architecture.md             # System architecture
 │   ├── performance-optimization.md # Performance tips
 │   ├── test-performance-guide.md   # Testing best practices
+│   ├── iteration-email-setup.md    # Email notification setup
+│   ├── january-2026-progress.md    # Iteration progress dashboard
 │   ├── faq.md                      # Frequently asked questions
 │   └── examples/                   # Code examples and tutorials
 ├── src/                  # Source code
@@ -292,6 +296,7 @@ Comprehensive documentation is available in the **[docs/](docs/)** directory:
 - **[Test Performance Guide](docs/test-performance-guide.md)** - Testing guidelines
 - **[FAQ](docs/faq.md)** - Frequently asked questions
 - **[Examples](docs/examples/)** - Code examples and tutorials
+- **[Iteration Email Setup](docs/iteration-email-setup.md)** - Automated status notifications
 
 ## 👥 Community
 
