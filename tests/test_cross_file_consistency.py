@@ -22,10 +22,19 @@ def all_workflow_test_files(repo_root):
     return list(workflows_dir.glob('test_*_workflow.py'))
 
 
-def extract_test_classes(file_path: Path, ast_cache: dict = None) -> List[str]:
-    """Extract test class names from a file."""
-    if ast_cache and file_path in ast_cache:
-        tree = ast_cache[file_path]
+def extract_test_classes(file_path: Path, ast_tree_cache: dict = None) -> List[str]:
+    """
+    Extract test class names from a file.
+    
+    Args:
+        file_path: Path to the Python file
+        ast_tree_cache: Optional dictionary mapping Path -> ast.Module for cached parsing
+        
+    Returns:
+        List of test class names (classes starting with 'Test')
+    """
+    if ast_tree_cache and file_path in ast_tree_cache:
+        tree = ast_tree_cache[file_path]
     else:
         with open(file_path, 'r') as f:
             tree = ast.parse(f.read())
@@ -37,10 +46,19 @@ def extract_test_classes(file_path: Path, ast_cache: dict = None) -> List[str]:
             if isinstance(node, ast.ClassDef) and node.name.startswith('Test')]
 
 
-def extract_fixtures(file_path: Path, ast_cache: dict = None) -> List[str]:
-    """Extract fixture names from a file."""
-    if ast_cache and file_path in ast_cache:
-        tree = ast_cache[file_path]
+def extract_fixtures(file_path: Path, ast_tree_cache: dict = None) -> List[str]:
+    """
+    Extract fixture names from a file.
+    
+    Args:
+        file_path: Path to the Python file
+        ast_tree_cache: Optional dictionary mapping Path -> ast.Module for cached parsing
+        
+    Returns:
+        List of fixture function names
+    """
+    if ast_tree_cache and file_path in ast_tree_cache:
+        tree = ast_tree_cache[file_path]
     else:
         with open(file_path, 'r') as f:
             tree = ast.parse(f.read())

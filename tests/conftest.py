@@ -17,7 +17,13 @@ from pathlib import Path
 
 @pytest.fixture(scope='session')
 def repo_root():
-    """Get the repository root directory."""
+    """
+    Get the repository root directory.
+    
+    Note: Changed from 'module' to 'session' scope to support session-scoped
+    caching fixtures. This is safe because repo_root is immutable and doesn't
+    have side effects.
+    """
     return Path(__file__).parent.parent
 
 

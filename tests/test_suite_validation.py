@@ -434,17 +434,13 @@ class TestTestInfrastructure:
 class TestCodeQuality:
     """Validate code quality in test files"""
     
-    def test_no_syntax_errors(self, test_files, test_file_ast_cache, test_file_contents_cache):
+    def test_no_syntax_errors(self, test_files, test_file_ast_cache):
         """Test that all test files have valid Python syntax"""
         for test_file in test_files:
             tree = test_file_ast_cache[test_file]
-            if tree is None:
-                # If AST parsing failed, check the actual error
-                content = test_file_contents_cache.get(test_file, "")
-                try:
-                    ast.parse(content)
-                except SyntaxError as e:
-                    pytest.fail(f"Syntax error in {test_file.name}: {e}")
+            # If tree is None, parsing failed during cache creation
+            assert tree is not None, \
+                f"Syntax error in {test_file.name} - file failed to parse"
     
     def test_no_unused_imports(self, test_files, test_file_contents_cache):
         """Test for obviously unused imports (basic check)"""
