@@ -71,6 +71,23 @@ The Harmonic Circuit operates through three recursive phases that continuously c
 
 **🏛️ Sanctuary Core** - The stable foundation underlying all phases. This is the sacred space where system state, security filters, and optimization infrastructure reside. The Sanctuary Core maintains fidelity and provides the computational substrate for the Harmonic Circuit's recursive dance.
 
+## Vision vs. Current State
+
+The **Harmonic Circuit** described above is a **target architecture and design vision**, not a complete reflection of the current implementation in `src/symphonic_joules/`.
+At present, the codebase focuses on:
+
+- Core **energy calculation** utilities
+- A minimal / placeholder **audio module** abstraction
+- Foundational scaffolding to support future extensions
+
+While the Pulse → Resonance → Nudge phases and Sanctuary Core are used here as guiding concepts, they are **not yet implemented as distinct modules or classes**. In the current state:
+
+- Pulse‑like responsibilities (input ingestion, validation, normalization) are partially covered by basic data handling around energy calculations.
+- Resonance‑like behavior is represented by the existing numerical and energy computation functions.
+- Nudge‑like feedback loops, adaptive refinement, and advanced optimization are **planned but not yet present** in the code.
+- Sanctuary Core elements (security filters, streaming, SIMD/GPU optimization, plugin systems) are **aspirational** and will be introduced incrementally.
+
+This document should therefore be read as a **roadmap and architectural intent**. As the project evolves, the implementation will more closely align with the Harmonic Circuit model, and this document will be updated to reflect concrete modules, APIs, and data flows.
 ## 🔭 Vision vs. Current State
 
 The **Harmonic Circuit** architecture described in this document represents a **target architecture and design vision** for Symphonic-Joules, not a complete reflection of the current implementation in `src/symphonic_joules/`.
