@@ -346,27 +346,24 @@ class TestREADMEConsistency:
                 except Exception:
                     pass  # Skip if file can't be parsed
     
-    def test_no_references_to_deleted_files(self, readme_content):
-        """Test that README doesn't reference deleted test files"""
-        # Only check for files that don't exist
-        repo_root = Path(__file__).parent.parent
-        deleted_files = [
-            'test_jekyll_workflow.py',
-            'test_static_workflow.py',
-            'test_integration_suite.py'
-        ]
+    def test_no_references_to_nonexistent_workflow_files(self, readme_content, repo_root):
+        """Test that README doesn't reference workflow test files that don't exist"""
+        # Check for common test files that might have been removed
+        workflows_dir = repo_root / 'tests' / 'workflows'
         
-        for deleted_file in deleted_files:
-            file_path = repo_root / 'tests' / 'workflows' / deleted_file
-            # Only assert if the file actually doesn't exist
+        # Look for test file references in README
+        import re
+        test_file_pattern = r'test_\w+\.py'
+        mentioned_files = set(re.findall(test_file_pattern, readme_content))
+        
+        for mentioned_file in mentioned_files:
+            file_path = workflows_dir / mentioned_file
             if not file_path.exists():
-                # It's okay if README mentions it as long as it's clear it's deprecated/removed
-                if deleted_file in readme_content:
-                    # Check if it's mentioned in a historical or removed context
-                    assert 'removed' in readme_content.lower() or \
-                           'deprecated' in readme_content.lower() or \
-                           'deleted' in readme_content.lower(), \
-                        f"README should clarify {deleted_file} is removed if mentioned"
+                # File is mentioned but doesn't exist - should be noted as removed/deprecated
+                context_lower = readme_content.lower()
+                assert any(word in context_lower for word in 
+                          ['removed', 'deprecated', 'deleted', 'no longer', 'previously']), \
+                    f"README mentions non-existent file {mentioned_file} without clarifying it's removed"
 
 
 if __name__ == '__main__':
