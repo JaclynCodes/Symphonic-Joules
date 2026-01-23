@@ -22,6 +22,10 @@ jobs:
     name: Parse Dashboard and Send Notifications
     runs-on: ubuntu-latest
     
+    # Limit permissions for security (principle of least privilege)
+    permissions:
+      contents: read  # Read access to checkout the repository
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
