@@ -65,6 +65,8 @@ jobs:
   # Markdown linting job to enforce code block language tags
   lint-markdown:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
       
