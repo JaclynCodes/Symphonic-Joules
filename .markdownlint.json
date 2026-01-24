@@ -1,0 +1,28 @@
+{
+  "default": true,
+  "MD040": {
+    "allowed_languages": [
+      "python",
+      "sh",
+      "bash",
+      "yaml",
+      "yml",
+      "json",
+      "javascript",
+      "typescript",
+      "markdown",
+      "md",
+      "text",
+      "plaintext"
+    ]
+  },
+  "line-length": false,
+  "no-duplicate-heading": {
+    "siblings_only": true
+  },
+  "no-trailing-punctuation": {
+    "punctuation": ".,;:"
+  },
+  "no-inline-html": false,
+  "first-line-h1": false
+}

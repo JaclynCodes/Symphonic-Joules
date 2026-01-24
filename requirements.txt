@@ -4,9 +4,9 @@
 # Scientific computing
 numpy>=1.21.0
 
-# Audio processing (to be added as features are implemented)
-# librosa>=0.9.0
-# pydub>=0.25.0
+# Audio processing
+librosa>=0.9.0
+soundfile>=0.12.0
 
 # Data visualization (to be added as features are implemented)
 # matplotlib>=3.5.0

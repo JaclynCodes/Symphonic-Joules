@@ -191,6 +191,31 @@ class TestTestCoverage:
                 assert covered >= 5, \
                     f"{test_file.name} should test more workflow aspects (got {covered}/7)"
 
+    def test_blank_workflow_has_markdown_lint_job(self, repo_root):
+        """Test that blank.yml workflow includes the lint-markdown job"""
+        import yaml
+        
+        workflow_file = repo_root / '.github' / 'workflows' / 'blank.yml'
+        with open(workflow_file, 'r') as f:
+            content = yaml.safe_load(f)
+        
+        assert 'jobs' in content, "Workflow should have jobs section"
+        assert 'lint-markdown' in content['jobs'], \
+            "Workflow should have 'lint-markdown' job for markdown linting"
+        
+        # Verify the lint-markdown job has required configuration
+        lint_job = content['jobs']['lint-markdown']
+        assert 'steps' in lint_job, "lint-markdown job should have steps"
+        
+        # Check for markdownlint action
+        steps = lint_job['steps']
+        has_markdownlint = any(
+            'DavidAnson/markdownlint-cli2-action' in step.get('uses', '')
+            for step in steps if isinstance(step, dict)
+        )
+        assert has_markdownlint, \
+            "lint-markdown job should use DavidAnson/markdownlint-cli2-action"
+
 
 class TestDocumentation:
     """Test that tests are well-documented"""
