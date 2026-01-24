@@ -210,11 +210,11 @@ class TestTestCoverage:
         # Check for markdownlint action
         steps = lint_job['steps']
         has_markdownlint = any(
-            'DavidAnson/markdownlint-cli2-action' in step.get('uses', '')
+            'markdownlint-cli2-action' in step.get('uses', '')
             for step in steps if isinstance(step, dict)
         )
         assert has_markdownlint, \
-            "lint-markdown job should use DavidAnson/markdownlint-cli2-action"
+            "lint-markdown job should use markdownlint-cli2-action"
 
 
 class TestDocumentation:

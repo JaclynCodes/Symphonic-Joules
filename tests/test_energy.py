@@ -158,7 +158,7 @@ class TestFrameEnergyDensity:
         """Test that empty waveform raises ValueError."""
         y = np.array([])
         
-        with pytest.raises(ValueError, match="Cannot compute energy for empty waveform"):
+        with pytest.raises(ValueError, match="Cannot compute energy density for empty waveform"):
             frame_energy_density(y, 10, 5)
 
 

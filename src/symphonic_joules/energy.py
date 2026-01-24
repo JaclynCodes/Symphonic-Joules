@@ -118,7 +118,7 @@ def frame_energy_density(y: np.ndarray, frame_length: int, hop_length: int) -> n
         raise ValueError("Waveform must be a numpy array")
     
     if y.size == 0:
-        raise ValueError("Cannot compute energy for empty waveform")
+        raise ValueError("Cannot compute energy density for empty waveform")
     
     if frame_length <= 0:
         raise ValueError(f"frame_length must be positive, got {frame_length}")
