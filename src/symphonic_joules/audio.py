@@ -192,7 +192,7 @@ def frame_signal(y: np.ndarray, frame_length: int, hop_length: int) -> np.ndarra
     return librosa.util.frame(y, frame_length=frame_length, hop_length=hop_length)
 
 
-# Functions will be added to __all__ when they are ready for public export
-# Example: __all__ = ['load_audio', 'save_audio', 'normalize_peak', 'to_mono', 'frame_signal']
-__all__ = []
+# Public API for this module. These names will be imported when using
+# `from symphonic_joules.audio import *`.
+__all__ = ["load_audio", "save_audio", "normalize_peak", "to_mono", "frame_signal"]
 
