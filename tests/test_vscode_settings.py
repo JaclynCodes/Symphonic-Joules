@@ -252,11 +252,13 @@ class TestEdgeCases:
     
     def test_no_duplicate_keys(self, vscode_raw):
         """Test that JSON doesn't have duplicate keys"""
-        key_pattern = r'"([^"]+)"\s*:'
-        keys_in_raw = re.findall(key_pattern, vscode_raw)
-        unique_keys = set(keys_in_raw)
-        assert len(keys_in_raw) == len(unique_keys), \
-            "settings.json should not have duplicate keys"
+        def no_duplicate_object_pairs(pairs):
+            keys = [k for k, _ in pairs]
+            assert len(keys) == len(set(keys)), \
+                "settings.json should not have duplicate keys in the same object"
+            return dict(pairs)
+
+        json.loads(vscode_raw, object_pairs_hook=no_duplicate_object_pairs)
     
     def test_properly_closed_braces(self, vscode_raw):
         """Test that JSON has properly matched braces"""
