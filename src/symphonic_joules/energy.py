@@ -138,11 +138,11 @@ def frame_energy_density(y: np.ndarray, frame_length: int, hop_length: int) -> n
     # Compute energy density for each frame
     energy_density = np.zeros(n_frames)
     
-    for i in range(n_frames):
-        start = i * hop_length
+    for frame_index in range(n_frames):
+        start = frame_index * hop_length
         end = start + frame_length
         # Mean energy (energy density) in this frame
-        energy_density[i] = np.mean(y_squared[start:end])
+        energy_density[frame_index] = np.mean(y_squared[start:end])
     
     return energy_density
 
