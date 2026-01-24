@@ -1,5 +1,23 @@
 # Installation and Setup for Symphonic-Joules
 
+## Quick Start
+
+**For developers wanting to get started immediately:**
+
+```bash
+# Clone, setup, and test
+git clone https://github.com/JaclynCodes/Symphonic-Joules.git
+cd Symphonic-Joules
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r tests/requirements.txt  # Install test dependencies
+pytest
+```
+
+Continue reading for detailed information about installation methods and troubleshooting.
+
+---
+
 ## Important Note
 
 This document addresses the installation and setup process for **Symphonic-Joules**, a project focused on audio processing and energy calculations.
@@ -35,6 +53,8 @@ Symphonic-Joules is currently in early development. The project does not yet hav
    # On Unix/macOS:
    source venv/bin/activate
    ```
+   
+   **Note for macOS users**: If you experience compatibility issues, see the [Python Version Compatibility](#macos-python-version-compatibility) section below for information about using Python 3.11.
 
 3. **Install Dependencies**
    ```bash
@@ -77,7 +97,7 @@ As the project matures, the following packaging and installation methods may be 
 ### System Requirements (Projected)
 
 - **Operating Systems**: Windows 10+, macOS 10.15+, Linux (Ubuntu 20.04+)
-- **Python Version**: 3.8 or higher
+- **Python Version**: 3.8 or higher (Python 3.11 recommended for macOS users experiencing compatibility issues)
 - **Audio Hardware**: Standard audio input/output capabilities
 - **Memory**: Minimum 4GB RAM recommended
 - **Storage**: Varies based on audio file processing needs
@@ -143,6 +163,36 @@ Configuration options and settings will be documented as features are implemente
 
 **Issue**: Performance issues with large audio files
 - **Solution**: Check available memory, consider processing in chunks
+
+### Platform-Specific Issues
+
+#### macOS: Python Version Compatibility
+
+Some macOS users may experience compatibility issues with newer Python versions (3.12+). If you encounter such issues, you can use Python 3.11 as a temporary workaround:
+
+**Temporary fix with downgrading Python on macOS:**
+
+1. Install Python 3.11 using Homebrew:
+   ```bash
+   brew install python@3.11
+   ```
+
+2. Add Python 3.11 to your PATH by adding this line to your `~/.zshrc` file:
+   ```bash
+   export PATH="/opt/homebrew/opt/python@3.11/libexec/bin:$PATH"
+   ```
+
+3. Reload your shell configuration:
+   ```bash
+   source ~/.zshrc
+   ```
+
+4. Verify the Python version:
+   ```bash
+   python --version
+   ```
+
+**Note**: This is a temporary workaround. The project aims to support the latest stable Python versions. Check the project's GitHub issues for updates on Python version compatibility.
 
 ## Getting Help
 
