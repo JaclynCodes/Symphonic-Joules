@@ -222,7 +222,7 @@ class TestWorkspaceBestPractices:
         """Test that settings don't use user-specific absolute paths"""
         abs_path_patterns = [
             r'[A-Z]:\\',
-            r'(?<!")\/(?:home|root|Users)\/',
+            r'\/(?:home|root|Users)\/',
         ]
         for pattern in abs_path_patterns:
             matches = re.findall(pattern, vscode_raw)
