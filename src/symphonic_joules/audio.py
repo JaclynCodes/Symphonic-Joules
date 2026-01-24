@@ -192,11 +192,7 @@ def frame_signal(y: np.ndarray, frame_length: int, hop_length: int) -> np.ndarra
     return librosa.util.frame(y, frame_length=frame_length, hop_length=hop_length)
 
 
-__all__ = [
-    'load_audio',
-    'save_audio', 
-    'normalize_peak',
-    'to_mono',
-    'frame_signal'
-]
+# Exported functions will be added to __all__ as they are implemented
+# Example: __all__ = ['load_audio', 'save_audio', 'analyze_frequency']
+__all__ = []
 
