@@ -234,8 +234,8 @@ Read the full **[Contributing Guidelines](CONTRIBUTING.md)** for detailed inform
 - [x] CI/CD pipeline with GitHub Actions
 - [x] Test infrastructure with pytest
 - [x] Package setup and installation
-- [ ] Core audio processing framework
-- [ ] Energy calculation modules
+- [x] Core audio processing framework
+- [x] Energy calculation modules
 
 ### Version 0.2.0 (Planned - Core Features)
 - [ ] Audio file I/O (WAV, MP3, FLAC)
