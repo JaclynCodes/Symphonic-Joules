@@ -315,7 +315,8 @@ class TestREADMEConsistency:
         
         if len(matches) > 1:
             counts = [int(m) for m in matches]
-            assert len(set(counts)) >= 1, \
+            # Just verify that README mentions some test counts
+            assert len(counts) > 0, \
                 "README should mention test counts"
     
     def test_readme_class_counts_match_implementation(self, readme_content, repo_root):
@@ -350,7 +351,6 @@ class TestREADMEConsistency:
         workflows_dir = repo_root / 'tests' / 'workflows'
         
         # Look for test file references in README
-        import re
         test_file_pattern = r'test_\w+\.py'
         mentioned_files = set(re.findall(test_file_pattern, readme_content))
         
