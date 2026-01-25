@@ -127,7 +127,7 @@ def frame_energy_density(y: np.ndarray, frame_length: int, hop_length: int) -> n
         raise ValueError(f"hop_length must be positive, got {hop_length}")
     
     # Compute squared values (energy proxy)
-    y_squared = y ** 2
+    y_squared = np.square(y.astype(np.float64, copy=False))
     
     # Calculate number of frames
     n_frames = 1 + (len(y) - frame_length) // hop_length
