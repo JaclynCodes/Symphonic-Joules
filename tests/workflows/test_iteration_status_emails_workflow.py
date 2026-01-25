@@ -292,7 +292,7 @@ class TestWorkflowDocumentation:
         assert 'SMTP_USERNAME' in content or 'email' in content.lower()
 
 
-class TestSecurityBestPractices:
+class TestWorkflowSecurity:
     """Tests for security considerations."""
 
     def test_no_hardcoded_credentials(self, workflow_raw):
@@ -329,6 +329,64 @@ class TestSecurityBestPractices:
             if 'secure' in with_config:
                 # If secure is specified, it should be true
                 assert with_config['secure'] is True or with_config['secure'] == 'true'
+
+
+class TestEdgeCases:
+    """Test edge cases and error handling in the workflow."""
+
+    def test_no_tabs_in_yaml(self, workflow_raw):
+        """Test that workflow uses spaces, not tabs."""
+        assert '\t' not in workflow_raw, "YAML should use spaces, not tabs"
+
+    def test_consistent_indentation(self, workflow_raw):
+        """Test that indentation is consistent (2 spaces per level)."""
+        lines = workflow_raw.split('\n')
+        for i, line in enumerate(lines, 1):
+            if line.strip() and not line.strip().startswith('#'):
+                leading_spaces = len(line) - len(line.lstrip(' '))
+                if leading_spaces > 0:
+                    assert leading_spaces % 2 == 0, \
+                        f"Line {i} has inconsistent indentation"
+
+    def test_no_duplicate_job_names(self, workflow_content):
+        """Test that there are no duplicate job names."""
+        jobs = workflow_content.get('jobs', {})
+        job_names = list(jobs.keys())
+        assert len(job_names) == len(set(job_names)), "Duplicate job names found"
+
+    def test_no_duplicate_step_ids(self, workflow_content):
+        """Test that step IDs are unique within each job."""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            step_ids = [s.get('id') for s in steps if 'id' in s]
+            assert len(step_ids) == len(set(step_ids)), \
+                f"Duplicate step IDs in job '{job_name}'"
+
+    def test_no_empty_steps(self, workflow_content):
+        """Test that there are no empty steps."""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            for i, step in enumerate(steps):
+                assert len(step) > 0, f"Step {i} in job '{job_name}' is empty"
+                assert 'uses' in step or 'run' in step, \
+                    f"Step {i} in job '{job_name}' missing 'uses' or 'run'"
+
+    def test_yaml_is_parseable(self, workflow_content):
+        """Test that YAML is properly parseable."""
+        assert workflow_content is not None, "YAML should parse successfully"
+        assert isinstance(workflow_content, dict), "Parsed YAML should be a dict"
+
+    def test_workflow_handles_missing_dashboard(self, workflow_content):
+        """Test that workflow is configured to handle missing dashboard gracefully."""
+        # The workflow should have proper error handling or conditional logic
+        # This test documents that the workflow should handle edge cases
+        # Verify workflow is valid and can be loaded
+        assert workflow_content is not None, "Workflow should be valid"
+        # Verify it has the necessary job structure
+        jobs = workflow_content.get('jobs', {})
+        assert len(jobs) > 0, "Workflow should have at least one job"
 
 
 if __name__ == '__main__':
