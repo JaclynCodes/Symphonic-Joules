@@ -153,7 +153,7 @@ freq_energy.plot(title="Energy Distribution by Frequency")
 - 🎯 **Interface-First Design**: API designed before implementation for clarity
 - 🔬 **Scientific Rigor**: Physics-based calculations with proper unit handling
 - 🧪 **Documentation-as-Code**: Meta-tests that validate documentation accuracy
-- 📊 **Comprehensive Testing**: 190+ tests across workflows, validation, and infrastructure
+- 📊 **Comprehensive Testing**: 800+ tests across workflows, validation, and infrastructure
 - 🔄 **CI/CD Pipeline**: Automated testing and quality checks
 - 📚 **Rich Documentation**: Detailed guides for users and contributors
 - ⚡ **Performance Focused**: Designed for efficient large-file processing
