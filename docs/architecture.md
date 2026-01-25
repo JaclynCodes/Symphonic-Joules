@@ -156,7 +156,7 @@ The system remains porous through standardized interface points:
 
 ---
 
-*This document is an artifact of the Vectorizer Ritual. If the prose and the logic diverge, the system must be re-tuned.*
+*Note: This document is a high-level architecture reference. If there is any conflict between creative metaphors and the concrete technical descriptions, the technical descriptions take precedence and the system design should be updated accordingly.*
 
 ## 🔮 Future Architecture Evolution
 
