@@ -356,9 +356,9 @@ class TestEdgeCases:
                     assert leading_spaces % 2 == 0, \
                         f"Line {i} has indentation that is not a multiple of 2 spaces"
 
-    def test_no_duplicate_job_names(self, jobs):
+    def test_no_duplicate_job_names(self, workflow_content):
         """Test that there are no duplicate job names."""
-        job_names = list(jobs.keys())
+        job_names = list(workflow_content['jobs'].keys())
         assert len(job_names) == len(set(job_names)), "Duplicate job names found"
 
     def test_no_duplicate_step_ids(self, workflow_content):
