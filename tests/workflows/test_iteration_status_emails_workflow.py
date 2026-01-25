@@ -395,7 +395,7 @@ class TestEdgeCases:
         missing = required_keys.difference(workflow_content.keys())
         assert not missing, f"Workflow is missing required top-level keys: {', '.join(sorted(missing))}"
         # Verify trigger configuration exists (can be 'on' or True)
-        has_triggers = 'on' in workflow_content or True in workflow_content
+        has_triggers = 'on' in workflow_content or True in workflow_content.keys()
         assert has_triggers, "Workflow must have trigger configuration ('on' key)"
 
     def test_workflow_handles_missing_dashboard(self, workflow_content):
@@ -416,8 +416,8 @@ class TestEdgeCases:
         
         # Verify the parse step script checks for file existence
         run_script = parse_step.get('run', '')
-        assert '[ ! -f' in run_script or '! -f' in run_script or 'if [ ! -f' in run_script, \
-            "Parse step should check if dashboard file exists"
+        assert '! -f' in run_script, \
+            "Parse step should check if dashboard file exists using '! -f' pattern"
         assert 'exit 1' in run_script, \
             "Parse step should exit with error code when dashboard file is missing"
         
