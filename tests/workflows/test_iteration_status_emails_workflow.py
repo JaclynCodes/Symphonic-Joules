@@ -368,6 +368,7 @@ class TestEdgeCases:
 
         # Parsing with UniqueKeyLoader will raise if any duplicate keys are present in the YAML.
         yaml.load(workflow_raw, Loader=UniqueKeyLoader)
+
     def test_no_duplicate_step_ids(self, workflow_content):
         """Test that step IDs are unique within each job."""
         jobs = workflow_content.get('jobs', {})
