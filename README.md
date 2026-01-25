@@ -440,7 +440,7 @@ Our development follows a **three-phase approach** aligned with scientific metho
 
 ---
 
-### 🔬 Phase 2: Analysis (v0.2.0 - Planned Q2 2026)
+### 🔬 Phase 2: Analysis (v0.2.0 - Planned)
 
 **Goal**: Implement core acoustic and energy analysis capabilities
 
@@ -469,7 +469,7 @@ Our development follows a **three-phase approach** aligned with scientific metho
 
 ---
 
-### 📊 Phase 3: Visualization (v0.3.0 - Planned Q3 2026)
+### 📊 Phase 3: Visualization (v0.3.0 - Planned)
 
 **Goal**: Enable intuitive exploration of acoustic energy data
 
