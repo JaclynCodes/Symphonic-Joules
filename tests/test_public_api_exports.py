@@ -2,8 +2,8 @@
 Tests for the public API exports in the Symphonic-Joules package.
 """
 
-from src import symphonic_joules
-from src.symphonic_joules import (
+import symphonic_joules
+from symphonic_joules import (
     load_audio,
     save_audio,
     normalize_peak,
