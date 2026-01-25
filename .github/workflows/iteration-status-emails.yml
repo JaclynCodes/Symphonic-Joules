@@ -69,8 +69,8 @@ jobs:
                       grep "^[0-9]*:-[[:space:]]*✋" || true)
            
           # Count tasks
-          RUNNER_COUNT=$(echo "$RUNNER_TASKS" | grep -c . || echo "0")
-          HAND_COUNT=$(echo "$HAND_TASKS" | grep -c . || echo "0")
+          RUNNER_COUNT=$(echo "$RUNNER_TASKS" | grep -c . || true)
+          HAND_COUNT=$(echo "$HAND_TASKS" | grep -c . || true)
           
           echo "Found $RUNNER_COUNT tasks in progress"
           echo "Found $HAND_COUNT blocked tasks"
