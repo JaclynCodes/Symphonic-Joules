@@ -390,19 +390,47 @@ class TestEdgeCases:
     def test_yaml_is_parseable(self, workflow_content):
         """Test that YAML parses into a non-empty workflow with required keys."""
         assert workflow_content, "YAML should parse into a non-empty workflow configuration"
-        required_keys = {"name", "on", "jobs"}
+        # Note: 'on' can be parsed as True in YAML
+        required_keys = {"name", "jobs"}
         missing = required_keys.difference(workflow_content.keys())
         assert not missing, f"Workflow is missing required top-level keys: {', '.join(sorted(missing))}"
+        # Verify trigger configuration exists (can be 'on' or True)
+        has_triggers = 'on' in workflow_content or True in workflow_content
+        assert has_triggers, "Workflow must have trigger configuration ('on' key)"
 
     def test_workflow_handles_missing_dashboard(self, workflow_content):
-        """Test that workflow is configured to handle missing dashboard gracefully."""
-        # The workflow should have proper error handling or conditional logic
-        # This test documents that the workflow should handle edge cases
-        # Verify workflow is valid and can be loaded
-        assert workflow_content is not None, "Workflow should be valid"
-        # Verify it has the necessary job structure
+        """Test that parse step checks for dashboard file and has proper error handling."""
+        # Verify the parse step checks if dashboard file exists
         jobs = workflow_content.get('jobs', {})
-        assert len(jobs) > 0, "Workflow should have at least one job"
+        parse_job = jobs.get('parse-and-notify', {})
+        steps = parse_job.get('steps', [])
+        
+        # Find the parse dashboard step
+        parse_step = None
+        for step in steps:
+            if 'parse' in step.get('name', '').lower() and 'dashboard' in step.get('name', '').lower():
+                parse_step = step
+                break
+        
+        assert parse_step is not None, "Workflow should have a dashboard parsing step"
+        
+        # Verify the parse step script checks for file existence
+        run_script = parse_step.get('run', '')
+        assert '[ ! -f' in run_script or '! -f' in run_script or 'if [ ! -f' in run_script, \
+            "Parse step should check if dashboard file exists"
+        assert 'exit 1' in run_script, \
+            "Parse step should exit with error code when dashboard file is missing"
+        
+        # Verify there's an error handling step
+        error_step = None
+        for step in steps:
+            if step.get('if') == 'failure()':
+                error_step = step
+                break
+        
+        assert error_step is not None, "Workflow should have a failure handler step"
+        assert 'dashboard' in error_step.get('run', '').lower() or 'file' in error_step.get('run', '').lower(), \
+            "Error handler should mention dashboard or file issues"
 
 
 if __name__ == '__main__':
