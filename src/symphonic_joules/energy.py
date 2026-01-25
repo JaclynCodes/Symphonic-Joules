@@ -10,7 +10,7 @@ This module provides tools for:
 """
 
 import numpy as np
-from typing import Tuple, Dict
+from typing import Dict
 
 
 def calculate_kinetic_energy(mass: float, velocity: float) -> float:
