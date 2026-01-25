@@ -2,7 +2,6 @@
 Tests for the public API exports in the Symphonic-Joules package.
 """
 
-import pytest
 from src import symphonic_joules
 from src.symphonic_joules import (
     load_audio,
