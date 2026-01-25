@@ -405,10 +405,14 @@ class TestEdgeCases:
         parse_job = jobs.get('parse-and-notify', {})
         steps = parse_job.get('steps', [])
         
-        # Find the parse dashboard step
+        # Find the parse dashboard step by id or name
         parse_step = None
         for step in steps:
-            if 'parse' in step.get('name', '').lower() and 'dashboard' in step.get('name', '').lower():
+            # Check by id first (more reliable), then by name
+            if step.get('id') == 'parse':
+                parse_step = step
+                break
+            if 'Parse dashboard' in step.get('name', ''):
                 parse_step = step
                 break
         
@@ -429,8 +433,9 @@ class TestEdgeCases:
                 break
         
         assert error_step is not None, "Workflow should have a failure handler step"
-        assert 'dashboard' in error_step.get('run', '').lower() or 'file' in error_step.get('run', '').lower(), \
-            "Error handler should mention dashboard or file issues"
+        error_run = error_step.get('run', '').lower()
+        assert 'dashboard' in error_run or 'dashboard file' in error_run, \
+            "Error handler should mention dashboard file issues"
 
 
 if __name__ == '__main__':
