@@ -339,15 +339,14 @@ class TestEdgeCases:
         assert '\t' not in workflow_raw, "YAML should use spaces, not tabs"
 
     def test_consistent_indentation(self, workflow_raw):
-        """Test that indentation is consistent (2 spaces per level)."""
+        """Test that indentation is consistent (a multiple of 2 spaces)."""
         lines = workflow_raw.split('\n')
         for i, line in enumerate(lines, 1):
             if line.strip() and not line.strip().startswith('#'):
                 leading_spaces = len(line) - len(line.lstrip(' '))
                 if leading_spaces > 0:
                     assert leading_spaces % 2 == 0, \
-                        f"Line {i} has inconsistent indentation"
-
+                        f"Line {i} has indentation that is not a multiple of 2 spaces"
     def test_no_duplicate_job_names(self, workflow_raw):
         """Test that the workflow YAML does not contain duplicate mapping keys (e.g., job names)."""
 
