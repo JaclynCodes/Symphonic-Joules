@@ -125,7 +125,7 @@ class TestFrameEnergyDensity:
         
         # For constant signal with amplitude 1, energy density = 1^2 = 1
         assert len(energy) == 10  # 100 samples / 10 hop = 10 frames
-        assert np.all(energy == pytest.approx(1.0))
+        np.testing.assert_allclose(energy, 1.0)
 
     def test_frame_energy_density_varying_signal(self):
         """Test energy density with varying signal."""
