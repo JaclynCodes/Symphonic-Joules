@@ -388,9 +388,11 @@ class TestEdgeCases:
                     f"Step {i} in job '{job_name}' missing 'uses' or 'run'"
 
     def test_yaml_is_parseable(self, workflow_content):
-        """Test that YAML is properly parseable."""
-        assert workflow_content is not None, "YAML should parse successfully"
-        assert isinstance(workflow_content, dict), "Parsed YAML should be a dict"
+        """Test that YAML parses into a non-empty workflow with required keys."""
+        assert workflow_content, "YAML should parse into a non-empty workflow configuration"
+        required_keys = {"name", "on", "jobs"}
+        missing = required_keys.difference(workflow_content.keys())
+        assert not missing, f"Workflow is missing required top-level keys: {', '.join(sorted(missing))}"
 
     def test_workflow_handles_missing_dashboard(self, workflow_content):
         """Test that workflow is configured to handle missing dashboard gracefully."""
