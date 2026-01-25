@@ -12,6 +12,7 @@ iteration status email notifications including:
 - Dashboard parsing logic
 """
 
+import os
 import pytest
 import yaml
 from pathlib import Path
