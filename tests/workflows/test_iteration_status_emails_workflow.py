@@ -378,17 +378,15 @@ class TestEdgeCases:
         assert workflow_content is not None, "YAML should parse successfully"
         assert isinstance(workflow_content, dict), "Parsed YAML should be a dict"
 
-    def test_workflow_handles_missing_dashboard(self):
+    def test_workflow_handles_missing_dashboard(self, workflow_content):
         """Test that workflow is configured to handle missing dashboard gracefully."""
         # The workflow should have proper error handling or conditional logic
         # This test documents that the workflow should handle edge cases
-        # Actual implementation would check for continue-on-error or conditional steps
-        repo_root = Path(__file__).parent.parent.parent
-        workflow_path = repo_root / '.github' / 'workflows' / 'iteration-status-emails.yml'
-        with open(workflow_path, 'r') as f:
-            content = f.read()
-            # Workflow should exist and be valid
-            assert len(content) > 0
+        # Verify workflow is valid and can be loaded
+        assert workflow_content is not None, "Workflow should be valid"
+        # Verify it has the necessary job structure
+        jobs = workflow_content.get('jobs', {})
+        assert len(jobs) > 0, "Workflow should have at least one job"
 
 
 if __name__ == '__main__':
