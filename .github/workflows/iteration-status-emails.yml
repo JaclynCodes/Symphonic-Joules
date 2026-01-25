@@ -58,16 +58,16 @@ jobs:
                         grep -v "^[0-9]*:##" | \
                         grep -v "(runner" | \
                         grep -v "emoji)" | \
-                        grep "^[0-9]*:- 🏃 " || true)
-          
+                        grep "^[0-9]*:-[[:space:]]*🏃" || true)
+           
           # Extract tasks with hand emoji (blocked/needs review)
           # Same filtering strategy as above
           HAND_TASKS=$(grep -n "✋" "$DASHBOARD_FILE" | \
                       grep -v "^[0-9]*:##" | \
                       grep -v "(hand" | \
                       grep -v "emoji)" | \
-                      grep "^[0-9]*:- ✋ " || true)
-          
+                      grep "^[0-9]*:-[[:space:]]*✋" || true)
+           
           # Count tasks
           RUNNER_COUNT=$(echo "$RUNNER_TASKS" | grep -c . || echo "0")
           HAND_COUNT=$(echo "$HAND_TASKS" | grep -c . || echo "0")
