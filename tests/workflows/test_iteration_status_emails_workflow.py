@@ -385,7 +385,7 @@ class TestEdgeCases:
             steps = job_config.get('steps', [])
             for i, step in enumerate(steps):
                 assert len(step) > 0, f"Step {i} in job '{job_name}' is empty"
-                assert 'uses' in step or 'run' in step or 'name' in step, \
+                assert 'uses' in step or 'run' in step, \
                     f"Step {i} in job '{job_name}' missing 'uses' or 'run'"
 
     def test_yaml_is_parseable(self, workflow_content):
