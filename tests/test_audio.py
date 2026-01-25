@@ -4,7 +4,6 @@ Tests for the audio processing module.
 
 import pytest
 import numpy as np
-import tempfile
 import os
 from pathlib import Path
 from src.symphonic_joules.audio import (
