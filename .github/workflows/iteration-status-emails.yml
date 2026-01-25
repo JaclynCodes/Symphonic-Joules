@@ -127,7 +127,7 @@ jobs:
           - Tasks in progress: ${{ steps.parse.outputs.RUNNER_COUNT }}
           - Tasks blocked/needing review: ${{ steps.parse.outputs.HAND_COUNT }}
 
-          View full dashboard: https://github.com/${{ github.repository }}/blob/main/docs/january-2026-progress.md
+          View full dashboard: https://github.com/${{ github.repository }}/blob/${{ github.sha }}/docs/january-2026-progress.md
 
           Triggered by: ${{ github.event_name }}
           Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
