@@ -348,12 +348,26 @@ class TestEdgeCases:
                     assert leading_spaces % 2 == 0, \
                         f"Line {i} has inconsistent indentation"
 
-    def test_no_duplicate_job_names(self, workflow_content):
-        """Test that there are no duplicate job names."""
-        jobs = workflow_content.get('jobs', {})
-        job_names = list(jobs.keys())
-        assert len(job_names) == len(set(job_names)), "Duplicate job names found"
+    def test_no_duplicate_job_names(self, workflow_raw):
+        """Test that the workflow YAML does not contain duplicate mapping keys (e.g., job names)."""
 
+        class UniqueKeyLoader(yaml.SafeLoader):
+            def construct_mapping(self, node, deep=False):
+                mapping = {}
+                for key_node, value_node in node.value:
+                    key = self.construct_object(key_node, deep=deep)
+                    if key in mapping:
+                        raise yaml.constructor.ConstructorError(
+                            "while constructing a mapping",
+                            node.start_mark,
+                            f"found duplicate key ({key})",
+                            key_node.start_mark,
+                        )
+                    mapping[key] = self.construct_object(value_node, deep=deep)
+                return mapping
+
+        # Parsing with UniqueKeyLoader will raise if any duplicate keys are present in the YAML.
+        yaml.load(workflow_raw, Loader=UniqueKeyLoader)
     def test_no_duplicate_step_ids(self, workflow_content):
         """Test that step IDs are unique within each job."""
         jobs = workflow_content.get('jobs', {})
