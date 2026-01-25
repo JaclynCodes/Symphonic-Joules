@@ -86,6 +86,8 @@ def save_audio(path: str, y: np.ndarray, sr: int) -> None:
         raise ValueError("Cannot save empty waveform")
     
     try:
+        if y.ndim == 2 and y.shape[0] < y.shape[1]:
+            y = y.T
         sf.write(path, y, sr)
     except Exception as e:
         raise RuntimeError(f"Failed to save audio file {path}: {str(e)}")
