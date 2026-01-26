@@ -21,9 +21,13 @@ import re
 from pathlib import Path
 
 
+# Valid YAML null/empty values that are allowed for the "secrets:" key
+YAML_NULL_VALUES = ['inherit', '~', 'null', 'Null', 'NULL']
+
 # Pattern to detect suspicious key:value assignments in YAML workflows
 # Matches: (password|api_key|secret/secrets): <non-empty-value>
-HARDCODED_SECRET_PATTERN = re.compile(r'^\s*(password|api_key|secrets?)\s*:\s*(.+)$', re.IGNORECASE)
+# Uses [^\r\n]+ to explicitly match only non-newline characters
+HARDCODED_SECRET_PATTERN = re.compile(r'^\s*(password|api_key|secrets?)\s*:\s*([^\r\n]+)$', re.IGNORECASE)
 
 
 # Module-level fixtures to cache expensive operations
@@ -795,7 +799,7 @@ class TestWorkflowSecurity:
                 value = match.group(2).strip()
                 
                 # Allow "secrets:" with no value, "inherit", or other valid YAML null values
-                if key == 'secrets' and (not value or value in ['inherit', '~', 'null']):
+                if key == 'secrets' and (not value or value in YAML_NULL_VALUES):
                     continue
                 
                 # Allow if value is a GitHub expression
