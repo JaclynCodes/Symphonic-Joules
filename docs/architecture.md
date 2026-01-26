@@ -1,4 +1,8 @@
-# Architecture Overview
+# 🎼 Symphonic-Joules: The Living Architecture
+
+> Status: Living Ritual Schema
+> Version: 1.2.0-harmonic (Feedback-Aware)
+> Core Concept: A modular framework connecting audio vibration with energy conservation through a cybernetic feedback loop.
 
 This document outlines the high-level architecture and design principles of Symphonic-Joules.
 
@@ -66,243 +70,93 @@ Symphonic-Joules is designed as a modular framework that bridges audio processin
 - **Documentation**: Comprehensive guides and examples
 - **Error Handling**: Graceful error handling with informative messages
 
-## 🔄 Data Flow
+## 🌀 The Harmonic Circuit (Data Flow)
 
-The typical data flow in Symphonic-Joules follows this pattern:
+The system does not process data in a line; it circulates it through a recursive loop to maintain scientific and narrative resonance.
 
-```
-Input Data → Preprocessing → Processing → Analysis → Visualization → Output
-```
+### 1. Pulse (Input & Preprocessing)
+ * Stance: Observational.
+ * Action: Raw audio streams and GitHub telemetry are ingested into the Perpetual Soil.
+ * Vectorization: Time-series data is aligned into high-dimensional tensors—the "ritual preparation" for transmutation.
 
-### Input Sources
-- Audio files (WAV, MP3, FLAC, etc.)
-- Real-time audio streams
-- Energy measurement data
-- Configuration parameters
+### 2. Resonance (Scientific Core & Analysis)
+ * Stance: Analytical / Rigid.
+ * Action: The Architect validates structural schemas while the Scientific Core computes:
+   * Acoustic energy density.
+   * Wave transformations (Fourier/Wavelet).
+   * Thermodynamic conservation limits.
+ * The Weight: Data acquires "Joules"—gaining mass, momentum, and consequence.
 
-### Processing Pipeline
-1. **Data Validation**: Ensure input quality and format compatibility
-2. **Preprocessing**: Normalize, filter, and prepare data
-3. **Core Processing**: Apply audio and energy calculations
-4. **Analysis**: Extract insights and patterns
-5. **Post-processing**: Format results and generate outputs
+### 3. The Nudge (Feedback Loop)
+ * Logic: Energy Threshold Modulation.
+ * Action: If Energy Calculation detects "Acoustic Saturation" or "Entropy Breaches," a Tuner Signal is fired back to the Audio Processing layer.
+ * Result: Automatic adjustment of the "Wiggle" (gain, compression, or persona stance) to prevent Dissonance while preserving fidelity.
 
-### Output Formats
-- Processed audio files
-- Energy calculation results
-- Visualization plots and charts
-- Scientific reports and summaries
-- Export data in various formats
+## 🛠️ Fluidity Protocol (Performance)
 
-## 🧩 Plugin Architecture
+Fluidity is the alignment of data structures to the natural grain of the processor.
 
-Symphonic-Joules supports a plugin architecture for extensibility:
+| Pillar | Extension Point | Fluidity Logic |
+|---|---|---|
+| Acoustic Sensor | before_normalize | Memory streaming for zero-latency ingestion of high-fidelity signals. |
+| The Alchemist | tuner.switch | Parallel CPU/GPU vectorization for dense MIDI/SVG/Tensor transmutations. |
+| The Gardener | archivist.prune | Multi-level caching + "infinite mulch" to persist history without system bloat. |
 
-- **Audio Plugins**: Custom audio processing algorithms
-- **Energy Plugins**: Specialized energy calculation methods
-- **Visualization Plugins**: Custom chart types and visualizations
-- **Export Plugins**: Additional output formats and destinations
+## 🛡️ Integrity (Security)
 
-## 🔒 Security Considerations
+The framework maintains its "Sanctuary" through sovereignty and provenance.
 
-- Input validation and sanitization
-- Safe file handling and processing
-- Secure configuration management
-- Protection against malicious audio files
+ * Coherent State Filter: Admission control that only permits metadata and payloads maintaining numerical and narrative consistency.
+ * Path Dignity: File operations honor the lineage of the persona; preventing orphaned ingress that could seed Dissonant States.
+ * Sanctuary Guard: CLI/Gateway enforcement of provenance and stream sanitization to protect the scientific core.
 
-## 📈 Performance Considerations
+## 🧬 System Instructions (Persona Logic)
 
-### Memory Management
+### 🌿 Gardener Persona: "The Mulch"
 
-**Streaming for Large Files**
-- Process audio files in chunks rather than loading entirely into memory
-- Use generators and iterators for large datasets
-- Implement buffer pools to reuse memory allocations
-- Set maximum memory limits for processing operations
-
-```python
-# Efficient: Stream processing
-def process_large_audio(file_path, chunk_size=4096):
-    """Process audio file in chunks to minimize memory usage."""
-    with open(file_path, 'rb') as f:
-        while chunk := f.read(chunk_size):
-            yield process_chunk(chunk)
-
-# Inefficient: Loading entire file
-def process_large_audio_inefficient(file_path):
-    """Avoid: Loads entire file into memory."""
-    with open(file_path, 'rb') as f:
-        data = f.read()  # May cause memory issues with large files
-        return process_all(data)
+```yaml
+id: gardener_feedback_handler
+trigger: energy_saturation_event
+logic:
+  - emit: tuner_signal_with_context
+  - adjust: 
+      layer: audio_processing
+      param: wiggle_factor
+      profile: conservative_stance
+  - archive:
+      metadata: [hash, timestamp, entropy_score]
+      strategy: informed_pruning
+  - validate: coherence_pass
+  - fallback: escalate_to_operator
 ```
 
-### Computational Efficiency
+### ⚗️ Alchemist Persona: "Tension Logic"
 
-**Vectorization**
-- Use NumPy/array operations instead of Python loops
-- Leverage SIMD instructions for numerical computations
-- Batch operations when possible
-
-```python
-# Efficient: Vectorized operations
-import numpy as np
-energy = np.sum(signal ** 2) / len(signal)
-
-# Inefficient: Python loops
-energy = sum(x ** 2 for x in signal) / len(signal)
+```yaml
+id: alchemist_tension_management
+on_threshold_breach:
+  dsp_chain: [low_latency_limiter, spectral_tilt]
+  resource_optimization:
+    - reuse_cached_spectra: true
+    - avoid_fft_recomputation: true
+    - path: prefer_simd_gpu
+  entropy_cap:
+    - tighten_window_sizes: true
+    - raise_denoise_strength: true
+    - target: coherence_restoration
 ```
 
-**Avoid Redundant Calculations**
-- Cache frequently used intermediate results
-- Memoize expensive function calls
-- Precompute values when possible
+## 🔌 Plugin Topography
 
-```python
-# Efficient: Cache expensive computations
-from functools import lru_cache
+The system remains porous through standardized interface points:
 
-@lru_cache(maxsize=128)
-def compute_spectrum(audio_hash, fft_size):
-    """Cached FFT computation."""
-    return fft(audio_data, fft_size)
+ * Audio Plugins: Signal-level hooks for feature extraction.
+ * Energy Plugins: Novel thermodynamic or wave-translation models.
+ * Visual Plugins: Radial/Cartographic rendering engines.
 
-# Inefficient: Recomputing every time
-def compute_spectrum_inefficient(audio_data, fft_size):
-    return fft(audio_data, fft_size)  # Recomputed on each call
-```
+---
 
-### Parallel Processing
-
-**CPU Parallelization**
-- Use multiprocessing for CPU-bound tasks
-- Implement thread pools for I/O-bound operations
-- Leverage concurrent.futures for easy parallelization
-
-```python
-from concurrent.futures import ProcessPoolExecutor
-import multiprocessing
-
-def process_audio_parallel(audio_files):
-    """Process multiple audio files in parallel."""
-    num_workers = multiprocessing.cpu_count()
-    with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        results = executor.map(process_single_file, audio_files)
-    return list(results)
-```
-
-**GPU Acceleration** (Future Enhancement)
-- Consider GPU processing for large-scale FFT operations
-- Use CUDA or OpenCL for intensive numerical computations
-- Evaluate cost/benefit for specific workloads
-
-### Caching Strategy
-
-**Multi-Level Caching**
-- **L1 (Memory)**: In-process caching of recent results
-- **L2 (Disk)**: Persistent cache for computed features
-- **L3 (Distributed)**: Shared cache for multi-instance deployments
-
-```python
-import pickle
-import hashlib
-from pathlib import Path
-
-class ResultCache:
-    """Two-level cache with memory and disk persistence."""
-    
-    def __init__(self, cache_dir='.cache'):
-        self.memory_cache = {}
-        self.cache_dir = Path(cache_dir)
-        self.cache_dir.mkdir(exist_ok=True)
-    
-    def get(self, key):
-        # Check memory cache first
-        if key in self.memory_cache:
-            return self.memory_cache[key]
-        
-        # Check disk cache
-        cache_file = self.cache_dir / f"{hashlib.md5(key.encode()).hexdigest()}.pkl"
-        if cache_file.exists():
-            with open(cache_file, 'rb') as f:
-                value = pickle.load(f)
-                self.memory_cache[key] = value  # Promote to memory
-                return value
-        
-        return None
-    
-    def set(self, key, value):
-        # Store in both memory and disk
-        self.memory_cache[key] = value
-        cache_file = self.cache_dir / f"{hashlib.md5(key.encode()).hexdigest()}.pkl"
-        with open(cache_file, 'wb') as f:
-            pickle.dump(value, f)
-```
-
-### Data Structure Selection
-
-**Choose Appropriate Data Structures**
-- Use NumPy arrays for numerical data (faster than Python lists)
-- Use deque for FIFO operations (faster than list.pop(0))
-- Use sets for membership testing (O(1) vs O(n) for lists)
-
-```python
-from collections import deque
-import numpy as np
-
-# Efficient: NumPy array for numerical operations
-signal = np.array(audio_data, dtype=np.float32)
-
-# Efficient: Deque for sliding window operations
-buffer = deque(maxlen=1024)
-for sample in stream:
-    buffer.append(sample)
-    process_window(buffer)
-
-# Inefficient: List with pop(0)
-buffer = []
-for sample in stream:
-    buffer.append(sample)
-    if len(buffer) > 1024:
-        buffer.pop(0)  # O(n) operation
-```
-
-### Algorithm Complexity
-
-**Choose Efficient Algorithms**
-- Prefer O(n log n) over O(n²) when possible
-- Use appropriate search and sort algorithms
-- Consider trade-offs between time and space complexity
-
-```python
-# Efficient: FFT for frequency analysis - O(n log n)
-from scipy.fft import fft
-spectrum = fft(signal)
-
-# Inefficient: Naive DFT implementation - O(n²)
-def naive_dft(signal):
-    N = len(signal)
-    return [sum(signal[n] * np.exp(-2j * np.pi * k * n / N) 
-                for n in range(N)) for k in range(N)]
-```
-
-### Resource Cleanup
-
-**Proper Resource Management**
-- Use context managers for file handles
-- Close resources explicitly when not using context managers
-- Clean up temporary files and caches
-
-```python
-# Efficient: Context manager ensures cleanup
-with AudioFile(path) as audio:
-    process(audio.read())
-# File automatically closed
-
-# Inefficient: Manual management
-audio = AudioFile(path)
-process(audio.read())
-# File may not be closed if exception occurs
-```
+*Note: This document is a high-level architecture reference. If there is any conflict between creative metaphors and the concrete technical descriptions, the technical descriptions take precedence and the system design should be updated accordingly.*
 
 ## 🔮 Future Architecture Evolution
 

@@ -1,0 +1,189 @@
+name: Iteration Status Email Updates
+
+on:
+  # Trigger on updates to the January 2026 progress dashboard
+  push:
+    branches:
+      - main
+      - WIP
+    paths:
+      - 'docs/january-2026-progress.md'
+  
+  # Scheduled runs daily during the iteration period at 9 AM UTC
+  schedule:
+    # Run daily at 9:00 AM UTC (cron format: minute hour day month weekday)
+    - cron: '0 9 * * *'
+  
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  parse-and-notify:
+    name: Parse Dashboard and Send Notifications
+    runs-on: ubuntu-latest
+    
+    # Limit permissions for security (principle of least privilege)
+    permissions:
+      contents: read  # Read access to checkout the repository
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Parse dashboard for task statuses
+        id: parse
+        run: |
+          # Parse the dashboard file for runner and hand emoji tasks
+          DASHBOARD_FILE="docs/january-2026-progress.md"
+          
+          if [ ! -f "$DASHBOARD_FILE" ]; then
+            echo "Dashboard file not found: $DASHBOARD_FILE"
+            exit 1
+          fi
+          
+          echo "Parsing dashboard file..."
+          
+          # Extract tasks with runner emoji (in progress)
+          # Filtering strategy:
+          # 1. Find lines with 🏃 emoji
+          # 2. Exclude markdown headers (lines starting with ##)
+          # 3. Exclude legend/status lines that contain "(runner" or "emoji)" after the emoji
+          # 4. Accept task lines that follow format: "- 🏃 Task description"
+          RUNNER_TASKS=$(grep -n "🏃" "$DASHBOARD_FILE" | \
+                        grep -v "^[0-9]*:##" | \
+                        grep -v "(runner" | \
+                        grep -v "emoji)" | \
+                        grep "^[0-9]*:-[[:space:]]*🏃" || true)
+           
+          # Extract tasks with hand emoji (blocked/needs review)
+          # Same filtering strategy as above
+          HAND_TASKS=$(grep -n "✋" "$DASHBOARD_FILE" | \
+                      grep -v "^[0-9]*:##" | \
+                      grep -v "(hand" | \
+                      grep -v "emoji)" | \
+                      grep "^[0-9]*:-[[:space:]]*✋" || true)
+           
+          # Count tasks
+          RUNNER_COUNT=$(echo "$RUNNER_TASKS" | grep -c . || true)
+          HAND_COUNT=$(echo "$HAND_TASKS" | grep -c . || true)
+          
+          echo "Found $RUNNER_COUNT tasks in progress"
+          echo "Found $HAND_COUNT blocked tasks"
+          
+          # Display sample of found tasks for debugging
+          if [ "$RUNNER_COUNT" -gt 0 ]; then
+            echo "Sample in-progress task:"
+            echo "$RUNNER_TASKS" | head -1
+          fi
+          
+          if [ "$HAND_COUNT" -gt 0 ]; then
+            echo "Sample blocked task:"
+            echo "$HAND_TASKS" | head -1
+          fi
+          
+          # Save results to output
+          {
+            echo 'RUNNER_TASKS<<EOF'
+            echo "$RUNNER_TASKS"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+          
+          {
+            echo 'HAND_TASKS<<EOF'
+            echo "$HAND_TASKS"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+          
+          echo "RUNNER_COUNT=$RUNNER_COUNT" >> $GITHUB_OUTPUT
+          echo "HAND_COUNT=$HAND_COUNT" >> $GITHUB_OUTPUT
+      
+      - name: Generate email content
+        id: email
+        run: |
+          # Generate email subject and body
+          SUBJECT="[Symphonic-Joules] Daily Iteration Status - $(date +%Y-%m-%d)"
+          
+          # Build email body
+          BODY="Hello Team Leads,
+
+          This is your daily iteration status update for Symphonic-Joules.
+
+          === IN PROGRESS TASKS (🏃) ===
+          Count: ${{ steps.parse.outputs.RUNNER_COUNT }}
+
+          ${{ steps.parse.outputs.RUNNER_TASKS }}
+
+          === BLOCKED/NEEDS REVIEW TASKS (✋) ===
+          Count: ${{ steps.parse.outputs.HAND_COUNT }}
+
+          ${{ steps.parse.outputs.HAND_TASKS }}
+
+          === SUMMARY ===
+          - Tasks in progress: ${{ steps.parse.outputs.RUNNER_COUNT }}
+          - Tasks blocked/needing review: ${{ steps.parse.outputs.HAND_COUNT }}
+
+          View full dashboard: https://github.com/${{ github.repository }}/blob/${{ github.sha }}/docs/january-2026-progress.md
+
+          Triggered by: ${{ github.event_name }}
+          Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ---
+          Automated notification from Symphonic-Joules Iteration Status System
+          "
+          
+          # Save to file for email action
+          echo "$BODY" > email_body.txt
+          echo "$SUBJECT" > email_subject.txt
+          
+          echo "Email content generated"
+      
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          # SMTP server configuration (using secrets)
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          
+          # Email content
+          subject: file://email_subject.txt
+          body: file://email_body.txt
+          
+          # Recipients (team leads)
+          to: ${{ secrets.TEAM_LEADS_EMAIL }}
+          from: ${{ secrets.SENDER_EMAIL }}
+          
+          # Optional: CC or BCC
+          # cc: additional@example.com
+          # bcc: monitoring@example.com
+          
+          # Optional: Attach the full dashboard
+          # attachments: docs/january-2026-progress.md
+          
+          # Connection settings
+          secure: true
+          ignore_cert: false
+      
+      - name: Notification summary
+        if: success()
+        run: |
+          echo "✅ Email notification sent successfully!"
+          echo "Recipients: Team Leads"
+          echo "In Progress Tasks: ${{ steps.parse.outputs.RUNNER_COUNT }}"
+          echo "Blocked Tasks: ${{ steps.parse.outputs.HAND_COUNT }}"
+      
+      - name: Error handling
+        if: failure()
+        run: |
+          echo "❌ Failed to send email notification"
+          echo "Please check:"
+          echo "  1. SMTP secrets are configured correctly"
+          echo "  2. Email server is accessible"
+          echo "  3. Dashboard file exists and is parseable"
+          exit 1
