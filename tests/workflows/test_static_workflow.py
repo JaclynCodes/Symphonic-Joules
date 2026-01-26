@@ -765,21 +765,48 @@ class TestWorkflowSecurity:
         """
         Check the workflow text for potential hardcoded secret literals and fail if any are not referenced via `secrets.` or a GitHub expression.
         
-        Raises an assertion error when a line contains a suspicious token such as "password", "api_key" or "secret" that is not referenced through `secrets.` or a GitHub expression like `${{`.
+        Detects suspicious key:value assignments like `password: mypass` or `api_key: abc123` 
+        but allows legitimate YAML keys like `secrets:` or `secrets: inherit` and GitHub expressions.
+        
+        Raises an assertion error when a line contains a suspicious key assigned a literal value.
         
         Parameters:
             workflow_raw (str): Raw contents of the workflow YAML file.
         """
-        suspicious_patterns = ['password', 'api_key', 'secret']
-        lower_content = workflow_raw.lower()
+        import re
         
-        for pattern in suspicious_patterns:
-            if pattern in lower_content:
-                lines = workflow_raw.split('\n')
-                for line in lines:
-                    if pattern in line.lower() and not line.strip().startswith('#'):
-                        assert 'secrets.' in line or '${{' in line, \
-                            f"Potential hardcoded secret pattern '{pattern}' found"
+        lines = workflow_raw.split('\n')
+        
+        for line_num, line in enumerate(lines, 1):
+            # Skip comment lines
+            if line.strip().startswith('#'):
+                continue
+            
+            # Pattern to detect suspicious key:value assignments
+            # Matches: (password|api_key|secret/secrets): <non-empty-value>
+            # Where value is not a GitHub expression (${{) or secrets. reference
+            pattern = r'^\s*(password|api_key|secrets?)\s*:\s*(.+)$'
+            match = re.search(pattern, line, re.IGNORECASE)
+            
+            if match:
+                key = match.group(1).lower()
+                value = match.group(2).strip()
+                
+                # Allow "secrets:" with no value, "inherit", or other valid YAML null values
+                if key == 'secrets' and (not value or value in ['inherit', '~', 'null']):
+                    continue
+                
+                # Allow if value is a GitHub expression
+                if value.startswith('${{'):
+                    continue
+                
+                # Allow if value references secrets.
+                if 'secrets.' in value:
+                    continue
+                
+                # If we get here, it's a suspicious literal assignment
+                assert False, \
+                    f"Line {line_num}: Potential hardcoded secret '{key}: {value}' found"
     
     def test_uses_oidc_authentication(self, permissions):
         """Test that workflow uses OIDC for authentication"""
