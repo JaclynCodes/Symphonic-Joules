@@ -17,7 +17,13 @@ This test suite validates the GitHub Actions workflow for static content deploym
 import pytest
 import yaml
 import os
+import re
 from pathlib import Path
+
+
+# Pattern to detect suspicious key:value assignments in YAML workflows
+# Matches: (password|api_key|secret/secrets): <non-empty-value>
+HARDCODED_SECRET_PATTERN = re.compile(r'^\s*(password|api_key|secrets?)\s*:\s*(.+)$', re.IGNORECASE)
 
 
 # Module-level fixtures to cache expensive operations
@@ -773,8 +779,6 @@ class TestWorkflowSecurity:
         Parameters:
             workflow_raw (str): Raw contents of the workflow YAML file.
         """
-        import re
-        
         lines = workflow_raw.split('\n')
         
         for line_num, line in enumerate(lines, 1):
@@ -782,11 +786,9 @@ class TestWorkflowSecurity:
             if line.strip().startswith('#'):
                 continue
             
-            # Pattern to detect suspicious key:value assignments
-            # Matches: (password|api_key|secret/secrets): <non-empty-value>
+            # Use module-level pattern to detect suspicious key:value assignments
             # Where value is not a GitHub expression (${{) or secrets. reference
-            pattern = r'^\s*(password|api_key|secrets?)\s*:\s*(.+)$'
-            match = re.search(pattern, line, re.IGNORECASE)
+            match = HARDCODED_SECRET_PATTERN.search(line)
             
             if match:
                 key = match.group(1).lower()
