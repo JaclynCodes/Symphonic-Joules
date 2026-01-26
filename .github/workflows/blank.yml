@@ -54,7 +54,7 @@ jobs:
       # Run tests with pytest
       - name: Run tests with pytest
         run: |
-          python -m pytest tests/ --cache-clear
+          python -m pytest tests/
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
