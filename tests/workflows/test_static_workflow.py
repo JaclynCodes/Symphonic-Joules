@@ -22,12 +22,13 @@ from pathlib import Path
 
 
 # Valid YAML null/empty values that are allowed for the "secrets:" key
-YAML_NULL_VALUES = ['inherit', '~', 'null', 'Null', 'NULL']
+# Using a set for O(1) lookup performance
+YAML_NULL_VALUES = {'inherit', '~', 'null', 'Null', 'NULL'}
 
 # Pattern to detect suspicious key:value assignments in YAML workflows
 # Matches: (password|api_key|secret/secrets): <non-empty-value>
-# Uses [^\r\n]+ to explicitly match only non-newline characters
-HARDCODED_SECRET_PATTERN = re.compile(r'^\s*(password|api_key|secrets?)\s*:\s*([^\r\n]+)$', re.IGNORECASE)
+HARDCODED_SECRET_PATTERN = re.compile(r'^\s*(password|api_key|secrets?)\s*:\s*(.+)$', re.IGNORECASE)
+
 
 
 # Module-level fixtures to cache expensive operations
