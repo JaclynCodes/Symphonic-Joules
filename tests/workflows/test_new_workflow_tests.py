@@ -131,9 +131,6 @@ class TestNewFilesFollowPattern:
         
         Asserts that each of test_jekyll_workflow.py and test_static_workflow.py contains imports for: `pytest`, `yaml`, `os` and `Path`.
         """
-        # Get imports from blank test file (reference)
-        with open(blank_test_file, 'r') as f:
-            pass
         
         required_imports = ['pytest', 'yaml', 'os', 'Path']
         
