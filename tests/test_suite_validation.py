@@ -113,194 +113,190 @@ class TestTestFileStructure:
 class TestTestFileContent:
     """Validate content and structure within test files"""
     
-    def test_all_test_files_have_docstrings(self, test_files):
+    def test_all_test_files_have_docstrings(self, test_files, test_file_ast_cache):
         """Test that all test files have module-level docstrings"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                docstring = ast.get_docstring(tree)
-                
-                assert docstring is not None, \
-                    f"Test file {test_file.name} missing module docstring"
-                assert len(docstring) > 50, \
-                    f"Test file {test_file.name} docstring too short"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            docstring = ast.get_docstring(tree)
+            
+            assert docstring is not None, \
+                f"Test file {test_file.name} missing module docstring"
+            assert len(docstring) > 50, \
+                f"Test file {test_file.name} docstring too short"
     
-    def test_all_test_files_import_pytest(self, test_files):
+    def test_all_test_files_import_pytest(self, test_files, test_file_contents_cache):
         """Test that all test files import pytest"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                assert 'import pytest' in content, \
-                    f"Test file {test_file.name} should import pytest"
+            content = test_file_contents_cache[test_file]
+            assert 'import pytest' in content, \
+                f"Test file {test_file.name} should import pytest"
     
-    def test_all_test_files_import_yaml(self, test_files):
+    def test_all_test_files_import_yaml(self, test_files, test_file_contents_cache):
         """Test that workflow test files import yaml for parsing"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                assert 'import yaml' in content, \
-                    f"Test file {test_file.name} should import yaml"
+            content = test_file_contents_cache[test_file]
+            assert 'import yaml' in content, \
+                f"Test file {test_file.name} should import yaml"
     
-    def test_all_test_files_have_test_classes(self, test_files):
+    def test_all_test_files_have_test_classes(self, test_files, test_file_ast_cache):
         """Test that all test files contain test classes"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                test_classes = [node for node in ast.walk(tree) 
-                               if isinstance(node, ast.ClassDef) 
-                               and node.name.startswith('Test')]
-                
-                assert len(test_classes) > 0, \
-                    f"Test file {test_file.name} has no test classes"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            test_classes = [node for node in ast.walk(tree) 
+                           if isinstance(node, ast.ClassDef) 
+                           and node.name.startswith('Test')]
+            
+            assert len(test_classes) > 0, \
+                f"Test file {test_file.name} has no test classes"
     
-    def test_test_classes_have_docstrings(self, test_files):
+    def test_test_classes_have_docstrings(self, test_files, test_file_ast_cache):
         """Test that all test classes have docstrings"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                test_classes = [node for node in ast.walk(tree) 
-                               if isinstance(node, ast.ClassDef) 
-                               and node.name.startswith('Test')]
-                
-                for cls in test_classes:
-                    docstring = ast.get_docstring(cls)
-                    assert docstring is not None, \
-                        f"Test class {cls.name} in {test_file.name} missing docstring"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            test_classes = [node for node in ast.walk(tree) 
+                           if isinstance(node, ast.ClassDef) 
+                           and node.name.startswith('Test')]
+            
+            for cls in test_classes:
+                docstring = ast.get_docstring(cls)
+                assert docstring is not None, \
+                    f"Test class {cls.name} in {test_file.name} missing docstring"
 
 
 class TestFixtureUsage:
     """Validate fixture definitions and usage patterns"""
     
-    def test_workflow_path_fixture_exists(self, test_files):
+    def test_workflow_path_fixture_exists(self, test_files, test_file_contents_cache):
         """Test that all test files define workflow_path fixture"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                assert 'def workflow_path()' in content, \
-                    f"Test file {test_file.name} should define workflow_path fixture"
+            content = test_file_contents_cache[test_file]
+            assert 'def workflow_path()' in content, \
+                f"Test file {test_file.name} should define workflow_path fixture"
     
-    def test_workflow_content_fixture_exists(self, test_files):
+    def test_workflow_content_fixture_exists(self, test_files, test_file_contents_cache):
         """Test that all test files define workflow_content fixture"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                assert 'def workflow_content(' in content, \
-                    f"Test file {test_file.name} should define workflow_content fixture"
+            content = test_file_contents_cache[test_file]
+            assert 'def workflow_content(' in content, \
+                f"Test file {test_file.name} should define workflow_content fixture"
     
-    def test_fixtures_use_module_scope(self, test_files):
+    def test_fixtures_use_module_scope(self, test_files, test_file_ast_cache):
         """Test that expensive fixtures use module scope for performance"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef):
-                        # Check if function has pytest.fixture decorator
-                        for decorator in node.decorator_list:
-                            if isinstance(decorator, ast.Call):
-                                if hasattr(decorator.func, 'attr') and \
-                                   decorator.func.attr == 'fixture':
-                                    # Check for scope parameter
-                                    fixture_name = node.name
-                                    if fixture_name in ['workflow_path', 'workflow_raw', 
-                                                       'workflow_content', 'jobs']:
-                                        # These should be module-scoped
-                                        has_module_scope = any(
-                                            isinstance(kw, ast.keyword) and 
-                                            kw.arg == 'scope' and
-                                            isinstance(kw.value, ast.Constant) and
-                                            kw.value.value == 'module'
-                                            for kw in decorator.keywords
-                                        )
-                                        assert has_module_scope, \
-                                            f"Fixture {fixture_name} in {test_file.name} should use module scope"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef):
+                    # Check if function has pytest.fixture decorator
+                    for decorator in node.decorator_list:
+                        if isinstance(decorator, ast.Call):
+                            if hasattr(decorator.func, 'attr') and \
+                               decorator.func.attr == 'fixture':
+                                # Check for scope parameter
+                                fixture_name = node.name
+                                if fixture_name in ['workflow_path', 'workflow_raw', 
+                                                   'workflow_content', 'jobs']:
+                                    # These should be module-scoped
+                                    has_module_scope = any(
+                                        isinstance(kw, ast.keyword) and 
+                                        kw.arg == 'scope' and
+                                        isinstance(kw.value, ast.Constant) and
+                                        kw.value.value == 'module'
+                                        for kw in decorator.keywords
+                                    )
+                                    assert has_module_scope, \
+                                        f"Fixture {fixture_name} in {test_file.name} should use module scope"
 
 
 class TestTestMethodNaming:
     """Validate test method naming conventions"""
     
-    def test_all_test_methods_start_with_test(self, test_files):
+    def test_all_test_methods_start_with_test(self, test_files, test_file_ast_cache):
         """Test that all test methods follow test_* naming convention"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
-                        for item in node.body:
-                            if isinstance(item, ast.FunctionDef) and \
-                               not item.name.startswith('_'):
-                                # Check if it's a pytest fixture
-                                is_fixture = any(
-                                    (hasattr(d, 'id') and d.id == 'pytest' and 
-                                     hasattr(d, 'attr') and d.attr == 'fixture') or
-                                    (hasattr(d, 'attr') and d.attr == 'fixture')
-                                    for d in item.decorator_list
-                                )
-                                if not is_fixture:
-                                    assert item.name.startswith('test_'), \
-                                        f"Method {item.name} in {node.name} should start with 'test_'"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
+                    for item in node.body:
+                        if isinstance(item, ast.FunctionDef) and \
+                           not item.name.startswith('_'):
+                            # Check if it's a pytest fixture
+                            is_fixture = any(
+                                (hasattr(d, 'id') and d.id == 'pytest' and 
+                                 hasattr(d, 'attr') and d.attr == 'fixture') or
+                                (hasattr(d, 'attr') and d.attr == 'fixture')
+                                for d in item.decorator_list
+                            )
+                            if not is_fixture:
+                                assert item.name.startswith('test_'), \
+                                    f"Method {item.name} in {node.name} should start with 'test_'"
     
-    def test_test_methods_have_docstrings(self, test_files):
+    def test_test_methods_have_docstrings(self, test_files, test_file_ast_cache):
         """Test that all test methods have descriptive docstrings"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
-                        for item in node.body:
-                            if isinstance(item, ast.FunctionDef) and \
-                               item.name.startswith('test_'):
-                                docstring = ast.get_docstring(item)
-                                assert docstring is not None, \
-                                    f"Test method {item.name} in {node.name} ({test_file.name}) missing docstring"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
+                    for item in node.body:
+                        if isinstance(item, ast.FunctionDef) and \
+                           item.name.startswith('test_'):
+                            docstring = ast.get_docstring(item)
+                            assert docstring is not None, \
+                                f"Test method {item.name} in {node.name} ({test_file.name}) missing docstring"
     
-    def test_test_names_are_descriptive(self, test_files):
+    def test_test_names_are_descriptive(self, test_files, test_file_ast_cache):
         """Test that test method names are sufficiently descriptive"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
-                        for item in node.body:
-                            if isinstance(item, ast.FunctionDef) and \
-                               item.name.startswith('test_'):
-                                # Name should have at least 3 parts (test_verb_noun_context)
-                                parts = item.name.split('_')
-                                assert len(parts) >= 3, \
-                                    f"Test name {item.name} in {test_file.name} should be more descriptive"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
+                    for item in node.body:
+                        if isinstance(item, ast.FunctionDef) and \
+                           item.name.startswith('test_'):
+                            # Name should have at least 3 parts (test_verb_noun_context)
+                            parts = item.name.split('_')
+                            assert len(parts) >= 3, \
+                                f"Test name {item.name} in {test_file.name} should be more descriptive"
 
 
 class TestTestOrganization:
     """Validate test organization and grouping"""
     
-    def test_tests_grouped_by_functionality(self, test_files):
+    def test_tests_grouped_by_functionality(self, test_files, test_file_ast_cache):
         """Test that tests are organized into logical test classes"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                test_classes = [node for node in ast.walk(tree) 
-                               if isinstance(node, ast.ClassDef) 
-                               and node.name.startswith('Test')]
-                
-                # Should have multiple test classes for organization
-                assert len(test_classes) >= 3, \
-                    f"Test file {test_file.name} should have multiple test classes for organization"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            test_classes = [node for node in ast.walk(tree) 
+                           if isinstance(node, ast.ClassDef) 
+                           and node.name.startswith('Test')]
+            
+            # Should have multiple test classes for organization
+            assert len(test_classes) >= 3, \
+                f"Test file {test_file.name} should have multiple test classes for organization"
     
-    def test_common_test_classes_exist(self, test_files):
+    def test_common_test_classes_exist(self, test_files, test_file_ast_cache):
         """Test that common test class patterns exist across files"""
         common_classes = [
             'TestWorkflowStructure',
@@ -310,57 +306,53 @@ class TestTestOrganization:
         ]
         
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                class_names = [node.name for node in ast.walk(tree) 
-                              if isinstance(node, ast.ClassDef)]
-                
-                # Should have at least 2 of the common test classes
-                common_found = sum(1 for cls in common_classes if cls in class_names)
-                assert common_found >= 2, \
-                    f"Test file {test_file.name} should include common test classes"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            class_names = [node.name for node in ast.walk(tree) 
+                          if isinstance(node, ast.ClassDef)]
+            
+            # Should have at least 2 of the common test classes
+            common_found = sum(1 for cls in common_classes if cls in class_names)
+            assert common_found >= 2, \
+                f"Test file {test_file.name} should include common test classes"
 
 
 class TestTestCoverage:
     """Validate test coverage completeness"""
     
-    def test_tests_validate_yaml_structure(self, test_files):
+    def test_tests_validate_yaml_structure(self, test_files, test_file_contents_cache):
         """Test that all test files validate YAML structure"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                assert 'yaml' in content.lower() or 'YAML' in content, \
-                    f"Test file {test_file.name} should validate YAML structure"
+            content = test_file_contents_cache[test_file]
+            assert 'yaml' in content.lower() or 'YAML' in content, \
+                f"Test file {test_file.name} should validate YAML structure"
     
-    def test_tests_validate_workflow_metadata(self, test_files):
+    def test_tests_validate_workflow_metadata(self, test_files, test_file_contents_cache):
         """Test that all test files validate workflow metadata"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                # Should test workflow name
-                assert 'name' in content and 'workflow' in content.lower(), \
-                    f"Test file {test_file.name} should validate workflow metadata"
+            content = test_file_contents_cache[test_file]
+            # Should test workflow name
+            assert 'name' in content and 'workflow' in content.lower(), \
+                f"Test file {test_file.name} should validate workflow metadata"
     
-    def test_tests_validate_security(self, test_files):
+    def test_tests_validate_security(self, test_files, test_file_contents_cache):
         """Test that all test files include security validation"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                security_keywords = ['security', 'permission', 'token', 'secret']
-                has_security_test = any(keyword in content.lower() 
-                                       for keyword in security_keywords)
-                assert has_security_test, \
-                    f"Test file {test_file.name} should include security validation"
+            content = test_file_contents_cache[test_file]
+            security_keywords = ['security', 'permission', 'token', 'secret']
+            has_security_test = any(keyword in content.lower() 
+                                   for keyword in security_keywords)
+            assert has_security_test, \
+                f"Test file {test_file.name} should include security validation"
     
-    def test_tests_validate_edge_cases(self, test_files):
+    def test_tests_validate_edge_cases(self, test_files, test_file_contents_cache):
         """Test that all test files include edge case testing"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                assert 'edge' in content.lower() or 'Edge' in content, \
-                    f"Test file {test_file.name} should include edge case testing"
+            content = test_file_contents_cache[test_file]
+            assert 'edge' in content.lower() or 'Edge' in content, \
+                f"Test file {test_file.name} should include edge case testing"
 
 
 class TestREADMEAccuracy:
@@ -442,79 +434,76 @@ class TestTestInfrastructure:
 class TestCodeQuality:
     """Validate code quality in test files"""
     
-    def test_no_syntax_errors(self, test_files):
+    def test_no_syntax_errors(self, test_files, test_file_ast_cache):
         """Test that all test files have valid Python syntax"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                try:
-                    ast.parse(content)
-                except SyntaxError as e:
-                    pytest.fail(f"Syntax error in {test_file.name}: {e}")
+            tree = test_file_ast_cache[test_file]
+            # If tree is None, parsing failed during cache creation
+            assert tree is not None, \
+                f"Syntax error in {test_file.name} - file failed to parse"
     
-    def test_no_unused_imports(self, test_files):
+    def test_no_unused_imports(self, test_files, test_file_contents_cache):
         """Test for obviously unused imports (basic check)"""
         # This is a simplified check - full unused import detection requires more complex analysis
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                
-                # Check if Path is imported but never used
-                if 'from pathlib import Path' in content:
-                    # Path should be used somewhere
-                    assert 'Path(' in content or 'Path.' in content, \
-                        f"Path imported but not used in {test_file.name}"
+            content = test_file_contents_cache[test_file]
+            
+            # Check if Path is imported but never used
+            if 'from pathlib import Path' in content:
+                # Path should be used somewhere
+                assert 'Path(' in content or 'Path.' in content, \
+                    f"Path imported but not used in {test_file.name}"
     
-    def test_consistent_indentation(self, test_files):
+    def test_consistent_indentation(self, test_files, test_file_contents_cache):
         """Test that all files use consistent indentation (4 spaces)"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                lines = f.readlines()
-                
-                for i, line in enumerate(lines, 1):
-                    if line.strip() and not line.strip().startswith('#'):
-                        leading = len(line) - len(line.lstrip(' '))
-                        if leading > 0:
-                            assert leading % 4 == 0, \
-                                f"Inconsistent indentation in {test_file.name} line {i}"
+            content = test_file_contents_cache[test_file]
+            lines = content.split('\n')
+            
+            for i, line in enumerate(lines, 1):
+                if line.strip() and not line.strip().startswith('#'):
+                    leading = len(line) - len(line.lstrip(' '))
+                    if leading > 0:
+                        assert leading % 4 == 0, \
+                            f"Inconsistent indentation in {test_file.name} line {i}"
 
 
 class TestTestCompleteness:
     """Validate completeness of test coverage"""
     
-    def test_sufficient_test_count(self, test_files):
+    def test_sufficient_test_count(self, test_files, test_file_ast_cache):
         """Test that each test file has sufficient test coverage"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                test_methods = []
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
-                        for item in node.body:
-                            if isinstance(item, ast.FunctionDef) and \
-                               item.name.startswith('test_'):
-                                test_methods.append(item.name)
-                
-                # Each test file should have at least 20 tests for comprehensive coverage
-                assert len(test_methods) >= 20, \
-                    f"Test file {test_file.name} has only {len(test_methods)} tests, should have at least 20"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            test_methods = []
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
+                    for item in node.body:
+                        if isinstance(item, ast.FunctionDef) and \
+                           item.name.startswith('test_'):
+                            test_methods.append(item.name)
+            
+            # Each test file should have at least 20 tests for comprehensive coverage
+            assert len(test_methods) >= 20, \
+                f"Test file {test_file.name} has only {len(test_methods)} tests, should have at least 20"
     
-    def test_minimum_test_classes(self, test_files):
+    def test_minimum_test_classes(self, test_files, test_file_ast_cache):
         """Test that each file has minimum number of test classes for organization"""
         for test_file in test_files:
-            with open(test_file, 'r') as f:
-                content = f.read()
-                tree = ast.parse(content)
-                
-                test_classes = [node for node in ast.walk(tree) 
-                               if isinstance(node, ast.ClassDef) 
-                               and node.name.startswith('Test')]
-                
-                # Should have at least 5 test classes for good organization
-                assert len(test_classes) >= 5, \
-                    f"Test file {test_file.name} should have at least 5 test classes"
+            tree = test_file_ast_cache[test_file]
+            if tree is None:
+                continue
+            
+            test_classes = [node for node in ast.walk(tree) 
+                           if isinstance(node, ast.ClassDef) 
+                           and node.name.startswith('Test')]
+            
+            # Should have at least 5 test classes for good organization
+            assert len(test_classes) >= 5, \
+                f"Test file {test_file.name} should have at least 5 test classes"
 
 
 if __name__ == '__main__':
