@@ -29,8 +29,6 @@ YAML_NULL_VALUES = {'inherit', '~', 'null', 'Null', 'NULL'}
 # Matches: (password|api_key|secret or secrets): <non-empty-value>
 HARDCODED_SECRET_PATTERN = re.compile(r'^\s*(password|api_key|secrets?)\s*:\s*(.+)$', re.IGNORECASE)
 
-
-
 # Module-level fixtures to cache expensive operations
 @pytest.fixture(scope='module')
 def workflow_path():
