@@ -800,11 +800,11 @@ class TestWorkflowSecurity:
                 value = match.group(2).strip()
                 
                 # Allow "secrets:" with no value, "inherit", or other valid YAML null values
-                if key == 'secrets' and (not value or value in YAML_NULL_VALUES):
+                if key == 'secrets' and (not value or value.lower() in YAML_NULL_VALUES):
                     continue
                 
                 # Allow if value is a GitHub expression
-                if '${{' .in value:
+                if '${{' in value:
                     continue
                 
                 # Allow if value references secrets.
