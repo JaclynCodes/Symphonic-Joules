@@ -777,13 +777,6 @@ class TestWorkflowSecurity:
         Check the workflow text for potential hardcoded secret literals and fail if any are not referenced via `secrets.` or a GitHub expression.
         
         Detects suspicious key:value assignments like `password: mypass` or `api_key: abc123` 
-        but allows legitimate YAML keys like `secrets:` or `secrets: inherit` and GitHub expressions.
-        
-        Raises an assertion error when a line contains a suspicious key assigned a literal value.
-        
-        Parameters:
-            workflow_raw (str): Raw contents of the workflow YAML file.
-        """
         lines = workflow_raw.split('\n')
         
         for line_num, line in enumerate(lines, 1):
@@ -800,7 +793,7 @@ class TestWorkflowSecurity:
                 value = match.group(2).strip()
                 
                 # Allow "secrets:" with no value, "inherit", or other valid YAML null values
-                if key == 'secrets' and (not value or value.lower() in YAML_NULL_VALUES):
+                if key == 'secrets' and (not value or value in YAML_NULL_VALUES):
                     continue
                 
                 # Allow if value is a GitHub expression
@@ -812,8 +805,9 @@ class TestWorkflowSecurity:
                     continue
                 
                 # If we get here, it's a suspicious literal assignment
-                assert False, \
+                pytest.fail(
                     f"Line {line_num}: Potential hardcoded secret '{key}: {value}' found"
+                )
     
     def test_uses_oidc_authentication(self, permissions):
         """Test that workflow uses OIDC for authentication"""
