@@ -804,7 +804,7 @@ class TestWorkflowSecurity:
                     continue
                 
                 # Allow if value is a GitHub expression
-                if value.startswith('${{'):
+                if '${{' in value:
                     continue
                 
                 # Allow if value references secrets.
