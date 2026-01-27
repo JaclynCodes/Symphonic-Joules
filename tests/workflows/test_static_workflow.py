@@ -26,7 +26,7 @@ from pathlib import Path
 YAML_NULL_VALUES = {'inherit', '~', 'null', 'Null', 'NULL'}
 
 # Pattern to detect suspicious key:value assignments in YAML workflows
-# Matches: (password|api_key|secret/secrets): <non-empty-value>
+# Matches: (password|api_key|secret or secrets): <non-empty-value>
 HARDCODED_SECRET_PATTERN = re.compile(r'^\s*(password|api_key|secrets?)\s*:\s*(.+)$', re.IGNORECASE)
 
 
