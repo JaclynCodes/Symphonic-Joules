@@ -356,11 +356,11 @@ class TestEdgeCases:
     """Tests for edge cases and formatting."""
 
     def test_no_tabs_in_yaml(self, workflow_raw):
-        """Verify that workflow uses spaces, not tabs."""
+        """Verify workflow uses spaces, not tabs."""
         assert '\t' not in workflow_raw, "YAML should use spaces, not tabs"
 
     def test_consistent_indentation(self, workflow_raw):
-        """Verify that indentation is consistent."""
+        """Verify indentation is consistent."""
         lines = workflow_raw.split('\n')
         for i, line in enumerate(lines, 1):
             if line.strip() and not line.strip().startswith('#'):
@@ -369,8 +369,14 @@ class TestEdgeCases:
                     assert leading_spaces % 2 == 0, \
                         f"Line {i} has inconsistent indentation"
 
+    def test_no_duplicate_job_names(self, workflow_content):
+        """Verify there are no duplicate job names."""
+        jobs = workflow_content.get('jobs', {})
+        job_names = list(jobs.keys())
+        assert len(job_names) == len(set(job_names)), "Duplicate job names found"
+
     def test_no_duplicate_step_ids(self, workflow_content):
-        """Verify that step IDs are unique within each job."""
+        """Verify step IDs are unique within each job."""
         jobs = workflow_content.get('jobs', {})
         for job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
@@ -379,7 +385,7 @@ class TestEdgeCases:
                 f"Duplicate step IDs in job '{job_name}'"
 
     def test_no_empty_steps(self, workflow_content):
-        """Verify that there are no empty steps."""
+        """Verify there are no empty steps."""
         jobs = workflow_content.get('jobs', {})
         for job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
@@ -389,7 +395,7 @@ class TestEdgeCases:
                     f"Step {i} in job '{job_name}' missing 'uses' or 'run'"
 
     def test_yaml_is_parseable(self, workflow_content):
-        """Verify that YAML is properly parseable."""
+        """Verify YAML is properly parseable."""
         assert workflow_content is not None, "YAML should parse successfully"
         assert isinstance(workflow_content, dict), "Parsed YAML should be a dict"
 
