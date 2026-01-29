@@ -14,6 +14,7 @@ import soundfile as sf
 from typing import Tuple, Dict, Any, Optional
 
 
+
 def load_audio(path: str, sr: Optional[int] = None, mono: bool = True) -> Tuple[np.ndarray, int, Dict[str, Any]]:
     """
     Load audio file and return waveform, sample rate, and metadata.
@@ -86,9 +87,11 @@ def save_audio(path: str, y: np.ndarray, sr: int) -> None:
         raise ValueError("Cannot save empty waveform")
     
     try:
-        # The docstring should clarify that the expected shape is (n_samples, n_channels).
-        # The heuristic is removed to prevent data corruption on short, multi-channel signals.
-        # Caller must provide waveform in (n_samples, n_channels) orientation.
+        # Transpose if multi-channel audio is in (n_channels, n_samples) format
+        # to match soundfile's expected (n_samples, n_channels) format
+        if y.ndim == 2 and y.shape[0] < y.shape[1]:
+            y = y.T
+            
         sf.write(path, y, sr)
     except Exception as e:
         raise RuntimeError(f"Failed to save audio file {path}: {str(e)}")
