@@ -89,6 +89,27 @@ class TestWorkflowStructure:
         assert isinstance(triggers, dict)
 
 
+class TestWorkflowMetadata:
+    """Tests for workflow metadata and naming."""
+
+    def test_workflow_name_exists(self, workflow_content):
+        """Verify the workflow has a name."""
+        assert 'name' in workflow_content, "Workflow name not defined"
+        assert isinstance(workflow_content['name'], str), "Workflow name must be a string"
+        assert len(workflow_content['name']) > 0, "Workflow name cannot be empty"
+
+    def test_workflow_name_is_descriptive(self, workflow_content):
+        """Verify the workflow name is descriptive."""
+        name = workflow_content['name']
+        assert len(name) > 10, "Workflow name should be descriptive (>10 chars)"
+
+    def test_workflow_name_mentions_iteration_or_email(self, workflow_content):
+        """Verify the workflow name mentions iteration or email."""
+        name = workflow_content['name'].lower()
+        assert 'iteration' in name or 'email' in name or 'status' in name, \
+            "Workflow name should mention its purpose (iteration/email/status)"
+
+
 class TestWorkflowTriggers:
     """Tests for workflow trigger configuration."""
 

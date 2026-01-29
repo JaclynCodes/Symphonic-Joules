@@ -126,24 +126,15 @@ def frame_energy_density(y: np.ndarray, frame_length: int, hop_length: int) -> n
     if hop_length <= 0:
         raise ValueError(f"hop_length must be positive, got {hop_length}")
     
-    # Compute squared values (energy proxy)
-    y_squared = np.square(y.astype(np.float64, copy=False))
-    
-    # Calculate number of frames
-    n_frames = 1 + (len(y) - frame_length) // hop_length
-    
-    if n_frames <= 0:
-        raise ValueError(f"Signal too short for given frame_length ({frame_length})")
-    
-    # Compute energy density for each frame
-    energy_density = np.zeros(n_frames)
-    
-    for frame_index in range(n_frames):
-        start = frame_index * hop_length
-        end = start + frame_length
-        # Mean energy (energy density) in this frame
-        energy_density[frame_index] = np.mean(y_squared[start:end])
-    
+    # Use librosa for efficient framing and vectorized calculation.
+    import librosa
+
+    if y.size < frame_length:
+        raise ValueError(f"Signal is too short ({y.size} samples) for frame_length ({frame_length})")
+
+    y_frames = librosa.util.frame(y, frame_length=frame_length, hop_length=hop_length)
+    energy_density = np.mean(np.square(y_frames.astype(np.float64, copy=False)), axis=0)
+
     return energy_density
 
 

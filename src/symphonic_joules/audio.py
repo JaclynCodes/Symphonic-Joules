@@ -86,6 +86,9 @@ def save_audio(path: str, y: np.ndarray, sr: int) -> None:
         raise ValueError("Cannot save empty waveform")
     
     try:
+        # The docstring should clarify that the expected shape is (n_samples, n_channels).
+        # The heuristic is removed to prevent data corruption on short, multi-channel signals.
+        # y = y.T # This should be handled by the caller to ensure correct orientation.
         sf.write(path, y, sr)
     except Exception as e:
         raise RuntimeError(f"Failed to save audio file {path}: {str(e)}")
