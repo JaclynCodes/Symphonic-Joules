@@ -88,6 +88,27 @@ class TestWorkflowStructure:
         assert isinstance(triggers, dict)
 
 
+class TestWorkflowMetadata:
+    """Tests for workflow metadata and naming."""
+
+    def test_workflow_name_exists(self, workflow_content):
+        """Verify the workflow has a name."""
+        assert 'name' in workflow_content, "Workflow name not defined"
+        assert isinstance(workflow_content['name'], str), "Workflow name must be a string"
+        assert len(workflow_content['name']) > 0, "Workflow name cannot be empty"
+
+    def test_workflow_name_is_descriptive(self, workflow_content):
+        """Verify the workflow name is descriptive."""
+        name = workflow_content['name']
+        assert len(name) > 10, "Workflow name should be descriptive (>10 chars)"
+
+    def test_workflow_name_mentions_iteration_or_email(self, workflow_content):
+        """Verify the workflow name mentions iteration or email."""
+        name = workflow_content['name'].lower()
+        assert 'iteration' in name or 'email' in name or 'status' in name, \
+            "Workflow name should mention its purpose (iteration/email/status)"
+
+
 class TestWorkflowTriggers:
     """Tests for workflow trigger configuration."""
 
@@ -291,7 +312,7 @@ class TestWorkflowDocumentation:
         assert 'SMTP_USERNAME' in content or 'email' in content.lower()
 
 
-class TestSecurityBestPractices:
+class TestWorkflowSecurity:
     """Tests for security considerations."""
 
     def test_no_hardcoded_credentials(self, workflow_raw):
@@ -328,6 +349,54 @@ class TestSecurityBestPractices:
             if 'secure' in with_config:
                 # If secure is specified, it should be true
                 assert with_config['secure'] is True or with_config['secure'] == 'true'
+
+
+class TestEdgeCases:
+    """Tests for edge cases and formatting."""
+
+    def test_no_tabs_in_yaml(self, workflow_raw):
+        """Verify workflow uses spaces, not tabs."""
+        assert '\t' not in workflow_raw, "YAML should use spaces, not tabs"
+
+    def test_consistent_indentation(self, workflow_raw):
+        """Verify indentation is consistent."""
+        lines = workflow_raw.split('\n')
+        for i, line in enumerate(lines, 1):
+            if line.strip() and not line.strip().startswith('#'):
+                leading_spaces = len(line) - len(line.lstrip(' '))
+                if leading_spaces > 0:
+                    assert leading_spaces % 2 == 0, \
+                        f"Line {i} has inconsistent indentation"
+
+    def test_no_duplicate_job_names(self, workflow_content):
+        """Verify there are no duplicate job names."""
+        jobs = workflow_content.get('jobs', {})
+        job_names = list(jobs.keys())
+        assert len(job_names) == len(set(job_names)), "Duplicate job names found"
+
+    def test_no_duplicate_step_ids(self, workflow_content):
+        """Verify step IDs are unique within each job."""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            step_ids = [s.get('id') for s in steps if 'id' in s]
+            assert len(step_ids) == len(set(step_ids)), \
+                f"Duplicate step IDs in job '{job_name}'"
+
+    def test_no_empty_steps(self, workflow_content):
+        """Verify there are no empty steps."""
+        jobs = workflow_content.get('jobs', {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            for i, step in enumerate(steps):
+                assert len(step) > 0, f"Step {i} in job '{job_name}' is empty"
+                assert 'uses' in step or 'run' in step, \
+                    f"Step {i} in job '{job_name}' missing 'uses' or 'run'"
+
+    def test_yaml_is_parseable(self, workflow_content):
+        """Verify YAML is properly parseable."""
+        assert workflow_content is not None, "YAML should parse successfully"
+        assert isinstance(workflow_content, dict), "Parsed YAML should be a dict"
 
 
 if __name__ == '__main__':

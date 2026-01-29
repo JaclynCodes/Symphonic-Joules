@@ -58,19 +58,19 @@ jobs:
                         grep -v "^[0-9]*:##" | \
                         grep -v "(runner" | \
                         grep -v "emoji)" | \
-                        grep "^[0-9]*:- 🏃 " || true)
-          
+                        grep "^[0-9]*:-[[:space:]]*🏃" || true)
+           
           # Extract tasks with hand emoji (blocked/needs review)
           # Same filtering strategy as above
           HAND_TASKS=$(grep -n "✋" "$DASHBOARD_FILE" | \
                       grep -v "^[0-9]*:##" | \
                       grep -v "(hand" | \
                       grep -v "emoji)" | \
-                      grep "^[0-9]*:- ✋ " || true)
-          
+                      grep "^[0-9]*:-[[:space:]]*✋" || true)
+           
           # Count tasks
-          RUNNER_COUNT=$(echo "$RUNNER_TASKS" | grep -c . || echo "0")
-          HAND_COUNT=$(echo "$HAND_TASKS" | grep -c . || echo "0")
+          RUNNER_COUNT=$(echo "$RUNNER_TASKS" | grep -c . || true)
+          HAND_COUNT=$(echo "$HAND_TASKS" | grep -c . || true)
           
           echo "Found $RUNNER_COUNT tasks in progress"
           echo "Found $HAND_COUNT blocked tasks"
@@ -127,7 +127,7 @@ jobs:
           - Tasks in progress: ${{ steps.parse.outputs.RUNNER_COUNT }}
           - Tasks blocked/needing review: ${{ steps.parse.outputs.HAND_COUNT }}
 
-          View full dashboard: https://github.com/${{ github.repository }}/blob/main/docs/january-2026-progress.md
+          View full dashboard: https://github.com/${{ github.repository }}/blob/${{ github.sha }}/docs/january-2026-progress.md
 
           Triggered by: ${{ github.event_name }}
           Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
