@@ -88,7 +88,8 @@ def save_audio(path: str, y: np.ndarray, sr: int) -> None:
     try:
         # The docstring should clarify that the expected shape is (n_samples, n_channels).
         # The heuristic is removed to prevent data corruption on short, multi-channel signals.
-        # y = y.T # This should be handled by the caller to ensure correct orientation.
+        if y.ndim > 1 and y.shape[0] < y.shape[1]: # Heuristic to check if channels are first dimension
+            y = y.T # Transpose if channels are the first dimension
         sf.write(path, y, sr)
     except Exception as e:
         raise RuntimeError(f"Failed to save audio file {path}: {str(e)}")
