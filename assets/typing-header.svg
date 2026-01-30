@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 100" width="800" height="100">
+  <defs>
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .title {
+        font-family: 'Courier New', monospace;
+        font-size: 32px;
+        font-weight: bold;
+        fill: #00ff88;
+        animation: fadeIn 2s ease-in;
+      }
+      .subtitle {
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        fill: #888;
+        font-style: italic;
+        animation: fadeIn 3s ease-in;
+      }
+      .cursor {
+        fill: #00ff88;
+        animation: blink 1s step-end infinite;
+      }
+      @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+      }
+    </style>
+  </defs>
+  
+  <rect width="800" height="100" fill="#0d1117"/>
+  
+  <text x="20" y="45" class="title">Symphonic-Joules</text>
+  <rect x="340" y="25" width="3" height="25" class="cursor"/>
+  
+  <text x="20" y="75" class="subtitle">
+    Where sound meets science, harmony meets energy
+  </text>
+</svg>
+
