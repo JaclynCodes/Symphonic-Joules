@@ -25,6 +25,8 @@ jobs:
   check-and-update:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'JaclynCodes'
+    permissions:
+      contents: write  # Needed to push changes
     steps:
       - name: Checkout
         uses: actions/checkout@v4
