@@ -79,7 +79,8 @@ jobs:
             if [ -n "${{ inputs.version }}" ]; then
               echo "Updating ${{ inputs.package }} to version \
           ${{ inputs.version }}"
-              sed -i "s/${{ inputs.package }}.*/${{ inputs.package }}==\
+              # Use word boundaries to match exact package name
+              sed -i "s/^${{ inputs.package }}[>=<].*/${{ inputs.package }}==\
           ${{ inputs.version }}/" requirements.txt
             else
               echo "Updating ${{ inputs.package }} to latest \
@@ -88,22 +89,30 @@ jobs:
               LATEST=$(pip index versions "${{ inputs.package }}" | \
           grep "Available versions:" | head -1 | cut -d: -f2 | \
           tr ',' '\n' | head -1 | xargs)
-              sed -i "s/${{ inputs.package }}.*/${{ inputs.package }}>=\
+              if [ -z "$LATEST" ]; then
+                echo "Error: Could not determine latest version for \
+          ${{ inputs.package }}"
+                exit 1
+              fi
+              # Use word boundaries to match exact package name
+              sed -i "s/^${{ inputs.package }}[>=<].*/${{ inputs.package }}>=\
           $LATEST/" requirements.txt
             fi
           else
-            echo "Checking all packages for updates..."
-            # Placeholder - actual update logic needs more sophistication
-            echo "Manual review recommended for bulk updates"
+            echo "No specific package provided for update."
+            echo "Please run manually with package name to update."
+            echo "Bulk updates require manual review and are not \
+          automated."
+            exit 0
           fi
 
           # Commit changes if there are any
           if git diff --quiet requirements.txt; then
             echo "No changes to commit"
+            exit 0
           else
             git add requirements.txt
-            COMMIT_MSG="Update dependencies: \
-          ${{ inputs.package || 'automated check' }}"
+            COMMIT_MSG="Update ${{ inputs.package }} dependency"
             git commit -m "$COMMIT_MSG"
             git push origin "$BRANCH_NAME"
 
