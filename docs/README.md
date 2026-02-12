@@ -12,6 +12,7 @@ Welcome to the Symphonic-Joules documentation! This directory contains comprehen
 - **[Performance Optimization](performance-optimization.md)** - Best practices for efficient code
 - **[Test Performance Guide](test-performance-guide.md)** - Writing fast and efficient tests
 - **[Archive Review Process](archive-review-process.md)** - Guidelines for reviewing uploaded code and archives
+- **[GitHub Workflows](workflows.md)** - Automated workflows and CI/CD documentation
 - **[FAQ](faq.md)** - Frequently asked questions
 
 ## 🎯 Quick Navigation
@@ -27,6 +28,7 @@ Welcome to the Symphonic-Joules documentation! This directory contains comprehen
 - [Architecture Overview](architecture.md)
 - [Archive Review Process](archive-review-process.md)
 - [Test Performance Guide](test-performance-guide.md)
+- [GitHub Workflows](workflows.md)
 - [API Reference](api-reference.md)
 
 ## 🔄 Keeping Documentation Updated
