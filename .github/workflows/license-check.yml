@@ -1,0 +1,81 @@
+# License Check workflow
+name: License Check
+permissions:
+  contents: read
+
+"on":
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  license-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Install license checking tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-licenses licensecheck
+
+    - name: Check project license exists
+      run: |
+        if [ ! -f LICENSE ]; then
+          echo "❌ LICENSE file not found in repository root"
+          exit 1
+        else
+          echo "✅ LICENSE file found"
+          echo "License content:"
+          head -5 LICENSE
+        fi
+
+    - name: Install dependencies for license scanning
+      run: |
+        if [ -f tests/requirements.txt ]; then
+          pip install -r tests/requirements.txt
+        fi
+
+    - name: Check dependency licenses
+      run: |
+        echo "📋 Checking licenses of installed packages..."
+        pip-licenses --format=table --order=license
+        
+        echo ""
+        echo "🔍 Checking for problematic licenses..."
+        # Check for GPL and other copyleft licenses that might be problematic
+        PROBLEMATIC=$(pip-licenses --format=plain | grep -E "(GPL|AGPL|LGPL)" || true)
+        if [ -n "$PROBLEMATIC" ]; then
+          echo "⚠️  Found potentially problematic licenses:"
+          echo "$PROBLEMATIC"
+          echo "Please review these licenses for compatibility with your project"
+        else
+          echo "✅ No problematic licenses detected"
+        fi
+
+    - name: Generate license report
+      run: |
+        echo "📄 Generating detailed license report..."
+        pip-licenses --format=json --output-file=license-report.json
+        pip-licenses --format=html --output-file=license-report.html
+        
+        echo "License summary:"
+        pip-licenses --summary
+
+    - name: Upload license report
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-report
+        path: |
+          license-report.json
+          license-report.html
+        retention-days: 30
