@@ -22,3 +22,8 @@
    - `git status`
    - `git commit -am "Describe change"`
    - `git push`
+6. Current ideas / backlog
+
+- [ ] Add spectrogram + energy overlay helper.
+- [ ] Write one end-to-end example in docs/.
+- [ ] Improve utils.py with shared helpers.
