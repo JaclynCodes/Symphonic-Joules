@@ -53,6 +53,7 @@ setup(
         "dev": [
             "pytest>=7.0.0",
             "pytest-cov>=3.0.0",
+            "pytest-xdist>=3.0.0",  # Parallel test execution
             "PyYAML>=5.1",
         ],
     },
