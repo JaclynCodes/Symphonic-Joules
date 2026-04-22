@@ -87,6 +87,8 @@ def save_audio(path: str, y: np.ndarray, sr: int) -> None:
         raise ValueError("Cannot save empty waveform")
     
     try:
+        if y.ndim == 2 and y.shape[0] < y.shape[1]:
+            y = y.T
         # Transpose if multi-channel audio is in (n_channels, n_samples) format
         # to match soundfile's expected (n_samples, n_channels) format
         if y.ndim == 2 and y.shape[0] < y.shape[1]:
