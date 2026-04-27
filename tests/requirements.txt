@@ -2,7 +2,7 @@
 pytest>=7.0.0
 pytest-cov>=3.0.0
 pytest-xdist>=3.0.0  # Parallel test execution for faster CI builds
-PyYAML>=5.1
+PyYAML>=6.0.3
 
 # Dependencies needed for testing audio and energy modules
 numpy>=1.21.0
