@@ -1,5 +1,5 @@
 # Test dependencies for Symphonic-Joules
-pytest>=7.0.0
+pytest>=9.0.3
 pytest-cov>=3.0.0
 pytest-xdist>=3.0.0  # Parallel test execution for faster CI builds
 PyYAML>=5.1
