@@ -5,8 +5,11 @@
 numpy>=1.21.0
 
 # Audio processing
-librosa>=0.9.0
-soundfile>=0.12.0
+# NOTE: soundfile depends on the C library libsndfile which has recent CVEs
+# (CVE-2024-50612, CVE-2024-50613, CVE-2025-52194). Deployments must use
+# patched libsndfile or vendor a safe binary.
+librosa>=0.11.0,<0.12.0
+soundfile>=0.13.0,<0.14.0
 
 # Data visualization (to be added as features are implemented)
 # matplotlib>=3.5.0
