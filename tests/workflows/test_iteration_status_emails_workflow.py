@@ -358,7 +358,9 @@ class TestEdgeCases:
 
     def test_no_duplicate_job_names(self, workflow_content):
         """Test that there are no duplicate job names."""
-        job_names = list(workflow_content['jobs'].keys())
+        jobs = workflow_content.get('jobs')
+        assert jobs is not None, "Workflow must define jobs"
+        job_names = list(jobs.keys())
         assert len(job_names) == len(set(job_names)), "Duplicate job names found"
 
     def test_no_duplicate_step_ids(self, workflow_content):
