@@ -388,7 +388,10 @@ class TestEdgeCases:
         missing = required_keys.difference(workflow_content.keys())
         assert not missing, f"Workflow is missing required top-level keys: {', '.join(sorted(missing))}"
         # Verify trigger configuration exists (can be 'on' or True)
-        has_triggers = 'on' in workflow_content or True in workflow_content.keys()
+        has_triggers = (
+            'on' in workflow_content
+            or any(k is True for k in workflow_content.keys())
+        )
         assert has_triggers, "Workflow must have trigger configuration ('on' key)"
 
     def test_workflow_handles_missing_dashboard(self, workflow_content):
